@@ -396,7 +396,7 @@ export const speciesStarterCosts = {
   [SpeciesId.TYRUNT]: 3,
   [SpeciesId.AMAURA]: 2,
   [SpeciesId.HAWLUCHA]: 4,
-  [SpeciesId.DEDENNE]: 2,
+  [SpeciesId.DEDENNE]: 7,
   [SpeciesId.CARBINK]: 2,
   [SpeciesId.GOOMY]: 4,
   [SpeciesId.KLEFKI]: 3,

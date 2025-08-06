@@ -734,7 +734,7 @@ export const starterPassiveAbilities: StarterPassiveAbilities = {
   [SpeciesId.AMAURA]: { 0: AbilityId.ICE_SCALES },
   [SpeciesId.AURORUS]: { 0: AbilityId.ICE_SCALES },
   [SpeciesId.HAWLUCHA]: { 0: AbilityId.MOXIE },
-  [SpeciesId.DEDENNE]: { 0: AbilityId.PIXILATE },
+  [SpeciesId.DEDENNE]: { 0: AbilityId.HADRON_ENGINE },
   [SpeciesId.CARBINK]: { 0: AbilityId.SOLID_ROCK },
   [SpeciesId.GOOMY]: { 0: AbilityId.REGENERATOR },
   [SpeciesId.SLIGGOO]: { 0: AbilityId.POISON_HEAL },
