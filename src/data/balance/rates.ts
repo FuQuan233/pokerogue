@@ -5,11 +5,11 @@
  */
 
 // #region Encounterable properties
-/** `64/65536 -> 1/1024` */
-export const BASE_SHINY_CHANCE = 64;
+/** `512/65536 -> 1/128` */
+export const BASE_SHINY_CHANCE = 512;
 
-/** `256/65536 -> 1/256` */
-export const BASE_HIDDEN_ABILITY_CHANCE = 256;
+/** `2048/65536 -> 1/32` */
+export const BASE_HIDDEN_ABILITY_CHANCE = 2048;
 
 // #region Egg properties
 

@@ -455,7 +455,7 @@ export const starterPassiveAbilities: StarterPassiveAbilities = {
   [SpeciesId.MOTHIM]: { 0: AbilityId.SPEED_BOOST },
   [SpeciesId.COMBEE]: { 0: AbilityId.RUN_AWAY },
   [SpeciesId.VESPIQUEN]: { 0: AbilityId.INTIMIDATE },
-  [SpeciesId.PACHIRISU]: { 0: AbilityId.HONEY_GATHER },
+  [SpeciesId.PACHIRISU]: { 0: AbilityId.ADAPTABILITY },
   [SpeciesId.BUIZEL]: { 0: AbilityId.MOXIE },
   [SpeciesId.FLOATZEL]: { 0: AbilityId.MOXIE },
   [SpeciesId.CHERUBI]: { 0: AbilityId.DROUGHT },
