@@ -308,7 +308,7 @@ function initGreatModifierPool() {
       4,
     ),
     new WeightedModifierType(modifierTypes.BASE_STAT_BOOSTER, 3),
-    new WeightedModifierType(modifierTypes.TERA_SHARD, (party: Pokemon[]) =>
+    new WeightedModifierType(modifierTypes.TERA_SHARD, (party: Pokemon[]) => 
       party.filter(
         p =>
           !(p.hasSpecies(SpeciesId.TERAPAGOS) || p.hasSpecies(SpeciesId.OGERPON) || p.hasSpecies(SpeciesId.SHEDINJA)),
@@ -316,7 +316,7 @@ function initGreatModifierPool() {
         ? 1
         : 0,
     ),
-    new WeightedModifierType(
+    /*new WeightedModifierType(
       modifierTypes.DNA_SPLICERS,
       (party: Pokemon[]) => {
         if (party.filter(p => !p.fusionSpecies).length > 1) {
@@ -330,7 +330,21 @@ function initGreatModifierPool() {
         return 0;
       },
       4,
+    ),*/
+    new WeightedModifierType(
+      modifierTypes.DNA_SPLICERS,
+      (party: Pokemon[]) => {
+        if (
+          globalScene.gameMode.isClassic && // 经典模式限定
+          party.filter(p => !p.fusionSpecies).length > 1
+        ) {
+          return 11; // 你可以根据平衡性设定权重
+        }
+        return 0;
+      },
+      11,
     ),
+    
     new WeightedModifierType(
       modifierTypes.VOUCHER,
       (_party: Pokemon[], rerollCount: number) => (!globalScene.gameMode.isDaily ? Math.max(1 - rerollCount, 0) : 0),
@@ -630,7 +644,7 @@ function initMasterModifierPool() {
           : 0,
       5,
     ),
-    new WeightedModifierType(
+    /*new WeightedModifierType(
       modifierTypes.DNA_SPLICERS,
       (party: Pokemon[]) =>
         !(globalScene.gameMode.isClassic && timedEventManager.areFusionsBoosted()) &&
@@ -639,7 +653,7 @@ function initMasterModifierPool() {
           ? 24
           : 0,
       24,
-    ),
+    ),*/
     new WeightedModifierType(
       modifierTypes.MINI_BLACK_HOLE,
       () =>
