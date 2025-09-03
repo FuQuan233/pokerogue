@@ -307,7 +307,7 @@ function initGreatModifierPool() {
       },
       4,
     ),
-    new WeightedModifierType(modifierTypes.BASE_STAT_BOOSTER, 3),
+    new WeightedModifierType(modifierTypes.BASE_STAT_BOOSTER, 30),
     new WeightedModifierType(modifierTypes.TERA_SHARD, (party: Pokemon[]) => 
       party.filter(
         p =>
@@ -338,11 +338,11 @@ function initGreatModifierPool() {
           globalScene.gameMode.isClassic && // 经典模式限定
           party.filter(p => !p.fusionSpecies).length > 1
         ) {
-          return 11; // 你可以根据平衡性设定权重
+          return 1; // 你可以根据平衡性设定权重
         }
         return 0;
       },
-      11,
+      1,
     ),
     
     new WeightedModifierType(
