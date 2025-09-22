@@ -422,7 +422,7 @@ export const starterPassiveAbilities: StarterPassiveAbilities = {
   [SpeciesId.GROUDON]: { 0: AbilityId.MOLD_BREAKER, 1: AbilityId.TURBOBLAZE },
   [SpeciesId.RAYQUAZA]: { 0: AbilityId.UNNERVE, 1: AbilityId.UNNERVE },
   [SpeciesId.JIRACHI]: { 0: AbilityId.PURIFYING_SALT },
-  [SpeciesId.DEOXYS]: { 0: AbilityId.PROTEAN, 1: AbilityId.ADAPTABILITY, 2: AbilityId.REGENERATOR, 3: AbilityId.SHADOW_SHIELD },
+  [SpeciesId.DEOXYS]: { 0: AbilityId.PICKUP, 1: AbilityId.WELL_BAKED_BODY, 2: AbilityId.EARTH_EATER, 3: AbilityId.PARENTAL_BOND },
 
   [SpeciesId.TURTWIG]: { 0: AbilityId.SOLID_ROCK },
   [SpeciesId.GROTLE]: { 0: AbilityId.SOLID_ROCK },

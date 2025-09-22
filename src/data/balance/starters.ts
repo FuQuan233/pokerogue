@@ -235,7 +235,7 @@ export const speciesStarterCosts = {
   [SpeciesId.GROUDON]: 9,
   [SpeciesId.RAYQUAZA]: 9,
   [SpeciesId.JIRACHI]: 6,
-  [SpeciesId.DEOXYS]: 7,
+  [SpeciesId.DEOXYS]: 10,
 
   [SpeciesId.TURTWIG]: 3,
   [SpeciesId.CHIMCHAR]: 3,
