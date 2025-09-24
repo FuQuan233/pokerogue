@@ -596,7 +596,7 @@ export function initSpecies() {
       new PokemonForm("Normal Forme", "normal", PokemonType.NORMAL, PokemonType.GHOST, 1.7, 60.8, AbilityId.BEAST_BOOST, AbilityId.NONE, AbilityId.NONE, 600, 100, 100, 100, 100, 100, 100, 3, 0, 300, false, "", true),
       new PokemonForm("Attack Forme", "attack", PokemonType.STEEL, PokemonType.FAIRY, 1.7, 60.8, AbilityId.PURE_POWER, AbilityId.NONE, AbilityId.NONE, 600, 10, 550, 10, 10, 10, 10, 3, 0, 300),
       new PokemonForm("Defense Forme", "defense", PokemonType.ELECTRIC, PokemonType.STEEL, 1.7, 60.8, AbilityId.PRANKSTER, AbilityId.NONE, AbilityId.NONE, 600, 160, 100, 160, 10, 160, 10, 3, 0, 300),
-      new PokemonForm("Speed Forme", "speed", PokemonType.GHOST, PokemonType.DARK, 1.7, 60.8, AbilityId.SERENE_GRACE, AbilityId.NONE, AbilityId.NONE, 600, 120, 80, 10, 80, 100, 120, 3, 0, 300)
+      new PokemonForm("Speed Forme", "speed", PokemonType.GHOST, PokemonType.DARK, 1.7, 60.8, AbilityId.SERENE_GRACE, AbilityId.NONE, AbilityId.NONE, 600, 120, 80, 100, 80, 100, 120, 3, 0, 300)
     ),
     new PokemonSpecies(SpeciesId.TURTWIG, 4, false, false, false, "Tiny Leaf Pokémon", PokemonType.GRASS, null, 0.4, 10.2, AbilityId.OVERGROW, AbilityId.NONE, AbilityId.SHELL_ARMOR, 318, 55, 68, 64, 45, 55, 31, 45, 70, 64, GrowthRate.MEDIUM_SLOW, 87.5, false),
     new PokemonSpecies(SpeciesId.GROTLE, 4, false, false, false, "Grove Pokémon", PokemonType.GRASS, null, 1.1, 97, AbilityId.OVERGROW, AbilityId.NONE, AbilityId.SHELL_ARMOR, 405, 75, 89, 85, 55, 65, 36, 45, 70, 142, GrowthRate.MEDIUM_SLOW, 87.5, false),
