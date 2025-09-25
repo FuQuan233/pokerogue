@@ -13,6 +13,7 @@ import { HealAchv } from "#system/achv";
 import { NumberHolder } from "#utils/common";
 import i18next from "i18next";
 
+// TODO: Refactor this - it has far too many arguments
 export class PokemonHealPhase extends CommonAnimPhase {
   public readonly phaseName = "PokemonHealPhase";
   private hpHealed: number;
@@ -28,7 +29,7 @@ export class PokemonHealPhase extends CommonAnimPhase {
     battlerIndex: BattlerIndex,
     hpHealed: number,
     message: string | null,
-    showFullHpMessage: boolean,
+    showFullHpMessage = true,
     skipAnim = false,
     revive = false,
     healStatus = false,
@@ -63,7 +64,8 @@ export class PokemonHealPhase extends CommonAnimPhase {
     }
 
     const hasMessage = !!this.message;
-    const healOrDamage = !pokemon.isFullHp() || this.hpHealed < 0;
+    const canRestorePP = this.fullRestorePP && pokemon.getMoveset().some(mv => mv.ppUsed > 0);
+    const healOrDamage = !pokemon.isFullHp() || this.hpHealed < 0 || canRestorePP;
     const healBlock = pokemon.getTag(BattlerTagType.HEAL_BLOCK) as HealBlockTag;
     let lastStatusEffect = StatusEffect.NONE;
 
@@ -72,6 +74,7 @@ export class PokemonHealPhase extends CommonAnimPhase {
       this.message = null;
       return super.end();
     }
+
     if (healOrDamage) {
       const hpRestoreMultiplier = new NumberHolder(1);
       if (!this.revive) {

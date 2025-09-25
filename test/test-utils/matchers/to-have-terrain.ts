@@ -8,8 +8,8 @@ import { isGameManagerInstance, receivedStr } from "#test/test-utils/test-utils"
 import type { MatcherState, SyncExpectationResult } from "@vitest/expect";
 
 /**
- * Matcher that checks if the {@linkcode TerrainType} is as expected
- * @param received - The object to check. Should be an instance of {@linkcode GameManager}.
+ * Matcher that checks if the current {@linkcode TerrainType} is as expected.
+ * @param received - The object to check. Should be the current {@linkcode GameManager}.
  * @param expectedTerrainType - The expected {@linkcode TerrainType}, or {@linkcode TerrainType.NONE} if no terrain should be active
  * @returns Whether the matcher passed
  */
@@ -20,15 +20,15 @@ export function toHaveTerrain(
 ): SyncExpectationResult {
   if (!isGameManagerInstance(received)) {
     return {
-      pass: false,
-      message: () => `Expected GameManager, but got ${receivedStr(received)}!`,
+      pass: this.isNot,
+      message: () => `Expected to receive a GameManager, but got ${receivedStr(received)}!`,
     };
   }
 
   if (!received.scene?.arena) {
     return {
-      pass: false,
-      message: () => `Expected GameManager.${received.scene ? "scene" : "scene.arena"} to be defined!`,
+      pass: this.isNot,
+      message: () => `Expected GameManager.${received.scene ? "scene.arena" : "scene"} to be defined!`,
     };
   }
 
@@ -41,8 +41,8 @@ export function toHaveTerrain(
     pass,
     message: () =>
       pass
-        ? `Expected Arena to NOT have ${expectedStr} active, but it did!`
-        : `Expected Arena to have ${expectedStr} active, but got ${actualStr} instead!`,
+        ? `Expected the Arena to NOT have ${expectedStr} active, but it did!`
+        : `Expected the Arena to have ${expectedStr} active, but got ${actualStr} instead!`,
     expected: expectedTerrainType,
     actual,
   };
