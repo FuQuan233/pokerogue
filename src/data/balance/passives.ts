@@ -901,7 +901,7 @@ export const starterPassiveAbilities: StarterPassiveAbilities = {
   [SpeciesId.HYDRAPPLE]: { 0: AbilityId.PARENTAL_BOND },
   [SpeciesId.SILICOBRA]: { 0: AbilityId.SAND_RUSH },
   [SpeciesId.SANDACONDA]: { 0: AbilityId.SAND_RUSH, 1: AbilityId.SAND_RUSH },
-  [SpeciesId.CRAMORANT]: { 0: AbilityId.LIGHTNING_ROD, 1: AbilityId.LIGHTNING_ROD, 2: AbilityId.LIGHTNING_ROD },
+  [SpeciesId.CRAMORANT]: { 0: AbilityId.DRY_SKIN, 1: AbilityId.DRY_SKIN, 2: AbilityId.DRY_SKIN },
   [SpeciesId.ARROKUDA]: { 0: AbilityId.SPEED_BOOST },
   [SpeciesId.BARRASKEWDA]: { 0: AbilityId.INTIMIDATE },
   [SpeciesId.TOXEL]: { 0: AbilityId.ELECTRIC_SURGE },

@@ -1406,9 +1406,9 @@ export function initSpecies() {
       new PokemonForm("G-Max", SpeciesFormKey.GIGANTAMAX, PokemonType.GROUND, null, 22, 999.9, AbilityId.SAND_SPIT, AbilityId.SAND_SPIT, AbilityId.SAND_SPIT, 610, 102, 137, 140, 70, 80, 81, 120, 50, 179)
     ),
     new PokemonSpecies(SpeciesId.CRAMORANT, 8, false, false, false, "Gulp Pokémon", PokemonType.FLYING, PokemonType.WATER, 0.8, 18, AbilityId.GULP_MISSILE, AbilityId.NONE, AbilityId.NONE, 475, 70, 85, 55, 85, 95, 85, 45, 50, 166, GrowthRate.MEDIUM_FAST, 50, false, false,
-      new PokemonForm("Normal", "", PokemonType.FLYING, PokemonType.WATER, 0.8, 18, AbilityId.GULP_MISSILE, AbilityId.NONE, AbilityId.NONE, 475, 70, 85, 55, 85, 95, 85, 45, 50, 166, false, null, true),
-      new PokemonForm("Gulping Form", "gulping", PokemonType.FLYING, PokemonType.WATER, 0.8, 18, AbilityId.GULP_MISSILE, AbilityId.NONE, AbilityId.NONE, 475, 70, 85, 55, 85, 95, 85, 45, 50, 166),
-      new PokemonForm("Gorging Form", "gorging", PokemonType.FLYING, PokemonType.WATER, 0.8, 18, AbilityId.GULP_MISSILE, AbilityId.NONE, AbilityId.NONE, 475, 70, 85, 55, 85, 95, 85, 45, 50, 166)
+      new PokemonForm("Normal", "", PokemonType.FLYING, PokemonType.WATER, 0.8, 18, AbilityId.GULP_MISSILE, AbilityId.NONE, AbilityId.NONE, 475, 100, 10, 100, 80, 100, 85, 45, 50, 166, false, null, true),
+      new PokemonForm("Gulping Form", "gulping", PokemonType.FLYING, PokemonType.WATER, 0.8, 18, AbilityId.GULP_MISSILE, AbilityId.NONE, AbilityId.NONE, 475, 100, 10, 100, 80, 100, 85, 45, 50, 166),
+      new PokemonForm("Gorging Form", "gorging", PokemonType.FLYING, PokemonType.WATER, 0.8, 18, AbilityId.GULP_MISSILE, AbilityId.NONE, AbilityId.NONE, 475, 100, 10, 100, 80, 100, 85, 45, 50, 166)
     ),
     new PokemonSpecies(SpeciesId.ARROKUDA, 8, false, false, false, "Rush Pokémon", PokemonType.WATER, null, 0.5, 1, AbilityId.SWIFT_SWIM, AbilityId.NONE, AbilityId.PROPELLER_TAIL, 280, 41, 63, 40, 40, 30, 66, 255, 50, 56, GrowthRate.SLOW, 50, false),
     new PokemonSpecies(SpeciesId.BARRASKEWDA, 8, false, false, false, "Skewer Pokémon", PokemonType.WATER, null, 1.3, 30, AbilityId.SWIFT_SWIM, AbilityId.NONE, AbilityId.PROPELLER_TAIL, 490, 61, 123, 60, 60, 50, 136, 60, 50, 172, GrowthRate.SLOW, 50, false),
