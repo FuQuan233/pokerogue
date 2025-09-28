@@ -1,4 +1,3 @@
-import { globalScene } from "#app/global-scene";
 import { Status } from "#data/status-effect";
 import { AbilityId } from "#enums/ability-id";
 import { BattleType } from "#enums/battle-type";
@@ -11,6 +10,7 @@ import { PokemonType } from "#enums/pokemon-type";
 import { SpeciesId } from "#enums/species-id";
 import { StatusEffect } from "#enums/status-effect";
 import { TrainerType } from "#enums/trainer-type";
+import { TrainerVariant } from "#enums/trainer-variant";
 import { GameManager } from "#test/test-utils/game-manager";
 import Phaser from "phaser";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
@@ -179,18 +179,13 @@ describe("Moves - Whirlwind", () => {
     const eligibleEnemy = enemyParty.filter(p => p.hp > 0 && p.isAllowedInBattle());
     expect(eligibleEnemy.length).toBe(1);
 
-    // Spy on the queueMessage function
-    const queueSpy = vi.spyOn(globalScene.phaseManager, "queueMessage");
-
     // Player uses Whirlwind; opponent uses Splash
     game.move.select(MoveId.WHIRLWIND);
     await game.move.selectEnemyMove(MoveId.SPLASH);
     await game.toNextTurn();
 
-    // Verify that the failure message is displayed for Whirlwind
-    expect(queueSpy).toHaveBeenCalledWith(expect.stringContaining("But it failed"));
-    // Verify the opponent's Splash message
-    expect(queueSpy).toHaveBeenCalledWith(expect.stringContaining("But nothing happened!"));
+    const player = game.field.getPlayerPokemon();
+    expect(player).toHaveUsedMove({ move: MoveId.WHIRLWIND, result: MoveResult.FAIL });
   });
 
   it("should not pull in the other trainer's pokemon in a partner trainer battle", async () => {
@@ -199,7 +194,7 @@ describe("Moves - Whirlwind", () => {
       .battleType(BattleType.TRAINER)
       .randomTrainer({
         trainerType: TrainerType.BREEDER,
-        alwaysDouble: true,
+        trainerVariant: TrainerVariant.DOUBLE,
       })
       .enemyMoveset([MoveId.SPLASH, MoveId.LUNAR_DANCE])
       .moveset([MoveId.WHIRLWIND, MoveId.SPLASH]);
