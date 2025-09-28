@@ -809,7 +809,7 @@ export const starterPassiveAbilities: StarterPassiveAbilities = {
   [SpeciesId.GOLISOPOD]: { 0: AbilityId.REGENERATOR },
   [SpeciesId.SANDYGAST]: { 0: AbilityId.SAND_SPIT },
   [SpeciesId.PALOSSAND]: { 0: AbilityId.SAND_SPIT },
-  [SpeciesId.PYUKUMUKU]: { 0: AbilityId.PURIFYING_SALT },
+  [SpeciesId.PYUKUMUKU]: { 0: AbilityId.TELEPATHY },
   [SpeciesId.TYPE_NULL]: { 0: AbilityId.CLEAR_BODY },
   [SpeciesId.SILVALLY]: { 0: AbilityId.ADAPTABILITY, 1: AbilityId.ADAPTABILITY, 2: AbilityId.ADAPTABILITY, 3: AbilityId.ADAPTABILITY, 4: AbilityId.ADAPTABILITY, 5: AbilityId.ADAPTABILITY, 6: AbilityId.ADAPTABILITY, 7: AbilityId.ADAPTABILITY, 8: AbilityId.ADAPTABILITY, 9: AbilityId.ADAPTABILITY, 10: AbilityId.ADAPTABILITY, 11: AbilityId.ADAPTABILITY, 12: AbilityId.ADAPTABILITY, 13: AbilityId.ADAPTABILITY, 14: AbilityId.ADAPTABILITY, 15: AbilityId.ADAPTABILITY, 16: AbilityId.ADAPTABILITY, 17: AbilityId.ADAPTABILITY },
   [SpeciesId.MINIOR]: { 0: AbilityId.STURDY, 1: AbilityId.STURDY, 2: AbilityId.STURDY, 3: AbilityId.STURDY, 4: AbilityId.STURDY, 5: AbilityId.STURDY, 6: AbilityId.STURDY, 7: AbilityId.AERILATE, 8: AbilityId.AERILATE, 9: AbilityId.AERILATE, 10: AbilityId.AERILATE, 11: AbilityId.AERILATE, 12: AbilityId.AERILATE, 13: AbilityId.AERILATE },
