@@ -29,47 +29,49 @@ export class RandomStatsManager {
     const statCount = originalStats.length; // Should be 6
     const total = originalStats.reduce((sum, stat) => sum + stat, 0);
 
-    // Start with minimum values for all stats
+    // Initialize all stats to minimum value
     const randomStats = new Array(statCount).fill(MIN_STAT);
     let remainingPoints = total - MIN_STAT * statCount;
 
-    // Distribute remaining points randomly
-    // Use a method that ensures we can reach the total exactly
+    // Distribute remaining points randomly using a different approach
+    // Generate random weights using seeded random
     const weights: number[] = [];
     for (let i = 0; i < statCount; i++) {
-      // Generate random weight for each stat
-      weights.push(Math.random());
+      weights.push(randSeedInt(1000) + 1); // Use seeded random, avoid 0
     }
     const weightSum = weights.reduce((sum, w) => sum + w, 0);
 
-    // Distribute points proportionally to weights
+    // Calculate target points for each stat based on weights
+    const targetPoints: number[] = [];
+    let allocatedTotal = 0;
+    
     for (let i = 0; i < statCount - 1; i++) {
       const proportion = weights[i] / weightSum;
       const points = Math.floor(remainingPoints * proportion);
       const maxAdditional = MAX_STAT - MIN_STAT;
       const actualPoints = Math.min(points, maxAdditional);
-      randomStats[i] += actualPoints;
-      remainingPoints -= actualPoints;
+      targetPoints.push(actualPoints);
+      allocatedTotal += actualPoints;
+    }
+    
+    // Last stat gets exactly what's left to ensure total is correct
+    const lastStatPoints = Math.min(remainingPoints - allocatedTotal, MAX_STAT - MIN_STAT);
+    targetPoints.push(lastStatPoints);
+
+    // Apply the calculated points
+    for (let i = 0; i < statCount; i++) {
+      randomStats[i] += targetPoints[i];
     }
 
-    // Put all remaining points in the last stat (to ensure exact total)
-    randomStats[statCount - 1] += Math.min(remainingPoints, MAX_STAT - randomStats[statCount - 1]);
-
-    // If we still have points left (due to max cap), redistribute
-    let attempts = 0;
-    while (remainingPoints > 0 && attempts < 100) {
-      for (let i = 0; i < statCount && remainingPoints > 0; i++) {
-        if (randomStats[i] < MAX_STAT) {
-          const canAdd = Math.min(remainingPoints, MAX_STAT - randomStats[i]);
-          randomStats[i] += canAdd;
-          remainingPoints -= canAdd;
-        }
-      }
-      attempts++;
+    // Verify total is correct
+    const actualTotal = randomStats.reduce((sum, stat) => sum + stat, 0);
+    if (actualTotal !== total) {
+      console.error(`Random stats total mismatch! Expected: ${total}, Got: ${actualTotal}`);
+      // Fallback: return original stats if something went wrong
+      return originalStats.slice();
     }
 
     // Shuffle the stats to add more randomness
-    // Use Fisher-Yates shuffle with seeded random
     for (let i = randomStats.length - 1; i > 0; i--) {
       const j = randSeedInt(i + 1);
       [randomStats[i], randomStats[j]] = [randomStats[j], randomStats[i]];
