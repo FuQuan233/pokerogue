@@ -1,6 +1,7 @@
 import { TYPE_BOOST_ITEM_BOOST_PERCENT } from "#app/constants";
 import { timedEventManager } from "#app/global-event-manager";
 import { globalScene } from "#app/global-scene";
+import { GameModes } from "#enums/game-modes";
 import { getPokemonNameWithAffix } from "#app/messages";
 import Overrides from "#app/overrides";
 import { EvolutionItem, pokemonEvolutions } from "#balance/pokemon-evolutions";
@@ -2659,7 +2660,7 @@ export function getPlayerShopModifierTypeOptionsForWave(waveIndex: number, baseC
     [new ModifierTypeOption(modifierTypeInitObj.SACRED_ASH(), 0, baseCost * 10)],
   ];
 
-  return options
+  const filteredOptions = options
     .slice(0, Math.ceil(Math.max(waveIndex + 10, 0) / 30))
     .flat()
     .filter(shopItem => {
@@ -2667,6 +2668,20 @@ export function getPlayerShopModifierTypeOptionsForWave(waveIndex: number, baseC
       applyChallenges(ChallengeType.SHOP_ITEM, shopItem, status);
       return status.value;
     });
+
+  // Apply random discount (0-9 折) in Classic mode
+  if (globalScene.gameMode?.modeId === GameModes.CLASSIC) {
+    filteredOptions.forEach(option => {
+      // Generate random discount: 0折-9折 (0% to 90% of original price)
+      const discount = randSeedInt(10); // 0, 1, 2, ..., 9
+      const priceMultiplier = discount * 0.1; // 0.0, 0.1, 0.2, ..., 0.9
+      // Save original price before applying discount
+      option.originalCost = option.cost;
+      option.cost = Math.ceil(option.cost * priceMultiplier);
+    });
+  }
+
+  return filteredOptions;
 }
 
 export function getEnemyBuffModifierForWave(
@@ -2893,6 +2908,7 @@ export class ModifierTypeOption {
   public type: ModifierType;
   public upgradeCount: number;
   public cost: number;
+  public originalCost?: number;
 
   constructor(type: ModifierType, upgradeCount: number, cost = 0) {
     this.type = type;

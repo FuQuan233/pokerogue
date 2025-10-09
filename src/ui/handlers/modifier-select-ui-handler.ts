@@ -771,6 +771,7 @@ class ModifierOption extends Phaser.GameObjects.Container {
   private itemTint: Phaser.GameObjects.Sprite;
   private itemText: Phaser.GameObjects.Text;
   private itemCostText: Phaser.GameObjects.Text;
+  private itemOriginalCostText: Phaser.GameObjects.Text;
 
   constructor(x: number, y: number, modifierTypeOption: ModifierTypeOption) {
     super(globalScene, x, y);
@@ -824,7 +825,18 @@ class ModifierOption extends Phaser.GameObjects.Container {
     this.add(this.itemText);
 
     if (this.modifierTypeOption.cost) {
-      this.itemCostText = addTextObject(0, 45, "", TextStyle.MONEY, {
+      // Add original price text (strikethrough) if there's a discount
+      if (this.modifierTypeOption.originalCost && this.modifierTypeOption.originalCost > this.modifierTypeOption.cost) {
+        this.itemOriginalCostText = addTextObject(0, 45, "", TextStyle.PARTY, {
+          align: "center",
+        });
+        this.itemOriginalCostText.setOrigin(0.5, 0);
+        this.itemOriginalCostText.setAlpha(0);
+        this.itemOriginalCostText.setColor("#888888"); // Gray color
+        this.add(this.itemOriginalCostText);
+      }
+
+      this.itemCostText = addTextObject(0, this.modifierTypeOption.originalCost && this.modifierTypeOption.originalCost > this.modifierTypeOption.cost ? 55 : 45, "", TextStyle.MONEY, {
         align: "center",
       });
 
@@ -1007,6 +1019,20 @@ class ModifierOption extends Phaser.GameObjects.Container {
       });
       finalPromises.push(itemTextPromise);
 
+      if (this.itemOriginalCostText) {
+        const { resolve: itemOriginalCostResolve, promise: itemOriginalCostPromise } = Promise.withResolvers<void>();
+        globalScene.tweens.add({
+          targets: this.itemOriginalCostText,
+          delay,
+          duration: 500,
+          alpha: 1,
+          y: 45,
+          ease: "Cubic.easeInOut",
+          onComplete: () => itemOriginalCostResolve(),
+        });
+        finalPromises.push(itemOriginalCostPromise);
+      }
+
       if (this.itemCostText) {
         const { resolve: itemCostResolve, promise: itemCostPromise } = Promise.withResolvers<void>();
         globalScene.tweens.add({
@@ -1014,7 +1040,7 @@ class ModifierOption extends Phaser.GameObjects.Container {
           delay,
           duration: 500,
           alpha: 1,
-          y: 35,
+          y: this.itemOriginalCostText ? 55 : 35,
           ease: "Cubic.easeInOut",
           onComplete: () => itemCostResolve(),
         });
@@ -1040,5 +1066,15 @@ class ModifierOption extends Phaser.GameObjects.Container {
     this.itemCostText.setText(i18next.t("modifierSelectUiHandler:itemCost", { formattedMoney }));
     this.itemCostText.setColor(getTextColor(textStyle, false));
     this.itemCostText.setShadowColor(getTextColor(textStyle, true));
+
+    // Update original price text if it exists (with strikethrough effect)
+    if (this.itemOriginalCostText && this.modifierTypeOption.originalCost) {
+      const formattedOriginalMoney = formatMoney(globalScene.moneyFormat, this.modifierTypeOption.originalCost);
+      // Create strikethrough effect using HTML-like formatting
+      this.itemOriginalCostText.setText(i18next.t("modifierSelectUiHandler:itemCost", { formattedMoney: formattedOriginalMoney }));
+      this.itemOriginalCostText.setStrikethrough(true);
+      this.itemOriginalCostText.setColor("#888888");
+      this.itemOriginalCostText.setShadowColor("#444444");
+    }
   }
 }
