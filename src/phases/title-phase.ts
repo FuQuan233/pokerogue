@@ -84,6 +84,13 @@ export class TitlePhase extends Phase {
             },
           });
           options.push({
+            label: GameMode.getModeName(GameModes.RANDOM_STATS),
+            handler: () => {
+              setModeAndEnd(GameModes.RANDOM_STATS);
+              return true;
+            },
+          });
+          options.push({
             label: i18next.t("menu:dailyRun"),
             handler: () => {
               this.initDailyRun();

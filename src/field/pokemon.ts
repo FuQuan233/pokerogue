@@ -5,6 +5,7 @@ import type { AnySound, BattleScene } from "#app/battle-scene";
 import { PLAYER_PARTY_MAX_SIZE, RARE_CANDY_FRIENDSHIP_CAP } from "#app/constants";
 import { timedEventManager } from "#app/global-event-manager";
 import { globalScene } from "#app/global-scene";
+import { randomStatsManager } from "#app/system/random-stats-manager";
 import { getPokemonNameWithAffix } from "#app/messages";
 import Overrides from "#app/overrides";
 import { speciesEggMoves } from "#balance/egg-moves";
@@ -51,6 +52,7 @@ import {
 } from "#data/form-change-triggers";
 import { Gender } from "#data/gender";
 import { getNatureStatMultiplier } from "#data/nature";
+import { GameModes } from "#enums/game-modes";
 import {
   CustomPokemonData,
   PokemonBattleData,
@@ -1595,7 +1597,17 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
   }
 
   calculateBaseStats(): number[] {
-    const baseStats = this.getSpeciesForm(true).baseStats.slice(0);
+    let baseStats = this.getSpeciesForm(true).baseStats.slice(0);
+    
+    // Apply random stats in RANDOM_STATS mode (before any other modifications)
+    if (globalScene.gameMode?.modeId === GameModes.RANDOM_STATS) {
+      baseStats = randomStatsManager.getRandomizedStats(
+        this.species.speciesId,
+        this.formIndex,
+        baseStats
+      );
+    }
+
     applyChallenges(ChallengeType.FLIP_STAT, this, baseStats);
     // Shuckle Juice
     globalScene.applyModifiers(PokemonBaseStatTotalModifier, this.isPlayer(), this, baseStats);

@@ -385,6 +385,8 @@ export class GameMode implements GameModeConfig {
         return i18next.t("gameMode:dailyRun");
       case GameModes.CHALLENGE:
         return i18next.t("gameMode:challenge");
+      case GameModes.RANDOM_STATS:
+        return i18next.t("gameMode:randomStats");
     }
   }
 
@@ -414,6 +416,8 @@ export class GameMode implements GameModeConfig {
         return i18next.t("gameMode:dailyRun");
       case GameModes.CHALLENGE:
         return i18next.t("gameMode:challenge");
+      case GameModes.RANDOM_STATS:
+        return i18next.t("gameMode:randomStats");
     }
   }
 }
@@ -454,6 +458,12 @@ export function getGameMode(gameMode: GameModes): GameMode {
           isChallenge: true,
           hasMysteryEncounters: true,
         },
+        classicFixedBattles,
+      );
+    case GameModes.RANDOM_STATS:
+      return new GameMode(
+        GameModes.RANDOM_STATS,
+        { isClassic: true, hasTrainers: true, hasMysteryEncounters: true },
         classicFixedBattles,
       );
   }

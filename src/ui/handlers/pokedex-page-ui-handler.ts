@@ -1,5 +1,6 @@
 import { globalScene } from "#app/global-scene";
 import { starterColors } from "#app/global-vars/starter-colors";
+import { randomStatsManager } from "#app/system/random-stats-manager";
 import Overrides from "#app/overrides";
 import type { BiomeTierTod } from "#balance/biomes";
 import { BiomePoolTier, catchableSpecies } from "#balance/biomes";
@@ -33,6 +34,7 @@ import { Button } from "#enums/buttons";
 import { Device } from "#enums/devices";
 import { DexAttr } from "#enums/dex-attr";
 import { EggSourceType } from "#enums/egg-source-types";
+import { GameModes } from "#enums/game-modes";
 import type { MoveId } from "#enums/move-id";
 import type { Nature } from "#enums/nature";
 import { Passive as PassiveAttr } from "#enums/passive";
@@ -813,8 +815,18 @@ export class PokedexPageUiHandler extends MessageUiHandler {
       this.abilityHidden = form.abilityHidden === form.ability1 ? undefined : form.abilityHidden;
 
       this.evolutions = allEvolutions.filter(e => e.preFormKey === form.formKey || e.preFormKey === null);
-      this.baseStats = form.baseStats;
-      this.baseTotal = form.baseTotal;
+      // Apply random stats in RANDOM_STATS mode
+      if (globalScene.gameMode?.modeId === GameModes.RANDOM_STATS) {
+        this.baseStats = randomStatsManager.getRandomizedStats(
+          species.speciesId,
+          this.formIndex,
+          form.baseStats
+        );
+        this.baseTotal = this.baseStats.reduce((sum, stat) => sum + stat, 0);
+      } else {
+        this.baseStats = form.baseStats;
+        this.baseTotal = form.baseTotal;
+      }
     } else {
       this.levelMoves = pokemonSpeciesLevelMoves[species.speciesId];
       this.ability1 = species.ability1;
@@ -822,8 +834,18 @@ export class PokedexPageUiHandler extends MessageUiHandler {
       this.abilityHidden = species.abilityHidden === species.ability1 ? undefined : species.abilityHidden;
 
       this.evolutions = allEvolutions;
-      this.baseStats = species.baseStats;
-      this.baseTotal = species.baseTotal;
+      // Apply random stats in RANDOM_STATS mode
+      if (globalScene.gameMode?.modeId === GameModes.RANDOM_STATS) {
+        this.baseStats = randomStatsManager.getRandomizedStats(
+          species.speciesId,
+          this.formIndex,
+          species.baseStats
+        );
+        this.baseTotal = this.baseStats.reduce((sum, stat) => sum + stat, 0);
+      } else {
+        this.baseStats = species.baseStats;
+        this.baseTotal = species.baseTotal;
+      }
     }
 
     this.eggMoves = speciesEggMoves[this.starterId] ?? [];
