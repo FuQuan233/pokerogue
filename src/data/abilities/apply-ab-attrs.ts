@@ -1,4 +1,6 @@
 import { globalScene } from "#app/global-scene";
+import { allAbilities } from "#data/data-lists";
+import { AbilityId } from "#enums/ability-id";
 import type { AbAttrBaseParams, AbAttrParamMap, AbAttrString, CallableAbAttrString } from "#types/ability-types";
 
 function applySingleAbAttrs<T extends AbAttrString>(
@@ -75,6 +77,90 @@ function applyAbAttrsInternal<T extends CallableAbAttrString>(
     params.passive = passive;
     applySingleAbAttrs(attrType, params, gainedMidTurn, messages);
   }
+
+  // For fusion Pokemon, also apply abilities from base Pokemon A and fusion Pokemon B
+  if (params.pokemon.isFusion()) {
+    const { simulated = false } = params;
+
+    // Apply base Pokemon A's main ability
+    const baseAbilityId = params.pokemon.getSpeciesForm().getAbility(params.pokemon.abilityIndex);
+    if (baseAbilityId !== AbilityId.NONE && params.pokemon.canApplyAbility()) {
+      const baseAbility = allAbilities[baseAbilityId];
+      const attrs = baseAbility.getAttrs(attrType);
+      if (!(gainedMidTurn && attrs.some(attr => attr.is("PostSummonAbAttr") && !attr.shouldActivateOnGain()))) {
+        for (const attr of attrs) {
+          const condition = attr.getCondition();
+          if ((condition && !condition(params.pokemon)) || !attr.canApply(params as any)) {
+            continue;
+          }
+
+          let abShown = false;
+          if (attr.showAbility && !simulated) {
+            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, false, true);
+            abShown = true;
+          }
+
+          const message = attr.getTriggerMessage(params as any, baseAbility.name);
+          if (message) {
+            if (!simulated) {
+              globalScene.phaseManager.queueMessage(message);
+            }
+            messages.push(message);
+          }
+
+          attr.apply(params as any);
+
+          if (abShown) {
+            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, false, false);
+          }
+
+          if (!simulated) {
+            params.pokemon.waveData.abilitiesApplied.add(baseAbility.id);
+          }
+        }
+      }
+    }
+
+    // Apply fusion Pokemon B's passive ability
+    const fusionPassiveId = params.pokemon.fusionSpecies!.getPassiveAbility(params.pokemon.fusionFormIndex);
+    if (fusionPassiveId !== AbilityId.NONE && params.pokemon.hasPassive() && params.pokemon.canApplyAbility(true)) {
+      const fusionPassive = allAbilities[fusionPassiveId];
+      const attrs = fusionPassive.getAttrs(attrType);
+      if (!(gainedMidTurn && attrs.some(attr => attr.is("PostSummonAbAttr") && !attr.shouldActivateOnGain()))) {
+        for (const attr of attrs) {
+          const condition = attr.getCondition();
+          if ((condition && !condition(params.pokemon)) || !attr.canApply(params as any)) {
+            continue;
+          }
+
+          let abShown = false;
+          if (attr.showAbility && !simulated) {
+            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, true, true);
+            abShown = true;
+          }
+
+          const message = attr.getTriggerMessage(params as any, fusionPassive.name);
+          if (message) {
+            if (!simulated) {
+              globalScene.phaseManager.queueMessage(message);
+            }
+            messages.push(message);
+          }
+
+          attr.apply(params as any);
+
+          if (abShown) {
+            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, true, false);
+          }
+
+          if (!simulated) {
+            params.pokemon.waveData.abilitiesApplied.add(fusionPassive.id);
+          }
+        }
+      }
+    }
+  }
+
   // We need to restore passive to its original state in the case that it was undefined on entry
   // this is necessary in case this method is called with an object that is reused.
   params.passive = undefined;
