@@ -78,6 +78,7 @@ export abstract class BattleInfo extends Phaser.GameObjects.Container {
   protected type1Icon: Phaser.GameObjects.Sprite;
   protected type2Icon: Phaser.GameObjects.Sprite;
   protected type3Icon: Phaser.GameObjects.Sprite;
+  protected type4Icon: Phaser.GameObjects.Sprite;
   protected expBar: Phaser.GameObjects.Image;
 
   public expMaskRect: Phaser.GameObjects.Graphics;
@@ -488,11 +489,15 @@ export abstract class BattleInfo extends Phaser.GameObjects.Container {
       .setFrame(PokemonType[types[0]].toLowerCase());
     this.type2Icon.setVisible(types.length > 1);
     this.type3Icon.setVisible(types.length > 2);
+    this.type4Icon.setVisible(types.length > 3);
     if (types.length > 1) {
       this.type2Icon.setFrame(PokemonType[types[1]].toLowerCase());
     }
     if (types.length > 2) {
       this.type3Icon.setFrame(PokemonType[types[2]].toLowerCase());
+    }
+    if (types.length > 3) {
+      this.type4Icon.setFrame(PokemonType[types[3]].toLowerCase());
     }
   }
 

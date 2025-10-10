@@ -123,7 +123,9 @@ export class SummaryUiHandler extends UiHandler {
   private friendshipOverlay: Phaser.GameObjects.Sprite;
   private permStatsContainer: Phaser.GameObjects.Container;
   private ivContainer: Phaser.GameObjects.Container;
+  private baseStatsContainer: Phaser.GameObjects.Container;
   private statsContainer: Phaser.GameObjects.Container;
+  private currentStatsView = 0; // 0=stats, 1=IVs, 2=base stats
   private statsContainerItemTitle: Phaser.GameObjects.Image;
   private statsContainerStatsTitle: Phaser.GameObjects.Image;
   private statsContainerExpTitle: Phaser.GameObjects.Image;
@@ -697,9 +699,11 @@ export class SummaryUiHandler extends UiHandler {
           success = true;
         }
       } else if (this.cursor === Page.STATS) {
-        //Show IVs
-        this.permStatsContainer.setVisible(!this.permStatsContainer.visible);
-        this.ivContainer.setVisible(!this.ivContainer.visible);
+        // Cycle through stats views: stats -> IVs -> base stats -> stats
+        this.currentStatsView = (this.currentStatsView + 1) % 3;
+        this.permStatsContainer.setVisible(this.currentStatsView === 0);
+        this.ivContainer.setVisible(this.currentStatsView === 1);
+        this.baseStatsContainer.setVisible(this.currentStatsView === 2);
       }
     } else if (button === Button.CANCEL) {
       if (this.summaryUiMode === SummaryUiMode.LEARN_MOVE) {
@@ -1240,7 +1244,10 @@ export class SummaryUiHandler extends UiHandler {
         this.statsContainer.add(this.permStatsContainer);
         this.ivContainer = globalScene.add.container(27, 56);
         this.statsContainer.add(this.ivContainer);
+        this.baseStatsContainer = globalScene.add.container(27, 56);
+        this.statsContainer.add(this.baseStatsContainer);
         this.statsContainer.setVisible(true);
+        this.currentStatsView = 0; // Reset to stats view
 
         this.statsContainerItemTitle = globalScene.add.image(7, 4, getLocalizedSpriteKey("summary_stats_item_title")); // Pixel text 'ITEM'
         this.statsContainerItemTitle.setOrigin(0, 0.5);
@@ -1307,8 +1314,35 @@ export class SummaryUiHandler extends UiHandler {
           const ivValue = addTextObject(93 + 88 * colIndex, 16 * rowIndex, ivText, TextStyle.WINDOW_ALT);
           ivValue.setOrigin(1, 0);
           this.ivContainer.add(ivValue);
+
+          // Add base stats label and value
+          const baseStatLabel = addTextObject(
+            115 * colIndex + (colIndex === 1 ? 5 : 0),
+            16 * rowIndex,
+            statName,
+            TextStyle.SUMMARY_STATS,
+          );
+          baseStatLabel.setOrigin(0.5, 0);
+          this.baseStatsContainer.add(baseStatLabel);
+
+          // Get base stat value (accounting for fusion and random stats)
+          let baseStatValue = 0;
+          if (this.pokemon) {
+            const baseStats = this.pokemon.calculateBaseStats();
+            baseStatValue = baseStats[stat];
+          }
+          const baseStatText = formatStat(baseStatValue);
+          const baseStatValueText = addTextObject(
+            93 + 88 * colIndex,
+            16 * rowIndex,
+            baseStatText,
+            TextStyle.WINDOW_ALT,
+          );
+          baseStatValueText.setOrigin(1, 0);
+          this.baseStatsContainer.add(baseStatValueText);
         });
         this.ivContainer.setVisible(false);
+        this.baseStatsContainer.setVisible(false);
 
         const itemModifiers = (
           globalScene.findModifiers(
