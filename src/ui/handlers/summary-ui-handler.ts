@@ -4,6 +4,7 @@ import { globalScene } from "#app/global-scene";
 import { starterColors } from "#app/global-vars/starter-colors";
 import { getBiomeName } from "#balance/biomes";
 import { getStarterValueFriendshipCap, speciesStarterCosts } from "#balance/starters";
+import { allAbilities } from "#data/data-lists";
 import { getLevelRelExp, getLevelTotalExp } from "#data/exp";
 import { getGenderColor, getGenderSymbol } from "#data/gender";
 import { getNatureName, getNatureStatMultiplier } from "#data/nature";
@@ -56,6 +57,18 @@ interface abilityContainer {
   descriptionText: Phaser.GameObjects.Text | null;
 }
 
+/** Container holding multiple ability containers for fusion Pokemon */
+interface fusionAbilityContainers {
+  /** Base Pokemon (A) ability */
+  baseAbility: abilityContainer | null;
+  /** Base Pokemon (A) passive */
+  basePassive: abilityContainer | null;
+  /** Fusion Pokemon (B) ability */
+  fusionAbility: abilityContainer | null;
+  /** Fusion Pokemon (B) passive */
+  fusionPassive: abilityContainer | null;
+}
+
 export class SummaryUiHandler extends UiHandler {
   private summaryUiMode: SummaryUiMode;
 
@@ -85,6 +98,10 @@ export class SummaryUiHandler extends UiHandler {
   private abilityContainer: abilityContainer;
   /** Object holding everything needed to display a passive */
   private passiveContainer: abilityContainer;
+  /** Container for fusion Pokemon abilities */
+  private fusionAbilityContainers: fusionAbilityContainers | null;
+  /** Current ability view index for fusion Pokemon (0-3) */
+  private fusionAbilityViewIndex: number;
   private summaryPageContainer: Phaser.GameObjects.Container;
   private movesContainer: Phaser.GameObjects.Container;
   private movesContainerMovesTitle: Phaser.GameObjects.Image;
@@ -326,6 +343,69 @@ export class SummaryUiHandler extends UiHandler {
       page = this.cursor;
     }
     return `summary_${Page[page].toLowerCase()}`;
+  }
+
+  /**
+   * Updates the display to show the current ability for fusion Pokemon
+   */
+  private updateFusionAbilityDisplay(_profileContainer: Phaser.GameObjects.Container) {
+    if (!this.fusionAbilityContainers) {
+      return;
+    }
+
+    // Get all ability containers in order
+    const allContainers = [
+      this.fusionAbilityContainers.baseAbility,
+      this.fusionAbilityContainers.basePassive,
+      this.fusionAbilityContainers.fusionAbility,
+      this.fusionAbilityContainers.fusionPassive,
+    ].filter(c => c !== null) as abilityContainer[];
+
+    if (allContainers.length === 0) {
+      return;
+    }
+
+    // Ensure index is valid
+    this.fusionAbilityViewIndex = this.fusionAbilityViewIndex % allContainers.length;
+
+    // Hide all containers
+    allContainers.forEach(container => {
+      container.labelImage.setVisible(false);
+      container.nameText?.setVisible(false);
+      container.descriptionText?.setVisible(false);
+    });
+
+    // Show the current container
+    const currentContainer = allContainers[this.fusionAbilityViewIndex];
+    if (currentContainer) {
+      currentContainer.labelImage.setVisible(true);
+      currentContainer.nameText?.setVisible(true);
+      currentContainer.descriptionText?.setVisible(true);
+
+      // Stop any existing scroll tween
+      if (this.descriptionScrollTween) {
+        this.descriptionScrollTween.remove();
+        this.descriptionScrollTween = null;
+      }
+
+      // Set up scrolling animation for description
+      if (currentContainer.descriptionText) {
+        const abilityDescriptionLineCount = Math.floor(currentContainer.descriptionText.displayHeight / 14.83);
+        if (abilityDescriptionLineCount > 2) {
+          currentContainer.descriptionText.setY(69);
+          this.descriptionScrollTween = globalScene.tweens.add({
+            targets: currentContainer.descriptionText,
+            delay: fixedInt(2000),
+            loop: -1,
+            hold: fixedInt(2000),
+            duration: fixedInt((abilityDescriptionLineCount - 2) * 2000),
+            y: `-=${14.83 * (abilityDescriptionLineCount - 2)}`,
+          });
+        } else {
+          currentContainer.descriptionText.setY(71);
+        }
+      }
+    }
   }
 
   show(args: any[]): boolean {
@@ -586,16 +666,36 @@ export class SummaryUiHandler extends UiHandler {
       if (this.cursor === Page.MOVES) {
         this.showMoveSelect();
         success = true;
-      } else if (this.cursor === Page.PROFILE && this.pokemon?.hasPassive()) {
-        // if we're on the PROFILE page and this pokemon has a passive unlocked..
-        // Since abilities are displayed by default, all we need to do is toggle visibility on all elements to show passives
-        this.abilityContainer.nameText?.setVisible(!this.abilityContainer.descriptionText?.visible);
-        this.abilityContainer.descriptionText?.setVisible(!this.abilityContainer.descriptionText.visible);
-        this.abilityContainer.labelImage.setVisible(!this.abilityContainer.labelImage.visible);
+      } else if (this.cursor === Page.PROFILE) {
+        if (this.pokemon?.isFusion() && this.fusionAbilityContainers) {
+          // For fusion Pokemon, cycle through all 4 abilities
+          const allContainers = [
+            this.fusionAbilityContainers.baseAbility,
+            this.fusionAbilityContainers.basePassive,
+            this.fusionAbilityContainers.fusionAbility,
+            this.fusionAbilityContainers.fusionPassive,
+          ].filter(c => c !== null);
 
-        this.passiveContainer.nameText?.setVisible(!this.passiveContainer.descriptionText?.visible);
-        this.passiveContainer.descriptionText?.setVisible(!this.passiveContainer.descriptionText.visible);
-        this.passiveContainer.labelImage.setVisible(!this.passiveContainer.labelImage.visible);
+          if (allContainers.length > 0) {
+            this.fusionAbilityViewIndex = (this.fusionAbilityViewIndex + 1) % allContainers.length;
+            // Find the profile container to update display
+            const profileContainer = this.summaryPageContainer.getAt(1) as Phaser.GameObjects.Container;
+            if (profileContainer) {
+              this.updateFusionAbilityDisplay(profileContainer);
+            }
+            success = true;
+          }
+        } else if (this.pokemon?.hasPassive()) {
+          // Non-fusion Pokemon with passive - toggle between ability and passive
+          this.abilityContainer.nameText?.setVisible(!this.abilityContainer.descriptionText?.visible);
+          this.abilityContainer.descriptionText?.setVisible(!this.abilityContainer.descriptionText.visible);
+          this.abilityContainer.labelImage.setVisible(!this.abilityContainer.labelImage.visible);
+
+          this.passiveContainer.nameText?.setVisible(!this.passiveContainer.descriptionText?.visible);
+          this.passiveContainer.descriptionText?.setVisible(!this.passiveContainer.descriptionText.visible);
+          this.passiveContainer.labelImage.setVisible(!this.passiveContainer.labelImage.visible);
+          success = true;
+        }
       } else if (this.cursor === Page.STATS) {
         //Show IVs
         this.permStatsContainer.setVisible(!this.permStatsContainer.visible);
@@ -894,25 +994,67 @@ export class SummaryUiHandler extends UiHandler {
           profileContainer.add(teraIcon);
         }
 
-        this.abilityContainer = {
-          labelImage: globalScene.add.image(0, 0, getLocalizedSpriteKey("summary_profile_ability")), // Pixel text 'ABILITY'
-          ability: this.pokemon?.getAbility(true)!, // TODO: is this bang correct?
-          nameText: null,
-          descriptionText: null,
-        };
+        const isFusion = this.pokemon?.isFusion();
 
-        const allAbilityInfo = [this.abilityContainer]; // Creates an array to iterate through
-        // Only add to the array and set up displaying a passive if it's unlocked
-        if (this.pokemon?.hasPassive()) {
-          this.passiveContainer = {
-            labelImage: globalScene.add.image(0, 0, getLocalizedSpriteKey("summary_profile_passive")), // Pixel text 'PASSIVE'
-            ability: this.pokemon.getPassiveAbility(),
-            nameText: null,
-            descriptionText: null,
+        // For fusion Pokemon, we need to display all 4 abilities
+        if (isFusion) {
+          this.fusionAbilityViewIndex = 0; // Start with first ability
+          this.fusionAbilityContainers = {
+            baseAbility: null,
+            basePassive: null,
+            fusionAbility: null,
+            fusionPassive: null,
           };
-          allAbilityInfo.push(this.passiveContainer);
 
-          // Sets up the pixel button prompt image
+          // Get base Pokemon (A) ability
+          const baseAbilityId = this.pokemon?.getSpeciesForm(true).getAbility(this.pokemon.abilityIndex);
+          if (baseAbilityId) {
+            this.fusionAbilityContainers.baseAbility = {
+              labelImage: globalScene.add.image(0, 0, getLocalizedSpriteKey("summary_profile_ability")),
+              ability: allAbilities[baseAbilityId],
+              nameText: null,
+              descriptionText: null,
+            };
+          }
+
+          // Get base Pokemon (A) passive
+          if (this.pokemon?.hasPassive()) {
+            const basePassiveId = this.pokemon.species.getPassiveAbility(this.pokemon.formIndex);
+            if (basePassiveId) {
+              this.fusionAbilityContainers.basePassive = {
+                labelImage: globalScene.add.image(0, 0, getLocalizedSpriteKey("summary_profile_passive")),
+                ability: allAbilities[basePassiveId],
+                nameText: null,
+                descriptionText: null,
+              };
+            }
+          }
+
+          // Get fusion Pokemon (B) ability
+          const fusionAbilityId = this.pokemon?.getFusionSpeciesForm(true).getAbility(this.pokemon.fusionAbilityIndex);
+          if (fusionAbilityId) {
+            this.fusionAbilityContainers.fusionAbility = {
+              labelImage: globalScene.add.image(0, 0, getLocalizedSpriteKey("summary_profile_ability")),
+              ability: allAbilities[fusionAbilityId],
+              nameText: null,
+              descriptionText: null,
+            };
+          }
+
+          // Get fusion Pokemon (B) passive
+          if (this.pokemon?.fusionSpecies && this.pokemon.hasPassive()) {
+            const fusionPassiveId = this.pokemon.fusionSpecies.getPassiveAbility(this.pokemon.fusionFormIndex);
+            if (fusionPassiveId) {
+              this.fusionAbilityContainers.fusionPassive = {
+                labelImage: globalScene.add.image(0, 0, getLocalizedSpriteKey("summary_profile_passive")),
+                ability: allAbilities[fusionPassiveId],
+                nameText: null,
+                descriptionText: null,
+              };
+            }
+          }
+
+          // Sets up the pixel button prompt image for cycling through abilities
           this.abilityPrompt = globalScene.add.image(
             0,
             0,
@@ -922,54 +1064,145 @@ export class SummaryUiHandler extends UiHandler {
           this.abilityPrompt.setVisible(true);
           this.abilityPrompt.setOrigin(0, 0);
           profileContainer.add(this.abilityPrompt);
+        } else {
+          // Non-fusion Pokemon - use original logic
+          this.fusionAbilityContainers = null;
+          this.abilityContainer = {
+            labelImage: globalScene.add.image(0, 0, getLocalizedSpriteKey("summary_profile_ability")), // Pixel text 'ABILITY'
+            ability: this.pokemon?.getAbility(true)!, // TODO: is this bang correct?
+            nameText: null,
+            descriptionText: null,
+          };
+
+          const allAbilityInfo = [this.abilityContainer]; // Creates an array to iterate through
+          // Only add to the array and set up displaying a passive if it's unlocked
+          if (this.pokemon?.hasPassive()) {
+            this.passiveContainer = {
+              labelImage: globalScene.add.image(0, 0, getLocalizedSpriteKey("summary_profile_passive")), // Pixel text 'PASSIVE'
+              ability: this.pokemon.getPassiveAbility(),
+              nameText: null,
+              descriptionText: null,
+            };
+            allAbilityInfo.push(this.passiveContainer);
+
+            // Sets up the pixel button prompt image
+            this.abilityPrompt = globalScene.add.image(
+              0,
+              0,
+              !globalScene.inputController?.gamepadSupport ? "summary_profile_prompt_z" : "summary_profile_prompt_a",
+            );
+            this.abilityPrompt.setPosition(8, 43);
+            this.abilityPrompt.setVisible(true);
+            this.abilityPrompt.setOrigin(0, 0);
+            profileContainer.add(this.abilityPrompt);
+          }
         }
 
-        allAbilityInfo.forEach(abilityInfo => {
-          abilityInfo.labelImage.setPosition(17, 47);
-          abilityInfo.labelImage.setVisible(true);
-          abilityInfo.labelImage.setOrigin(0, 0.5);
-          profileContainer.add(abilityInfo.labelImage);
+        if (isFusion && this.fusionAbilityContainers) {
+          // For fusion Pokemon, set up all 4 ability containers
+          const setupAbilityContainer = (container: abilityContainer) => {
+            container.labelImage.setPosition(17, 47);
+            container.labelImage.setVisible(false); // Initially hidden
+            container.labelImage.setOrigin(0, 0.5);
+            profileContainer.add(container.labelImage);
 
-          abilityInfo.nameText = addTextObject(7, 68, abilityInfo.ability?.name!, TextStyle.SUMMARY_ALT); // TODO: is this bang correct?
-          abilityInfo.nameText.setOrigin(0, 1);
-          profileContainer.add(abilityInfo.nameText);
+            container.nameText = addTextObject(7, 68, container.ability?.name!, TextStyle.SUMMARY_ALT);
+            container.nameText.setOrigin(0, 1);
+            container.nameText.setVisible(false); // Initially hidden
+            profileContainer.add(container.nameText);
 
-          abilityInfo.descriptionText = addTextObject(7, 71, abilityInfo.ability?.description!, TextStyle.WINDOW_ALT, {
-            wordWrap: { width: 1224 },
-          }); // TODO: is this bang correct?
-          abilityInfo.descriptionText.setOrigin(0, 0);
-          profileContainer.add(abilityInfo.descriptionText);
-
-          // Sets up the mask that hides the description text to give an illusion of scrolling
-          const descriptionTextMaskRect = globalScene.make.graphics({});
-          descriptionTextMaskRect.setScale(6);
-          descriptionTextMaskRect.fillStyle(0xffffff);
-          descriptionTextMaskRect.beginPath();
-          descriptionTextMaskRect.fillRect(110, 90.5, 206, 31);
-
-          const abilityDescriptionTextMask = descriptionTextMaskRect.createGeometryMask();
-
-          abilityInfo.descriptionText.setMask(abilityDescriptionTextMask);
-
-          const abilityDescriptionLineCount = Math.floor(abilityInfo.descriptionText.displayHeight / 14.83);
-
-          // Animates the description text moving upwards
-          if (abilityDescriptionLineCount > 2) {
-            abilityInfo.descriptionText.setY(69);
-            this.descriptionScrollTween = globalScene.tweens.add({
-              targets: abilityInfo.descriptionText,
-              delay: fixedInt(2000),
-              loop: -1,
-              hold: fixedInt(2000),
-              duration: fixedInt((abilityDescriptionLineCount - 2) * 2000),
-              y: `-=${14.83 * (abilityDescriptionLineCount - 2)}`,
+            container.descriptionText = addTextObject(7, 71, container.ability?.description!, TextStyle.WINDOW_ALT, {
+              wordWrap: { width: 1224 },
             });
+            container.descriptionText.setOrigin(0, 0);
+            container.descriptionText.setVisible(false); // Initially hidden
+            profileContainer.add(container.descriptionText);
+
+            // Sets up the mask that hides the description text to give an illusion of scrolling
+            const descriptionTextMaskRect = globalScene.make.graphics({});
+            descriptionTextMaskRect.setScale(6);
+            descriptionTextMaskRect.fillStyle(0xffffff);
+            descriptionTextMaskRect.beginPath();
+            descriptionTextMaskRect.fillRect(110, 90.5, 206, 31);
+
+            const abilityDescriptionTextMask = descriptionTextMaskRect.createGeometryMask();
+            container.descriptionText.setMask(abilityDescriptionTextMask);
+          };
+
+          if (this.fusionAbilityContainers.baseAbility) {
+            setupAbilityContainer(this.fusionAbilityContainers.baseAbility);
           }
-        });
-        // Turn off visibility of passive info by default
-        this.passiveContainer?.labelImage.setVisible(false);
-        this.passiveContainer?.nameText?.setVisible(false);
-        this.passiveContainer?.descriptionText?.setVisible(false);
+          if (this.fusionAbilityContainers.basePassive) {
+            setupAbilityContainer(this.fusionAbilityContainers.basePassive);
+          }
+          if (this.fusionAbilityContainers.fusionAbility) {
+            setupAbilityContainer(this.fusionAbilityContainers.fusionAbility);
+          }
+          if (this.fusionAbilityContainers.fusionPassive) {
+            setupAbilityContainer(this.fusionAbilityContainers.fusionPassive);
+          }
+
+          // Show the first ability by default
+          this.updateFusionAbilityDisplay(profileContainer);
+        } else {
+          // Non-fusion Pokemon - use original logic
+          const allAbilityInfo = this.pokemon?.hasPassive()
+            ? [this.abilityContainer, this.passiveContainer]
+            : [this.abilityContainer];
+
+          allAbilityInfo.forEach(abilityInfo => {
+            abilityInfo.labelImage.setPosition(17, 47);
+            abilityInfo.labelImage.setVisible(true);
+            abilityInfo.labelImage.setOrigin(0, 0.5);
+            profileContainer.add(abilityInfo.labelImage);
+
+            abilityInfo.nameText = addTextObject(7, 68, abilityInfo.ability?.name!, TextStyle.SUMMARY_ALT); // TODO: is this bang correct?
+            abilityInfo.nameText.setOrigin(0, 1);
+            profileContainer.add(abilityInfo.nameText);
+
+            abilityInfo.descriptionText = addTextObject(
+              7,
+              71,
+              abilityInfo.ability?.description!,
+              TextStyle.WINDOW_ALT,
+              {
+                wordWrap: { width: 1224 },
+              },
+            ); // TODO: is this bang correct?
+            abilityInfo.descriptionText.setOrigin(0, 0);
+            profileContainer.add(abilityInfo.descriptionText);
+
+            // Sets up the mask that hides the description text to give an illusion of scrolling
+            const descriptionTextMaskRect = globalScene.make.graphics({});
+            descriptionTextMaskRect.setScale(6);
+            descriptionTextMaskRect.fillStyle(0xffffff);
+            descriptionTextMaskRect.beginPath();
+            descriptionTextMaskRect.fillRect(110, 90.5, 206, 31);
+
+            const abilityDescriptionTextMask = descriptionTextMaskRect.createGeometryMask();
+
+            abilityInfo.descriptionText.setMask(abilityDescriptionTextMask);
+
+            const abilityDescriptionLineCount = Math.floor(abilityInfo.descriptionText.displayHeight / 14.83);
+
+            // Animates the description text moving upwards
+            if (abilityDescriptionLineCount > 2) {
+              abilityInfo.descriptionText.setY(69);
+              this.descriptionScrollTween = globalScene.tweens.add({
+                targets: abilityInfo.descriptionText,
+                delay: fixedInt(2000),
+                loop: -1,
+                hold: fixedInt(2000),
+                duration: fixedInt((abilityDescriptionLineCount - 2) * 2000),
+                y: `-=${14.83 * (abilityDescriptionLineCount - 2)}`,
+              });
+            }
+          });
+          // Turn off visibility of passive info by default
+          this.passiveContainer?.labelImage.setVisible(false);
+          this.passiveContainer?.nameText?.setVisible(false);
+          this.passiveContainer?.descriptionText?.setVisible(false);
+        }
 
         const closeFragment = getBBCodeFrag("", TextStyle.WINDOW_ALT);
         const rawNature = toCamelCase(Nature[this.pokemon?.getNature()!]); // TODO: is this bang correct?

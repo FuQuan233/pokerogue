@@ -1,8 +1,5 @@
 /* biome-ignore-start lint/correctness/noUnusedImports: tsdoc imports */
-import type { initModifierTypes } from "#modifiers/modifier-type";
-/* biome-ignore-end lint/correctness/noUnusedImports: tsdoc imports */
 
-import { timedEventManager } from "#app/global-event-manager";
 import { globalScene } from "#app/global-scene";
 import { pokemonEvolutions } from "#balance/pokemon-evolutions";
 import { modifierTypes } from "#data/data-lists";
@@ -29,6 +26,9 @@ import {
   trainerModifierPool,
   wildModifierPool,
 } from "#modifiers/modifier-pools";
+import type { initModifierTypes } from "#modifiers/modifier-type";
+/* biome-ignore-end lint/correctness/noUnusedImports: tsdoc imports */
+
 import { WeightedModifierType } from "#modifiers/modifier-type";
 import type { WeightedModifierTypeWeightFunc } from "#types/modifier-types";
 
@@ -307,7 +307,7 @@ function initGreatModifierPool() {
       4,
     ),
     new WeightedModifierType(modifierTypes.BASE_STAT_BOOSTER, 10),
-    new WeightedModifierType(modifierTypes.TERA_SHARD, (party: Pokemon[]) => 
+    new WeightedModifierType(modifierTypes.TERA_SHARD, (party: Pokemon[]) =>
       party.filter(
         p =>
           !(p.hasSpecies(SpeciesId.TERAPAGOS) || p.hasSpecies(SpeciesId.OGERPON) || p.hasSpecies(SpeciesId.SHEDINJA)),
@@ -334,16 +334,16 @@ function initGreatModifierPool() {
       modifierTypes.DNA_SPLICERS,
       (party: Pokemon[]) => {
         if (
-          globalScene.gameMode.isClassic && // 经典模式限定
-          party.filter(p => !p.fusionSpecies).length > 1
+          globalScene.gameMode.isClassic // 经典模式限定
+          && party.filter(p => !p.fusionSpecies).length > 1
         ) {
-          return 3; // 你可以根据平衡性设定权重
+          return 100; // 大幅提高权重以便测试
         }
         return 0;
       },
-      3,
+      100,
     ),
-    
+
     new WeightedModifierType(
       modifierTypes.VOUCHER,
       (_party: Pokemon[], rerollCount: number) => (!globalScene.gameMode.isDaily ? Math.max(1 - rerollCount, 0) : 0),

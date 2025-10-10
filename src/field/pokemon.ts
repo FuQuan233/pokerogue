@@ -5,9 +5,9 @@ import type { AnySound, BattleScene } from "#app/battle-scene";
 import { PLAYER_PARTY_MAX_SIZE, RARE_CANDY_FRIENDSHIP_CAP } from "#app/constants";
 import { timedEventManager } from "#app/global-event-manager";
 import { globalScene } from "#app/global-scene";
-import { randomStatsManager } from "#app/system/random-stats-manager";
 import { getPokemonNameWithAffix } from "#app/messages";
 import Overrides from "#app/overrides";
+import { randomStatsManager } from "#app/system/random-stats-manager";
 import { speciesEggMoves } from "#balance/egg-moves";
 import type { SpeciesFormEvolution } from "#balance/pokemon-evolutions";
 import {
@@ -52,7 +52,6 @@ import {
 } from "#data/form-change-triggers";
 import { Gender } from "#data/gender";
 import { getNatureStatMultiplier } from "#data/nature";
-import { GameModes } from "#enums/game-modes";
 import {
   CustomPokemonData,
   PokemonBattleData,
@@ -82,6 +81,7 @@ import { ChallengeType } from "#enums/challenge-type";
 import { Challenges } from "#enums/challenges";
 import { DexAttr } from "#enums/dex-attr";
 import { FieldPosition } from "#enums/field-position";
+import { GameModes } from "#enums/game-modes";
 import { HitResult } from "#enums/hit-result";
 import { LearnMoveSituation } from "#enums/learn-move-situation";
 import { MoveCategory } from "#enums/move-category";
@@ -1598,14 +1598,10 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
 
   calculateBaseStats(): number[] {
     let baseStats = this.getSpeciesForm(true).baseStats.slice(0);
-    
+
     // Apply random stats in RANDOM_STATS mode (before any other modifications)
     if (globalScene.gameMode?.modeId === GameModes.RANDOM_STATS) {
-      baseStats = randomStatsManager.getRandomizedStats(
-        this.species.speciesId,
-        this.formIndex,
-        baseStats
-      );
+      baseStats = randomStatsManager.getRandomizedStats(this.species.speciesId, this.formIndex, baseStats);
     }
 
     applyChallenges(ChallengeType.FLIP_STAT, this, baseStats);
@@ -1617,8 +1613,9 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
       const fusionBaseStats = this.getFusionSpeciesForm(true).baseStats;
       applyChallenges(ChallengeType.FLIP_STAT, this, fusionBaseStats);
 
+      // Take the maximum value for each stat
       for (const s of PERMANENT_STATS) {
-        baseStats[s] = Math.ceil((baseStats[s] + fusionBaseStats[s]) / 2);
+        baseStats[s] = Math.max(baseStats[s], fusionBaseStats[s]);
       }
     } else if (globalScene.gameMode.isSplicedOnly) {
       for (const s of PERMANENT_STATS) {
@@ -1958,18 +1955,23 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
         const fusionSpeciesForm = this.getFusionSpeciesForm(ignoreOverride, useIllusion);
         const customTypes = this.customPokemonData.types?.length > 0;
 
-        // First type, checking for "permanently changed" types from ME
-        const firstType =
-          customTypes && this.customPokemonData.types[0] !== PokemonType.UNKNOWN
-            ? this.customPokemonData.types[0]
-            : speciesForm.type1;
-        types.push(firstType);
-
-        // Second type
-        let secondType: PokemonType = PokemonType.UNKNOWN;
-
         if (fusionSpeciesForm) {
-          // Check if the fusion Pokemon also has permanent changes from ME when determining the fusion types
+          // For fusions, collect all unique types from both Pokemon
+          const allTypes: PokemonType[] = [];
+
+          // Get types from base Pokemon (A)
+          const baseType1 =
+            customTypes && this.customPokemonData.types[0] !== PokemonType.UNKNOWN
+              ? this.customPokemonData.types[0]
+              : speciesForm.type1;
+          const baseType2 =
+            customTypes
+            && this.customPokemonData.types.length > 1
+            && this.customPokemonData.types[1] !== PokemonType.UNKNOWN
+              ? this.customPokemonData.types[1]
+              : speciesForm.type2;
+
+          // Get types from fusion Pokemon (B)
           const fusionType1 =
             this.fusionCustomPokemonData?.types
             && this.fusionCustomPokemonData.types.length > 0
@@ -1983,34 +1985,44 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
               ? this.fusionCustomPokemonData.types[1]
               : fusionSpeciesForm.type2;
 
-          // Assign second type if the fusion can provide one
-          if (fusionType2 !== null && fusionType2 !== types[0]) {
-            secondType = fusionType2;
-          } else if (fusionType1 !== types[0]) {
-            secondType = fusionType1;
+          // Add all unique types (max 4 types possible)
+          if (baseType1 !== PokemonType.UNKNOWN && baseType1 !== null) {
+            allTypes.push(baseType1);
+          }
+          if (baseType2 !== PokemonType.UNKNOWN && baseType2 !== null && !allTypes.includes(baseType2)) {
+            allTypes.push(baseType2);
+          }
+          if (fusionType1 !== PokemonType.UNKNOWN && fusionType1 !== null && !allTypes.includes(fusionType1)) {
+            allTypes.push(fusionType1);
+          }
+          if (fusionType2 !== PokemonType.UNKNOWN && fusionType2 !== null && !allTypes.includes(fusionType2)) {
+            allTypes.push(fusionType2);
           }
 
-          if (secondType === PokemonType.UNKNOWN && fusionType2 == null) {
-            // If second pokemon was monotype and shared its primary type
-            secondType =
-              customTypes
-              && this.customPokemonData.types.length > 1
-              && this.customPokemonData.types[1] !== PokemonType.UNKNOWN
-                ? this.customPokemonData.types[1]
-                : (speciesForm.type2 ?? PokemonType.UNKNOWN);
-          }
+          // Add all collected types
+          allTypes.forEach(type => {
+            if (!types.includes(type)) {
+              types.push(type);
+            }
+          });
         } else {
-          // If not a fusion, just get the second type from the species, checking for permanent changes from ME
-          secondType =
+          // If not a fusion, use normal logic
+          const firstType =
+            customTypes && this.customPokemonData.types[0] !== PokemonType.UNKNOWN
+              ? this.customPokemonData.types[0]
+              : speciesForm.type1;
+          types.push(firstType);
+
+          const secondType =
             customTypes
             && this.customPokemonData.types.length > 1
             && this.customPokemonData.types[1] !== PokemonType.UNKNOWN
               ? this.customPokemonData.types[1]
               : (speciesForm.type2 ?? PokemonType.UNKNOWN);
-        }
 
-        if (secondType !== PokemonType.UNKNOWN) {
-          types.push(secondType);
+          if (secondType !== PokemonType.UNKNOWN) {
+            types.push(secondType);
+          }
         }
       }
     }
@@ -2113,6 +2125,7 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
    * Gets a list of all instances of a given ability attribute among abilities this pokemon has.
    * Accounts for all the various effects which can affect whether an ability will be present or
    * in effect, and both passive and non-passive.
+   * For fusions, includes abilities from both Pokemon A and B.
    * @param attrType - {@linkcode AbAttr} The ability attribute to check for.
    * @param canApply - Whether to check if the ability is currently active; Default `true`
    * @param ignoreOverride - Whether to ignore ability changing effects; Default `false`
@@ -2127,6 +2140,21 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
 
     if (!canApply || this.canApplyAbility(true)) {
       abilityAttrs.push(...this.getPassiveAbility().getAttrs(attrType));
+    }
+
+    // For fusions, also include abilities from both base (A) and fusion (B) Pokemon
+    if (this.isFusion(ignoreOverride)) {
+      // Get base Pokemon's (A) ability
+      const baseAbilityId = this.getSpeciesForm(ignoreOverride).getAbility(this.abilityIndex);
+      if (baseAbilityId !== AbilityId.NONE && (!canApply || this.canApplyAbility())) {
+        abilityAttrs.push(...allAbilities[baseAbilityId].getAttrs(attrType));
+      }
+
+      // Get base Pokemon's (A) passive ability
+      const basePassiveId = this.species.getPassiveAbility(this.formIndex);
+      if (basePassiveId !== AbilityId.NONE && this.hasPassive() && (!canApply || this.canApplyAbility(true))) {
+        abilityAttrs.push(...allAbilities[basePassiveId].getAttrs(attrType));
+      }
     }
 
     return abilityAttrs;
@@ -2242,6 +2270,7 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
   /**
    * Check whether a pokemon has the specified ability in effect, either as a normal or passive ability.
    * Accounts for all the various effects which can disable or modify abilities.
+   * For fusions, checks abilities from both Pokemon A and B.
    * @param ability - The {@linkcode Abilities | Ability} to check for
    * @param canApply - Whether to check if the ability is currently active; default `true`
    * @param ignoreOverride - Whether to ignore any overrides caused by {@linkcode MoveId.TRANSFORM | Transform}; default `false`
@@ -2251,7 +2280,24 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     if (this.getAbility(ignoreOverride).id === ability && (!canApply || this.canApplyAbility())) {
       return true;
     }
-    return this.getPassiveAbility().id === ability && this.hasPassive() && (!canApply || this.canApplyAbility(true));
+    if (this.getPassiveAbility().id === ability && this.hasPassive() && (!canApply || this.canApplyAbility(true))) {
+      return true;
+    }
+
+    // For fusions, also check abilities from both base (A) and fusion (B) Pokemon
+    if (this.isFusion(ignoreOverride)) {
+      const baseAbilityId = this.getSpeciesForm(ignoreOverride).getAbility(this.abilityIndex);
+      if (baseAbilityId === ability && (!canApply || this.canApplyAbility())) {
+        return true;
+      }
+
+      const basePassiveId = this.species.getPassiveAbility(this.formIndex);
+      if (basePassiveId === ability && this.hasPassive() && (!canApply || this.canApplyAbility(true))) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**
