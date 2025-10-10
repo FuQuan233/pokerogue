@@ -337,11 +337,11 @@ function initGreatModifierPool() {
           globalScene.gameMode.isClassic // 经典模式限定
           && party.filter(p => !p.fusionSpecies).length > 1
         ) {
-          return 100; // 大幅提高权重以便测试
+          return 16;
         }
         return 0;
       },
-      100,
+      16,
     ),
 
     new WeightedModifierType(
