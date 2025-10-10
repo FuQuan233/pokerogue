@@ -484,20 +484,28 @@ export abstract class BattleInfo extends Phaser.GameObjects.Container {
    * Update the type icons to match the pokemon's types
    */
   setTypes(types: PokemonType[]): void {
+    const prefix = `pbinfo_${this.player ? "player" : "enemy"}`;
+
+    // Set type1 texture based on count
     this.type1Icon
-      .setTexture(`pbinfo_${this.player ? "player" : "enemy"}_type${types.length > 1 ? "1" : ""}`)
+      .setTexture(`${prefix}_type${types.length > 1 ? "1" : ""}`)
       .setFrame(PokemonType[types[0]].toLowerCase());
+
     this.type2Icon.setVisible(types.length > 1);
     this.type3Icon.setVisible(types.length > 2);
     this.type4Icon.setVisible(types.length > 3);
+
     if (types.length > 1) {
-      this.type2Icon.setFrame(PokemonType[types[1]].toLowerCase());
+      this.type2Icon.setTexture(`${prefix}_type2`).setFrame(PokemonType[types[1]].toLowerCase());
     }
     if (types.length > 2) {
-      this.type3Icon.setFrame(PokemonType[types[2]].toLowerCase());
+      // For 3 types, type3 uses single type texture; for 4 types, it uses type1 texture
+      this.type3Icon
+        .setTexture(`${prefix}_type${types.length > 3 ? "1" : ""}`)
+        .setFrame(PokemonType[types[2]].toLowerCase());
     }
     if (types.length > 3) {
-      this.type4Icon.setFrame(PokemonType[types[3]].toLowerCase());
+      this.type4Icon.setTexture(`${prefix}_type2`).setFrame(PokemonType[types[3]].toLowerCase());
     }
   }
 
