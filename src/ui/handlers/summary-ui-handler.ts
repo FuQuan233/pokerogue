@@ -966,10 +966,10 @@ export class SummaryUiHandler extends UiHandler {
         };
 
         const types = this.pokemon?.getTypes(false, false, true, false)!; // TODO: is this bang correct?
-        profileContainer.add(getTypeIcon(0, types[0]));
-        if (types.length > 1) {
-          profileContainer.add(getTypeIcon(1, types[1]));
-        }
+        // Display all types (supports up to 4 types for fusion Pokemon)
+        types.forEach((type, index) => {
+          profileContainer.add(getTypeIcon(index, type));
+        });
 
         if (this.pokemon?.getLuck()) {
           const luckLabelText = addTextObject(141, 28, i18next.t("common:luckIndicator"), TextStyle.SUMMARY_ALT);
