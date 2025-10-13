@@ -63,6 +63,11 @@ export interface SessionSaveData {
    * Counts the amount of pokemon fainted in your party during the current arena encounter.
    */
   playerFaints: number;
+  /**
+   * Randomized stats for Pokemon in RANDOM_STATS mode. Maps species+form key to base stats array.
+   * This ensures stats remain consistent throughout a run and are independent across different save slots.
+   */
+  randomizedStats?: [string, number[]][];
 }
 
 export interface Unlocks {

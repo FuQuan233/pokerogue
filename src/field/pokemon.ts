@@ -1610,7 +1610,17 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     // Old Gateau
     globalScene.applyModifiers(PokemonBaseStatFlatModifier, this.isPlayer(), this, baseStats);
     if (this.isFusion()) {
-      const fusionBaseStats = this.getFusionSpeciesForm(true).baseStats;
+      let fusionBaseStats = this.getFusionSpeciesForm(true).baseStats.slice(0);
+
+      // Apply random stats to fusion Pokemon in RANDOM_STATS mode
+      if (globalScene.gameMode?.modeId === GameModes.RANDOM_STATS) {
+        fusionBaseStats = randomStatsManager.getRandomizedStats(
+          this.fusionSpecies!.speciesId,
+          this.fusionFormIndex,
+          fusionBaseStats,
+        );
+      }
+
       applyChallenges(ChallengeType.FLIP_STAT, this, fusionBaseStats);
 
       // Take the maximum value for each stat

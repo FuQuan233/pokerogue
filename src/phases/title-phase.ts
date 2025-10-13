@@ -3,6 +3,7 @@ import { GameMode, getGameMode } from "#app/game-mode";
 import { globalScene } from "#app/global-scene";
 import Overrides from "#app/overrides";
 import { Phase } from "#app/phase";
+import { randomStatsManager } from "#app/system/random-stats-manager";
 import { fetchDailyRunSeed, getDailyRunStarters } from "#data/daily-run";
 import { modifierTypes } from "#data/data-lists";
 import { Gender } from "#data/gender";
@@ -211,6 +212,9 @@ export class TitlePhase extends Phase {
       globalScene.sessionSlotId = slotId;
 
       const generateDaily = (seed: string) => {
+        // Clear randomized stats for new daily run
+        randomStatsManager.clear();
+
         globalScene.gameMode = getGameMode(GameModes.DAILY);
         // Daily runs don't support all challenges yet (starter select restrictions aren't considered)
         globalScene.eventManager.startEventChallenges();

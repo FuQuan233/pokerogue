@@ -5,6 +5,7 @@ import { getGameMode } from "#app/game-mode";
 import { globalScene } from "#app/global-scene";
 import { bypassLogin } from "#app/global-vars/bypass-login";
 import Overrides from "#app/overrides";
+import { randomStatsManager } from "#app/system/random-stats-manager";
 import { Tutorial } from "#app/tutorial";
 import { speciesEggMoves } from "#balance/egg-moves";
 import { pokemonPrevolutions } from "#balance/pokemon-evolutions";
@@ -835,6 +836,7 @@ export class GameData {
       mysteryEncounterType: globalScene.currentBattle.mysteryEncounter?.encounterType ?? -1,
       mysteryEncounterSaveData: globalScene.mysteryEncounterSaveData,
       playerFaints: globalScene.arena.playerFaints,
+      randomizedStats: randomStatsManager.toJSON(),
     } as SessionSaveData;
   }
 
@@ -936,6 +938,14 @@ export class GameData {
           } catch (err) {
             console.debug("Attempt to log session data failed:", err);
           }
+        }
+
+        // Load randomized stats for RANDOM_STATS mode
+        if (fromSession.randomizedStats) {
+          randomStatsManager.fromJSON(fromSession.randomizedStats);
+        } else {
+          // Clear if no data (for compatibility with old saves or non-RANDOM_STATS modes)
+          randomStatsManager.clear();
         }
 
         globalScene.gameMode = getGameMode(fromSession.gameMode || GameModes.CLASSIC);
