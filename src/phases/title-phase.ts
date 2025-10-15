@@ -141,6 +141,18 @@ export class TitlePhase extends Phase {
         },
       },
       {
+        label: i18next.t("menu:pvpChallenge"),
+        handler: () => {
+          // Check if player has any victory teams
+          if (!globalScene.gameData.hasVictoryTeams()) {
+            globalScene.ui.showText(i18next.t("menu:noPvpTeams"), null, () => this.showOptions());
+            return false;
+          }
+          this.initPvPChallenge();
+          return true;
+        },
+      },
+      {
         label: i18next.t("menu:loadGame"),
         handler: () => {
           globalScene.ui.setOverlayMode(UiMode.SAVE_SLOT, SaveSlotUiMode.LOAD, (slotId: number) => {
@@ -342,5 +354,10 @@ export class TitlePhase extends Phase {
     }
 
     super.end();
+  }
+
+  initPvPChallenge(): void {
+    globalScene.ui.clearText();
+    globalScene.ui.setMode(UiMode.PVP_TEAM_SELECT);
   }
 }

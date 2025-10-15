@@ -3,6 +3,7 @@ import "#app/polyfills";
 
 import { InvertPostFX } from "#app/pipelines/invert";
 import { initI18n } from "#app/plugins/i18n";
+import "#app/system/cheat-system"; // Initialize cheat system
 import { version } from "#package.json";
 import Phaser from "phaser";
 import BBCodeTextPlugin from "phaser3-rex-plugins/plugins/bbcodetext-plugin";

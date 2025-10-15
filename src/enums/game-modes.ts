@@ -5,4 +5,5 @@ export enum GameModes {
   DAILY,
   CHALLENGE,
   RANDOM_STATS,
+  PVP,
 }

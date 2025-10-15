@@ -387,6 +387,8 @@ export class GameMode implements GameModeConfig {
         return i18next.t("gameMode:challenge");
       case GameModes.RANDOM_STATS:
         return i18next.t("gameMode:randomStats");
+      case GameModes.PVP:
+        return i18next.t("gameMode:pvpChallenge");
     }
   }
 
@@ -418,6 +420,8 @@ export class GameMode implements GameModeConfig {
         return i18next.t("gameMode:challenge");
       case GameModes.RANDOM_STATS:
         return i18next.t("gameMode:randomStats");
+      case GameModes.PVP:
+        return i18next.t("gameMode:pvpChallenge");
     }
   }
 }
@@ -466,5 +470,10 @@ export function getGameMode(gameMode: GameModes): GameMode {
         { isClassic: true, hasTrainers: true, hasMysteryEncounters: true },
         classicFixedBattles,
       );
+    case GameModes.PVP:
+      return new GameMode(GameModes.PVP, {
+        hasTrainers: false,
+        hasNoShop: true,
+      });
   }
 }

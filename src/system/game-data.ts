@@ -146,6 +146,7 @@ export class GameData {
   public eggs: Egg[];
   public eggPity: number[];
   public unlockPity: number[];
+  public pvpData: import("#types/pvp-data").PvPData;
 
   constructor() {
     this.loadSettings();
@@ -173,6 +174,11 @@ export class GameData {
     this.eggs = [];
     this.eggPity = [0, 0, 0, 0];
     this.unlockPity = [0, 0, 0, 0];
+    this.pvpData = {
+      victoryTeams: [],
+      wins: 0,
+      losses: 0,
+    };
     this.initDexData();
     this.initStarterData();
   }
@@ -194,6 +200,7 @@ export class GameData {
       timestamp: Date.now(),
       eggPity: this.eggPity.slice(0),
       unlockPity: this.unlockPity.slice(0),
+      pvpData: this.pvpData,
     };
   }
 
@@ -2130,5 +2137,42 @@ export class GameData {
         }
       }
     }
+  }
+
+  /**
+   * Save a victory team composition (max 3, keeps most recent)
+   */
+  public saveVictoryTeam(): void {
+    const victoryTeam: import("#types/pvp-data").VictoryTeam = {
+      timestamp: Date.now(),
+      waveIndex: globalScene.currentBattle.waveIndex,
+      party: globalScene.getPlayerParty().map(p => new PokemonData(p)),
+      modifiers: globalScene.findModifiers(() => true).map(m => new PersistentModifierData(m, true)),
+      playTime: globalScene.sessionPlayTime,
+    };
+
+    // Add to the beginning of the array
+    this.pvpData.victoryTeams.unshift(victoryTeam);
+
+    // Keep only the 3 most recent
+    if (this.pvpData.victoryTeams.length > 3) {
+      this.pvpData.victoryTeams = this.pvpData.victoryTeams.slice(0, 3);
+    }
+
+    console.log("Victory team saved. Total teams:", this.pvpData.victoryTeams.length);
+  }
+
+  /**
+   * Get all saved victory teams
+   */
+  public getVictoryTeams(): import("#types/pvp-data").VictoryTeam[] {
+    return this.pvpData.victoryTeams;
+  }
+
+  /**
+   * Check if player has any victory teams
+   */
+  public hasVictoryTeams(): boolean {
+    return this.pvpData.victoryTeams.length > 0;
   }
 }

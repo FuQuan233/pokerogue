@@ -18,6 +18,7 @@ import type { ModifierData } from "#system/modifier-data";
 import type { PokemonData } from "#system/pokemon-data";
 import type { TrainerData } from "#system/trainer-data";
 import type { DexData } from "./dex-data";
+import type { PvPData } from "./pvp-data";
 
 export interface SystemSaveData {
   trainerId: number;
@@ -35,6 +36,7 @@ export interface SystemSaveData {
   timestamp: number;
   eggPity: number[];
   unlockPity: number[];
+  pvpData?: PvPData;
 }
 
 export interface SessionSaveData {

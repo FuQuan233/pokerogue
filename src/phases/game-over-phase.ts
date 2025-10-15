@@ -6,6 +6,7 @@ import { modifierTypes } from "#data/data-lists";
 import { getCharVariantFromDialogue } from "#data/dialogue";
 import type { PokemonSpecies } from "#data/pokemon-species";
 import { BattleType } from "#enums/battle-type";
+import { GameModes } from "#enums/game-modes";
 import { PlayerGender } from "#enums/player-gender";
 import { TrainerType } from "#enums/trainer-type";
 import { UiMode } from "#enums/ui-mode";
@@ -71,6 +72,13 @@ export class GameOverPhase extends BattlePhase {
         () => this.handleGameOver(),
       );
     } else if (this.isVictory || !globalScene.enableRetries) {
+      // Handle PvP mode separately
+      if (globalScene.gameMode.modeId === GameModes.PVP) {
+        globalScene.phaseManager.unshiftNew("PvPGameOverPhase", this.isVictory);
+        this.end();
+        return;
+      }
+
       this.handleGameOver();
     } else {
       globalScene.ui.showText(i18next.t("battle:retryBattle"), null, () => {
@@ -164,6 +172,9 @@ export class GameOverPhase extends BattlePhase {
               }
             }
             this.awardRibbons();
+
+            // Save victory team for PvP challenge mode
+            globalScene.gameData.saveVictoryTeam();
           } else if (globalScene.gameMode.isDaily && newClear) {
             globalScene.gameData.gameStats.dailyRunSessionsWon++;
             globalScene.validateAchv(achvs.DAILY_VICTORY);
