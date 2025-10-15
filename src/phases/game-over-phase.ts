@@ -175,6 +175,8 @@ export class GameOverPhase extends BattlePhase {
 
             // Save victory team for PvP challenge mode
             globalScene.gameData.saveVictoryTeam();
+            // Save system data immediately to persist victory teams
+            globalScene.gameData.saveSystem();
           } else if (globalScene.gameMode.isDaily && newClear) {
             globalScene.gameData.gameStats.dailyRunSessionsWon++;
             globalScene.validateAchv(achvs.DAILY_VICTORY);

@@ -410,6 +410,11 @@ export class GameData {
       this.eggPity = systemData.eggPity ? systemData.eggPity.slice(0) : [0, 0, 0, 0];
       this.unlockPity = systemData.unlockPity ? systemData.unlockPity.slice(0) : [0, 0, 0, 0];
 
+      // Load PvP data
+      if (systemData.pvpData) {
+        this.pvpData = systemData.pvpData;
+      }
+
       this.dexData = Object.assign(this.dexData, systemData.dexData);
       this.consolidateDexData(this.dexData);
       this.defaultDexData = null;

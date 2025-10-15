@@ -127,8 +127,19 @@ export class PvPOpponentSelectUiHandler extends AbstractOptionSelectUiHandler {
     PvPAPI.uploadTeam(this.playerTeam, playerName, globalScene.gameData.trainerId).then(success => {
       if (success) {
         globalScene.ui.showText(i18next.t("pvp:uploadSuccess"), null, () => {
-          // Reload opponents list
-          this.show([this.playerTeam]);
+          // Clear UI and reload opponents list
+          globalScene.ui.clearText();
+
+          // Re-fetch opponents from server
+          PvPAPI.getOpponentTeams(10, globalScene.gameData.trainerId)
+            .then(teams => {
+              this.opponentTeams = teams;
+              this.displayOpponents();
+            })
+            .catch(err => {
+              console.error("Failed to reload opponents:", err);
+              globalScene.ui.setMode(UiMode.PVP_TEAM_SELECT);
+            });
         });
       } else {
         globalScene.ui.showText(i18next.t("pvp:uploadFailed"), null, () => {
