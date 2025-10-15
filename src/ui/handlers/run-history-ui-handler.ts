@@ -38,6 +38,8 @@ export class RunHistoryUiHandler extends MessageUiHandler {
 
   private runContainerInitialY: number;
 
+  private isPvPMode = false; // Track if in PvP mode
+
   constructor() {
     super(UiMode.RUN_HISTORY);
   }
@@ -77,6 +79,9 @@ export class RunHistoryUiHandler extends MessageUiHandler {
   override show(args: any[]): boolean {
     super.show(args);
 
+    // Check if in PvP mode
+    this.isPvPMode = args[0] === true;
+
     this.getUi().bringToTop(this.runSelectContainer);
     this.runSelectContainer.setVisible(true);
     this.populateRuns().then(() => {
@@ -109,7 +114,18 @@ export class RunHistoryUiHandler extends MessageUiHandler {
       if (button === Button.ACTION) {
         const cursor = this.cursor + this.scrollCursor;
         if (this.runs[cursor]) {
-          globalScene.ui.setOverlayMode(UiMode.RUN_INFO, this.runs[cursor].entryData, RunDisplayMode.RUN_HISTORY, true);
+          if (this.isPvPMode) {
+            // In PvP mode, ACTION opens player list to select opponent
+            globalScene.ui.setMode(UiMode.PVP_PLAYER_LIST, this.runs[cursor].entryData);
+          } else {
+            // Normal mode, show run details
+            globalScene.ui.setOverlayMode(
+              UiMode.RUN_INFO,
+              this.runs[cursor].entryData,
+              RunDisplayMode.RUN_HISTORY,
+              true,
+            );
+          }
         } else {
           return false;
         }
@@ -160,7 +176,13 @@ export class RunHistoryUiHandler extends MessageUiHandler {
    */
   private async populateRuns() {
     const response = await globalScene.gameData.getRunHistoryData();
-    const timestamps = Object.keys(response);
+    let timestamps = Object.keys(response);
+
+    // In PvP mode, filter to only show victories
+    if (this.isPvPMode) {
+      timestamps = timestamps.filter(ts => response[Number(ts)].isVictory);
+    }
+
     if (timestamps.length === 0) {
       this.showEmpty();
       return;

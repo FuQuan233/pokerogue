@@ -360,6 +360,7 @@ export class TitlePhase extends Phase {
 
   initPvPChallenge(): void {
     globalScene.ui.clearText();
-    globalScene.ui.setMode(UiMode.PVP_TEAM_SELECT);
+    // Open run history in PvP mode
+    globalScene.ui.setMode(UiMode.RUN_HISTORY, true); // true = PvP mode
   }
 }

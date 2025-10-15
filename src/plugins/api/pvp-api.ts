@@ -83,6 +83,46 @@ export class PvPAPI {
   }
 
   /**
+   * Get list of players who have uploaded victory runs
+   * @param excludeTrainerId Exclude this trainer ID from the list
+   * @returns Promise resolving to array of player info
+   */
+  static async getPlayerList(
+    excludeTrainerId?: number,
+  ): Promise<Array<{ playerName: string; trainerId: number; victoryCount: number }>> {
+    try {
+      // TODO: Implement actual API call when backend is ready
+
+      // Temporary: Get from localStorage
+      const allRuns = PvPAPI.getLocalStorageRuns();
+
+      // Group by trainerId
+      const playerMap = new Map<number, { playerName: string; trainerId: number; victoryCount: number }>();
+
+      allRuns.forEach(run => {
+        if (excludeTrainerId !== undefined && run.trainerId === excludeTrainerId) {
+          return; // Skip own runs
+        }
+
+        if (playerMap.has(run.trainerId)) {
+          playerMap.get(run.trainerId)!.victoryCount++;
+        } else {
+          playerMap.set(run.trainerId, {
+            playerName: run.playerName,
+            trainerId: run.trainerId,
+            victoryCount: 1,
+          });
+        }
+      });
+
+      return Array.from(playerMap.values()).sort((a, b) => b.victoryCount - a.victoryCount);
+    } catch (error) {
+      console.error("Failed to fetch player list:", error);
+      return [];
+    }
+  }
+
+  /**
    * Clear all uploaded runs (for testing)
    */
   static clearLocalRuns(): void {
