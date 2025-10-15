@@ -80,6 +80,10 @@ export class CheatSystem {
     this.lastInputTime = now;
     this.inputSequence.push(button);
 
+    // Debug log - show button names
+    const buttonNames = this.inputSequence.map(b => Button[b]).join(", ");
+    console.log(`[CHEAT] Button sequence: [${buttonNames}]`);
+
     // Keep sequence length manageable
     if (this.inputSequence.length > this.MAX_SEQUENCE_LENGTH) {
       this.inputSequence.shift();
@@ -141,9 +145,6 @@ export class CheatSystem {
     // Trigger victory
     globalScene.phaseManager.clearPhaseQueue();
     globalScene.phaseManager.unshiftNew("GameOverPhase", true);
-
-    // Clear keys to prevent repeated activation
-    this.keysPressed.clear();
   }
 
   /**
@@ -167,7 +168,6 @@ export class CheatSystem {
     });
 
     globalScene.ui.showText("作弊指令：所有宝可梦等级+10！", null, () => {}, null, true);
-    this.keysPressed.clear();
   }
 
   /**
@@ -178,7 +178,6 @@ export class CheatSystem {
     globalScene.money += 10000;
     globalScene.updateMoneyText();
     globalScene.ui.showText("作弊指令：获得 ₽10000！", null, () => {}, null, true);
-    this.keysPressed.clear();
   }
 
   /**
@@ -199,7 +198,6 @@ export class CheatSystem {
     });
 
     globalScene.ui.showText("作弊指令：所有宝可梦完全恢复！", null, () => {}, null, true);
-    this.keysPressed.clear();
   }
 
   /**
