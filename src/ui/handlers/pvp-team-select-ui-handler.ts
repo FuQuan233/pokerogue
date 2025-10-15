@@ -2,8 +2,6 @@ import { globalScene } from "#app/global-scene";
 import { UiMode } from "#enums/ui-mode";
 import type { VictoryTeam } from "#types/pvp-data";
 import i18next from "i18next";
-import { addTextObject, TextStyle } from "../text";
-import { addWindow } from "../ui-theme";
 import {
   AbstractOptionSelectUiHandler,
   type OptionSelectConfig,
@@ -18,36 +16,11 @@ export class PvPTeamSelectUiHandler extends AbstractOptionSelectUiHandler {
     this.teams = [];
   }
 
-  setup() {
-    super.setup();
-
-    const ui = this.getUi();
-
-    // Create background window
-    this.optionsContainer = this.scene.add.container(0, -48 + this.scene.game.canvas.height / 6 / 2);
-    this.optionsContainer.setVisible(false);
-    ui.add(this.optionsContainer);
-
-    this.optionsBg = addWindow(
-      this.scene,
-      0,
-      0,
-      this.scene.game.canvas.width / 6 - 2,
-      this.scene.game.canvas.height / 6 - 2,
-    );
-    this.optionsBg.setOrigin(0, 0);
-    this.optionsContainer.add(this.optionsBg);
-
-    // Title
-    const titleText = addTextObject(this.scene, 8, 8, i18next.t("pvp:selectYourTeam"), TextStyle.WINDOW);
-    this.optionsContainer.add(titleText);
+  getWindowWidth(): number {
+    return 160;
   }
 
-  show(args: any[]): boolean {
-    if (!super.show(args)) {
-      return false;
-    }
-
+  show(_args: any[]): boolean {
     // Get player's victory teams
     this.teams = globalScene.gameData.getVictoryTeams();
 
@@ -73,13 +46,6 @@ export class PvPTeamSelectUiHandler extends AbstractOptionSelectUiHandler {
         date: dateStr,
       });
 
-      // Description for future use (could be displayed on hover or in details)
-      // const description = i18next.t("pvp:teamDescription", {
-      //   time: timeStr,
-      //   playTime: playTimeMin,
-      //   pokemon: team.party.length,
-      // });
-
       options.push({
         label,
         handler: () => {
@@ -101,11 +67,10 @@ export class PvPTeamSelectUiHandler extends AbstractOptionSelectUiHandler {
     const config: OptionSelectConfig = {
       options,
       maxOptions: 5,
-      yOffset: 24,
+      yOffset: 0,
     };
 
-    this.setupOptions(config);
-    return true;
+    return super.show([config]);
   }
 
   selectTeam(teamIndex: number): void {

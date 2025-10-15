@@ -3,8 +3,6 @@ import { globalScene } from "#app/global-scene";
 import { UiMode } from "#enums/ui-mode";
 import type { VictoryTeam } from "#types/pvp-data";
 import i18next from "i18next";
-import { addTextObject, TextStyle } from "../text";
-import { addWindow } from "../ui-theme";
 import {
   AbstractOptionSelectUiHandler,
   type OptionSelectConfig,
@@ -20,36 +18,11 @@ export class PvPOpponentSelectUiHandler extends AbstractOptionSelectUiHandler {
     this.opponentTeams = [];
   }
 
-  setup() {
-    super.setup();
-
-    const ui = this.getUi();
-
-    // Create background window
-    this.optionsContainer = this.scene.add.container(0, -48 + this.scene.game.canvas.height / 6 / 2);
-    this.optionsContainer.setVisible(false);
-    ui.add(this.optionsContainer);
-
-    this.optionsBg = addWindow(
-      this.scene,
-      0,
-      0,
-      this.scene.game.canvas.width / 6 - 2,
-      this.scene.game.canvas.height / 6 - 2,
-    );
-    this.optionsBg.setOrigin(0, 0);
-    this.optionsContainer.add(this.optionsBg);
-
-    // Title
-    const titleText = addTextObject(this.scene, 8, 8, i18next.t("pvp:selectOpponent"), TextStyle.WINDOW);
-    this.optionsContainer.add(titleText);
+  getWindowWidth(): number {
+    return 160;
   }
 
   show(args: any[]): boolean {
-    if (!super.show(args)) {
-      return false;
-    }
-
     // First arg should be the player's selected team
     this.playerTeam = args[0] as VictoryTeam;
 
@@ -93,10 +66,6 @@ export class PvPOpponentSelectUiHandler extends AbstractOptionSelectUiHandler {
 
     // Add option for each opponent team
     this.opponentTeams.forEach((uploadedTeam, index) => {
-      // Date info for future use (could be displayed in details)
-      // const date = new Date(uploadedTeam.team.timestamp);
-      // const dateStr = date.toLocaleDateString();
-
       const label = i18next.t("pvp:opponent", {
         player: uploadedTeam.playerName,
         wave: uploadedTeam.team.waveIndex,
@@ -132,10 +101,10 @@ export class PvPOpponentSelectUiHandler extends AbstractOptionSelectUiHandler {
     const config: OptionSelectConfig = {
       options,
       maxOptions: 8,
-      yOffset: 24,
+      yOffset: 0,
     };
 
-    this.setupOptions(config);
+    super.show([config]);
   }
 
   selectOpponent(opponentIndex: number): void {
