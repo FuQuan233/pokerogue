@@ -143,12 +143,14 @@ export class TitlePhase extends Phase {
       {
         label: i18next.t("menu:pvpChallenge"),
         handler: () => {
-          // Check if player has any victory teams
-          if (!globalScene.gameData.hasVictoryTeams()) {
-            globalScene.ui.showText(i18next.t("menu:noPvpTeams"), null, () => this.showOptions());
-            return false;
-          }
-          this.initPvPChallenge();
+          // Check if player has any victory runs (async)
+          globalScene.gameData.hasVictoryRuns().then(hasRuns => {
+            if (!hasRuns) {
+              globalScene.ui.showText(i18next.t("menu:noPvpTeams"), null, () => this.showOptions());
+            } else {
+              this.initPvPChallenge();
+            }
+          });
           return true;
         },
       },

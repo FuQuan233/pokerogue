@@ -175,7 +175,6 @@ export class GameData {
     this.eggPity = [0, 0, 0, 0];
     this.unlockPity = [0, 0, 0, 0];
     this.pvpData = {
-      victoryTeams: [],
       wins: 0,
       losses: 0,
     };
@@ -2145,39 +2144,32 @@ export class GameData {
   }
 
   /**
-   * Save a victory team composition (max 3, keeps most recent)
+   * Get victory runs from run history (for PvP challenge mode)
+   * Returns up to the specified limit of most recent victory runs
    */
-  public saveVictoryTeam(): void {
-    const victoryTeam: import("#types/pvp-data").VictoryTeam = {
-      timestamp: Date.now(),
-      waveIndex: globalScene.currentBattle.waveIndex,
-      party: globalScene.getPlayerParty().map(p => new PokemonData(p)),
-      modifiers: globalScene.findModifiers(() => true).map(m => new PersistentModifierData(m, true)),
-      playTime: globalScene.sessionPlayTime,
-    };
+  public async getVictoryRuns(limit = 3): Promise<import("#types/save-data").RunEntry[]> {
+    const runHistoryData = await this.getRunHistoryData();
+    const timestamps = Object.keys(runHistoryData).map(Number);
 
-    // Add to the beginning of the array
-    this.pvpData.victoryTeams.unshift(victoryTeam);
-
-    // Keep only the 3 most recent
-    if (this.pvpData.victoryTeams.length > 3) {
-      this.pvpData.victoryTeams = this.pvpData.victoryTeams.slice(0, 3);
+    if (timestamps.length === 0) {
+      return [];
     }
 
-    console.log("Victory team saved. Total teams:", this.pvpData.victoryTeams.length);
+    // Filter for victories only and sort by timestamp (newest first)
+    const victoryRuns = timestamps
+      .filter(timestamp => runHistoryData[timestamp].isVictory)
+      .sort((a, b) => b - a)
+      .slice(0, limit)
+      .map(timestamp => runHistoryData[timestamp]);
+
+    return victoryRuns;
   }
 
   /**
-   * Get all saved victory teams
+   * Check if player has any victory runs
    */
-  public getVictoryTeams(): import("#types/pvp-data").VictoryTeam[] {
-    return this.pvpData.victoryTeams;
-  }
-
-  /**
-   * Check if player has any victory teams
-   */
-  public hasVictoryTeams(): boolean {
-    return this.pvpData.victoryTeams.length > 0;
+  public async hasVictoryRuns(): Promise<boolean> {
+    const victoryRuns = await this.getVictoryRuns(1);
+    return victoryRuns.length > 0;
   }
 }

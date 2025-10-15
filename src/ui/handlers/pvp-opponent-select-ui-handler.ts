@@ -1,7 +1,9 @@
-import { PvPAPI, type UploadedTeam } from "#api/pvp-api";
+import { PvPAPI } from "#api/pvp-api";
 import { globalScene } from "#app/global-scene";
+import { GameModes } from "#enums/game-modes";
 import { UiMode } from "#enums/ui-mode";
-import type { VictoryTeam } from "#types/pvp-data";
+import type { UploadedRun } from "#types/pvp-data";
+import type { RunEntry } from "#types/save-data";
 import i18next from "i18next";
 import {
   AbstractOptionSelectUiHandler,
@@ -10,12 +12,12 @@ import {
 } from "./abstract-option-select-ui-handler";
 
 export class PvPOpponentSelectUiHandler extends AbstractOptionSelectUiHandler {
-  private playerTeam: VictoryTeam;
-  private opponentTeams: UploadedTeam[];
+  private playerRun: RunEntry;
+  private opponentRuns: UploadedRun[];
 
   constructor() {
     super(UiMode.PVP_OPPONENT_SELECT);
-    this.opponentTeams = [];
+    this.opponentRuns = [];
   }
 
   getWindowWidth(): number {
@@ -23,11 +25,11 @@ export class PvPOpponentSelectUiHandler extends AbstractOptionSelectUiHandler {
   }
 
   show(args: any[]): boolean {
-    // First arg should be the player's selected team
-    this.playerTeam = args[0] as VictoryTeam;
+    // First arg should be the player's selected run
+    this.playerRun = args[0] as RunEntry;
 
-    if (!this.playerTeam) {
-      console.error("No player team provided to PvPOpponentSelectUiHandler");
+    if (!this.playerRun) {
+      console.error("No player run provided to PvPOpponentSelectUiHandler");
       globalScene.phaseManager.toTitleScreen();
       return false;
     }
@@ -35,14 +37,14 @@ export class PvPOpponentSelectUiHandler extends AbstractOptionSelectUiHandler {
     // Show loading text
     globalScene.ui.showText(i18next.t("pvp:loadingOpponents"), null);
 
-    // Fetch opponent teams from server
-    PvPAPI.getOpponentTeams(10, globalScene.gameData.trainerId)
-      .then(teams => {
-        this.opponentTeams = teams;
+    // Fetch opponent runs from server
+    PvPAPI.getOpponentRuns(10, globalScene.gameData.trainerId)
+      .then(runs => {
+        this.opponentRuns = runs;
         this.displayOpponents();
       })
       .catch(err => {
-        console.error("Failed to load opponent teams:", err);
+        console.error("Failed to load opponent runs:", err);
         globalScene.ui.showText(i18next.t("pvp:failedToLoadOpponents"), null, () => {
           globalScene.ui.setMode(UiMode.PVP_TEAM_SELECT);
         });
@@ -54,8 +56,8 @@ export class PvPOpponentSelectUiHandler extends AbstractOptionSelectUiHandler {
   displayOpponents(): void {
     globalScene.ui.clearText();
 
-    if (this.opponentTeams.length === 0) {
-      // No opponents available - offer to upload own team
+    if (this.opponentRuns.length === 0) {
+      // No opponents available - offer to upload own run
       globalScene.ui.showText(i18next.t("pvp:noOpponents"), null, () => {
         this.offerUpload();
       });
@@ -64,11 +66,28 @@ export class PvPOpponentSelectUiHandler extends AbstractOptionSelectUiHandler {
 
     const options: OptionSelectItem[] = [];
 
-    // Add option for each opponent team
-    this.opponentTeams.forEach((uploadedTeam, index) => {
-      const label = i18next.t("pvp:opponent", {
-        player: uploadedTeam.playerName,
-        wave: uploadedTeam.team.waveIndex,
+    // Add option for each opponent run
+    this.opponentRuns.forEach((uploadedRun, index) => {
+      const data = uploadedRun.runEntry.entry;
+
+      // Get mode name
+      let modeName = "";
+      switch (data.gameMode) {
+        case GameModes.CLASSIC:
+          modeName = i18next.t("gameMode:classic");
+          break;
+        case GameModes.CHALLENGE:
+          modeName = i18next.t("gameMode:challenge");
+          break;
+        case GameModes.RANDOM_STATS:
+          modeName = i18next.t("gameMode:randomStats");
+          break;
+      }
+
+      const label = i18next.t("pvp:opponentRun", {
+        player: uploadedRun.playerName,
+        mode: modeName,
+        wave: data.waveIndex,
       });
 
       options.push({
@@ -80,11 +99,11 @@ export class PvPOpponentSelectUiHandler extends AbstractOptionSelectUiHandler {
       });
     });
 
-    // Add upload team option
+    // Add upload run option
     options.push({
-      label: i18next.t("pvp:uploadTeam"),
+      label: i18next.t("pvp:uploadRun"),
       handler: () => {
-        this.uploadTeam();
+        this.uploadRun();
         return true;
       },
     });
@@ -108,7 +127,7 @@ export class PvPOpponentSelectUiHandler extends AbstractOptionSelectUiHandler {
   }
 
   selectOpponent(opponentIndex: number): void {
-    const opponent = this.opponentTeams[opponentIndex];
+    const opponent = this.opponentRuns[opponentIndex];
 
     // Start PvP battle
     globalScene.ui.setMode(UiMode.MESSAGE);
@@ -116,24 +135,24 @@ export class PvPOpponentSelectUiHandler extends AbstractOptionSelectUiHandler {
 
     // Initialize PvP battle phase
     globalScene.phaseManager.clearPhaseQueue();
-    globalScene.phaseManager.unshiftNew("PvPBattlePhase", this.playerTeam, opponent.team, opponent.playerName);
+    globalScene.phaseManager.unshiftNew("PvPBattlePhase", this.playerRun, opponent.runEntry, opponent.playerName);
   }
 
-  uploadTeam(): void {
-    globalScene.ui.showText(i18next.t("pvp:uploadingTeam"), null);
+  uploadRun(): void {
+    globalScene.ui.showText(i18next.t("pvp:uploadingRun"), null);
 
     const playerName = globalScene.gameData.trainerId.toString(); // Use trainer ID as name for now
 
-    PvPAPI.uploadTeam(this.playerTeam, playerName, globalScene.gameData.trainerId).then(success => {
+    PvPAPI.uploadRun(this.playerRun, playerName, globalScene.gameData.trainerId).then(success => {
       if (success) {
         globalScene.ui.showText(i18next.t("pvp:uploadSuccess"), null, () => {
           // Clear UI and reload opponents list
           globalScene.ui.clearText();
 
           // Re-fetch opponents from server
-          PvPAPI.getOpponentTeams(10, globalScene.gameData.trainerId)
-            .then(teams => {
-              this.opponentTeams = teams;
+          PvPAPI.getOpponentRuns(10, globalScene.gameData.trainerId)
+            .then(runs => {
+              this.opponentRuns = runs;
               this.displayOpponents();
             })
             .catch(err => {
@@ -153,9 +172,9 @@ export class PvPOpponentSelectUiHandler extends AbstractOptionSelectUiHandler {
     globalScene.ui.showText(i18next.t("pvp:offerUpload"), null, () => {
       const options: OptionSelectItem[] = [
         {
-          label: i18next.t("pvp:uploadTeam"),
+          label: i18next.t("pvp:uploadRun"),
           handler: () => {
-            this.uploadTeam();
+            this.uploadRun();
             return true;
           },
         },
@@ -174,6 +193,6 @@ export class PvPOpponentSelectUiHandler extends AbstractOptionSelectUiHandler {
 
   clear() {
     super.clear();
-    this.opponentTeams = [];
+    this.opponentRuns = [];
   }
 }

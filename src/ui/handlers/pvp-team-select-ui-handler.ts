@@ -1,6 +1,7 @@
 import { globalScene } from "#app/global-scene";
+import { GameModes } from "#enums/game-modes";
 import { UiMode } from "#enums/ui-mode";
-import type { VictoryTeam } from "#types/pvp-data";
+import type { RunEntry } from "#types/save-data";
 import i18next from "i18next";
 import {
   AbstractOptionSelectUiHandler,
@@ -9,11 +10,11 @@ import {
 } from "./abstract-option-select-ui-handler";
 
 export class PvPTeamSelectUiHandler extends AbstractOptionSelectUiHandler {
-  private teams: VictoryTeam[];
+  private victoryRuns: RunEntry[];
 
   constructor() {
     super(UiMode.PVP_TEAM_SELECT);
-    this.teams = [];
+    this.victoryRuns = [];
   }
 
   getWindowWidth(): number {
@@ -21,35 +22,62 @@ export class PvPTeamSelectUiHandler extends AbstractOptionSelectUiHandler {
   }
 
   show(_args: any[]): boolean {
-    // Get player's victory teams
-    this.teams = globalScene.gameData.getVictoryTeams();
+    // Show loading message while fetching
+    globalScene.ui.showText(i18next.t("pvp:loadingYourRuns"), null);
 
-    if (this.teams.length === 0) {
-      // Should not happen due to check in title phase, but handle it anyway
-      globalScene.ui.setMode(UiMode.MESSAGE);
-      globalScene.ui.showText(i18next.t("menu:noPvpTeams"), null, () => {
-        globalScene.phaseManager.toTitleScreen();
-      });
-      return false;
-    }
+    // Get player's victory runs from run history
+    globalScene.gameData.getVictoryRuns(3).then(runs => {
+      this.victoryRuns = runs;
+
+      if (this.victoryRuns.length === 0) {
+        globalScene.ui.showText(i18next.t("menu:noPvpTeams"), null, () => {
+          globalScene.phaseManager.toTitleScreen();
+        });
+        return;
+      }
+
+      this.displayRuns();
+    });
+
+    return true;
+  }
+
+  displayRuns(): void {
+    globalScene.ui.clearText();
 
     const options: OptionSelectItem[] = [];
 
-    // Add option for each victory team
-    this.teams.forEach((team, index) => {
-      const date = new Date(team.timestamp);
+    // Add option for each victory run
+    this.victoryRuns.forEach((run, index) => {
+      const data = run.entry;
+      const date = new Date(data.timestamp);
       const dateStr = date.toLocaleDateString();
 
-      const label = i18next.t("pvp:team", {
+      // Get mode name
+      let modeName = "";
+      switch (data.gameMode) {
+        case GameModes.CLASSIC:
+          modeName = i18next.t("gameMode:classic");
+          break;
+        case GameModes.CHALLENGE:
+          modeName = i18next.t("gameMode:challenge");
+          break;
+        case GameModes.RANDOM_STATS:
+          modeName = i18next.t("gameMode:randomStats");
+          break;
+      }
+
+      const label = i18next.t("pvp:run", {
         number: index + 1,
-        wave: team.waveIndex,
+        mode: modeName,
+        wave: data.waveIndex,
         date: dateStr,
       });
 
       options.push({
         label,
         handler: () => {
-          this.selectTeam(index);
+          this.selectRun(index);
           return true;
         },
       });
@@ -70,18 +98,18 @@ export class PvPTeamSelectUiHandler extends AbstractOptionSelectUiHandler {
       yOffset: 0,
     };
 
-    return super.show([config]);
+    super.show([config]);
   }
 
-  selectTeam(teamIndex: number): void {
-    const selectedTeam = this.teams[teamIndex];
+  selectRun(runIndex: number): void {
+    const selectedRun = this.victoryRuns[runIndex];
 
-    // Proceed to opponent selection with the selected team
-    globalScene.ui.setMode(UiMode.PVP_OPPONENT_SELECT, selectedTeam);
+    // Proceed to opponent selection with the selected run
+    globalScene.ui.setMode(UiMode.PVP_OPPONENT_SELECT, selectedRun);
   }
 
   clear() {
     super.clear();
-    this.teams = [];
+    this.victoryRuns = [];
   }
 }

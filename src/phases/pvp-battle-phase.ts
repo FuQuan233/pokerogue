@@ -5,19 +5,19 @@ import { BattleType } from "#enums/battle-type";
 import { GameModes } from "#enums/game-modes";
 import { UiMode } from "#enums/ui-mode";
 import type { PlayerPokemon } from "#field/pokemon";
-import type { VictoryTeam } from "#types/pvp-data";
+import type { RunEntry } from "#types/save-data";
 import i18next from "i18next";
 
 export class PvPBattlePhase extends Phase {
   public readonly phaseName = "PvPBattlePhase";
-  private playerTeam: VictoryTeam;
-  private opponentTeam: VictoryTeam;
+  private playerRun: RunEntry;
+  private opponentRun: RunEntry;
   private opponentName: string;
 
-  constructor(playerTeam: VictoryTeam, opponentTeam: VictoryTeam, opponentName: string) {
+  constructor(playerRun: RunEntry, opponentRun: RunEntry, opponentName: string) {
     super();
-    this.playerTeam = playerTeam;
-    this.opponentTeam = opponentTeam;
+    this.playerRun = playerRun;
+    this.opponentRun = opponentRun;
     this.opponentName = opponentName;
   }
 
@@ -53,14 +53,14 @@ export class PvPBattlePhase extends Phase {
     globalScene.newArena(globalScene.arena.biomeType);
     globalScene.arena.init();
 
-    // Load player's team
+    // Load player's team from their run entry
     const playerParty = globalScene.getPlayerParty();
     playerParty.splice(0, playerParty.length); // Clear existing party
 
     const loadPokemonAssets: Promise<void>[] = [];
 
-    // Add player's pokemon from victory team
-    for (const pokemonData of this.playerTeam.party) {
+    // Add player's pokemon from victory run
+    for (const pokemonData of this.playerRun.entry.party) {
       const pokemon = pokemonData.toPokemon() as PlayerPokemon;
       pokemon.setVisible(false);
       loadPokemonAssets.push(pokemon.loadAssets(false));
@@ -68,7 +68,7 @@ export class PvPBattlePhase extends Phase {
     }
 
     // Apply player's modifiers
-    for (const modifierData of this.playerTeam.modifiers) {
+    for (const modifierData of this.playerRun.entry.modifiers) {
       const modifier = modifierData.toModifier();
       if (modifier) {
         globalScene.addModifier(modifier, true, false, false, true);
@@ -90,8 +90,8 @@ export class PvPBattlePhase extends Phase {
     const loadEnemyAssets: Promise<void>[] = [];
 
     // Load opponent's pokemon as enemy pokemon
-    for (let i = 0; i < this.opponentTeam.party.length; i++) {
-      const pokemonData = this.opponentTeam.party[i];
+    for (let i = 0; i < this.opponentRun.entry.party.length; i++) {
+      const pokemonData = this.opponentRun.entry.party[i];
       const enemyPokemon = pokemonData.toPokemon(BattleType.WILD, i, false);
 
       // Make it an AI-controlled enemy
@@ -102,7 +102,7 @@ export class PvPBattlePhase extends Phase {
     }
 
     // Apply opponent's modifiers (to enemy side)
-    for (const modifierData of this.opponentTeam.modifiers) {
+    for (const modifierData of this.opponentRun.entry.modifiers) {
       const modifier = modifierData.toModifier();
       if (modifier) {
         globalScene.addModifier(modifier, false, false, false, true);

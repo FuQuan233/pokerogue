@@ -1,96 +1,81 @@
-import type { VictoryTeam } from "#types/pvp-data";
+import type { UploadedRun } from "#types/pvp-data";
+import type { RunEntry } from "#types/save-data";
 
 /**
- * Uploaded team data with player information
- */
-export interface UploadedTeam {
-  /** Unique ID for this uploaded team */
-  id: string;
-  /** Player's username */
-  playerName: string;
-  /** Player's trainer ID */
-  trainerId: number;
-  /** The victory team data */
-  team: VictoryTeam;
-  /** Upload timestamp */
-  uploadedAt: number;
-}
-
-/**
- * PvP API interface for team sharing
+ * PvP API interface for run sharing
  * Note: This is a placeholder interface. Actual implementation requires backend API
  */
 export class PvPAPI {
   /**
-   * Upload a victory team to the server
-   * @param team The victory team to upload
+   * Upload a victory run to the server
+   * @param runEntry The run entry to upload
    * @param playerName The player's username
    * @param trainerId The player's trainer ID
    * @returns Promise resolving to true if successful
    */
-  static async uploadTeam(team: VictoryTeam, playerName: string, trainerId: number): Promise<boolean> {
+  static async uploadRun(runEntry: RunEntry, playerName: string, trainerId: number): Promise<boolean> {
     try {
       // TODO: Implement actual API call when backend is ready
-      // const response = await fetch('/api/pvp/upload-team', {
+      // const response = await fetch('/api/pvp/upload-run', {
       //   method: 'POST',
       //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ team, playerName, trainerId })
+      //   body: JSON.stringify({ runEntry, playerName, trainerId })
       // });
       // return response.ok;
 
       // Temporary: Store in localStorage for testing
-      const localTeams = PvPAPI.getLocalStorageTeams();
-      const uploadedTeam: UploadedTeam = {
+      const localRuns = PvPAPI.getLocalStorageRuns();
+      const uploadedRun: UploadedRun = {
         id: `${trainerId}-${Date.now()}`,
         playerName,
         trainerId,
-        team,
+        runEntry,
         uploadedAt: Date.now(),
       };
-      localTeams.push(uploadedTeam);
-      localStorage.setItem("pvp_uploaded_teams", JSON.stringify(localTeams));
-      console.log("Team uploaded (localStorage):", uploadedTeam);
+      localRuns.push(uploadedRun);
+      localStorage.setItem("pvp_uploaded_runs", JSON.stringify(localRuns));
+      console.log("Run uploaded (localStorage):", uploadedRun);
       return true;
     } catch (error) {
-      console.error("Failed to upload team:", error);
+      console.error("Failed to upload run:", error);
       return false;
     }
   }
 
   /**
-   * Get a list of opponent teams from the server
-   * @param limit Maximum number of teams to fetch
-   * @param excludeTrainerId Exclude teams from this trainer ID (don't show own teams)
-   * @returns Promise resolving to array of uploaded teams
+   * Get a list of opponent runs from the server
+   * @param limit Maximum number of runs to fetch
+   * @param excludeTrainerId Exclude runs from this trainer ID (don't show own runs)
+   * @returns Promise resolving to array of uploaded runs
    */
-  static async getOpponentTeams(limit = 20, excludeTrainerId?: number): Promise<UploadedTeam[]> {
+  static async getOpponentRuns(limit = 20, excludeTrainerId?: number): Promise<UploadedRun[]> {
     try {
       // TODO: Implement actual API call when backend is ready
-      // const response = await fetch(`/api/pvp/get-teams?limit=${limit}&exclude=${excludeTrainerId}`);
+      // const response = await fetch(`/api/pvp/get-runs?limit=${limit}&exclude=${excludeTrainerId}`);
       // return await response.json();
 
       // Temporary: Get from localStorage for testing
-      const allTeams = PvPAPI.getLocalStorageTeams();
-      let filteredTeams = allTeams;
+      const allRuns = PvPAPI.getLocalStorageRuns();
+      let filteredRuns = allRuns;
 
       if (excludeTrainerId !== undefined) {
-        filteredTeams = allTeams.filter(t => t.trainerId !== excludeTrainerId);
+        filteredRuns = allRuns.filter(r => r.trainerId !== excludeTrainerId);
       }
 
-      // Return most recent teams up to limit
-      return filteredTeams.sort((a, b) => b.uploadedAt - a.uploadedAt).slice(0, limit);
+      // Return most recent runs up to limit
+      return filteredRuns.sort((a, b) => b.uploadedAt - a.uploadedAt).slice(0, limit);
     } catch (error) {
-      console.error("Failed to fetch opponent teams:", error);
+      console.error("Failed to fetch opponent runs:", error);
       return [];
     }
   }
 
   /**
-   * Helper to get teams from localStorage (temporary implementation)
+   * Helper to get runs from localStorage (temporary implementation)
    */
-  private static getLocalStorageTeams(): UploadedTeam[] {
+  private static getLocalStorageRuns(): UploadedRun[] {
     try {
-      const data = localStorage.getItem("pvp_uploaded_teams");
+      const data = localStorage.getItem("pvp_uploaded_runs");
       return data ? JSON.parse(data) : [];
     } catch {
       return [];
@@ -98,10 +83,10 @@ export class PvPAPI {
   }
 
   /**
-   * Clear all uploaded teams (for testing)
+   * Clear all uploaded runs (for testing)
    */
-  static clearLocalTeams(): void {
-    localStorage.removeItem("pvp_uploaded_teams");
-    console.log("Local PvP teams cleared");
+  static clearLocalRuns(): void {
+    localStorage.removeItem("pvp_uploaded_runs");
+    console.log("Local PvP runs cleared");
   }
 }

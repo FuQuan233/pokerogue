@@ -32,43 +32,17 @@ export interface PvPData {
 }
 
 /**
- * Represents a player's team selection for PvP battle
+ * Uploaded run entry with player information
  */
-export interface PvPTeamSelection {
-  /** Selected victory team index */
-  teamIndex: number;
-  /** The actual team data */
-  team: VictoryTeam;
-}
-
-/**
- * PvP battle state data for synchronization
- */
-export interface PvPBattleState {
-  /** Battle ID for this match */
-  battleId: string;
-  /** Player 1 user ID */
-  player1Id: string;
-  /** Player 2 user ID */
-  player2Id: string;
-  /** Player 1 team */
-  player1Team: VictoryTeam;
-  /** Player 2 team */
-  player2Team: VictoryTeam;
-  /** Current turn number */
-  currentTurn: number;
-  /** Time remaining for current turn (in seconds) */
-  turnTimeRemaining: number;
-  /** Whether player 1 is ready for next turn */
-  player1Ready: boolean;
-  /** Whether player 2 is ready for next turn */
-  player2Ready: boolean;
-  /** Player 1's chosen action */
-  player1Action?: any;
-  /** Player 2's chosen action */
-  player2Action?: any;
-  /** Battle status */
-  status: "waiting" | "active" | "finished";
-  /** Winner ID if battle is finished */
-  winnerId?: string;
+export interface UploadedRun {
+  /** Unique ID for this uploaded run */
+  id: string;
+  /** Player's username */
+  playerName: string;
+  /** Player's trainer ID */
+  trainerId: number;
+  /** The run entry data */
+  runEntry: RunEntry;
+  /** Upload timestamp */
+  uploadedAt: number;
 }
