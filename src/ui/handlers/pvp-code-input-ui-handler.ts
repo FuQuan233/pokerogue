@@ -198,16 +198,19 @@ export class PvPCodeInputUiHandler extends UiHandler {
       playerRunData: this.playerRunData,
     };
 
-    console.log("[PvP] Battle data stored, returning to title to start battle...");
+    console.log("[PvP] Battle data stored, ending current phase to start battle...");
 
-    // Clear UI and trigger title phase to end, which will start PvP battle
+    // Clear UI
     globalScene.ui.setMode(UiMode.MESSAGE);
     globalScene.ui.clearText();
 
-    // Go back to title, which will check for pvpBattleData and start the battle
-    globalScene.phaseManager.toTitleScreen();
+    // Get the current phase (should be TitlePhase) and end it
+    // This will trigger TitlePhase.end() which checks for pvpBattleData
+    const currentPhase = globalScene.phaseManager.getCurrentPhase();
+    console.log("[PvP] Current phase:", currentPhase.phaseName);
+    currentPhase.end();
 
-    console.log("[PvP] Returned to title screen");
+    console.log("[PvP] Phase ended, battle should start");
   }
 
   private cancel(): void {
