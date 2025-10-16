@@ -60,9 +60,11 @@ import {
 import { VoucherType, vouchers } from "#system/voucher";
 import { trainerConfigs } from "#trainers/trainer-config";
 import type { DexData, DexEntry } from "#types/dex-data";
+import type { PvPData } from "#types/pvp-data";
 import type {
   AchvUnlocks,
   DexAttrProps,
+  RunEntry,
   RunHistoryData,
   SeenDialogues,
   SessionSaveData,
@@ -146,7 +148,7 @@ export class GameData {
   public eggs: Egg[];
   public eggPity: number[];
   public unlockPity: number[];
-  public pvpData: import("#types/pvp-data").PvPData;
+  public pvpData: PvPData;
 
   constructor() {
     this.loadSettings();
@@ -175,6 +177,7 @@ export class GameData {
     this.eggPity = [0, 0, 0, 0];
     this.unlockPity = [0, 0, 0, 0];
     this.pvpData = {
+      victoryTeams: [],
       wins: 0,
       losses: 0,
     };
@@ -2147,7 +2150,7 @@ export class GameData {
    * Get victory runs from run history (for PvP challenge mode)
    * Returns up to the specified limit of most recent victory runs
    */
-  public async getVictoryRuns(limit = 3): Promise<import("#types/save-data").RunEntry[]> {
+  public async getVictoryRuns(limit = 3): Promise<RunEntry[]> {
     const runHistoryData = await this.getRunHistoryData();
     const timestamps = Object.keys(runHistoryData).map(Number);
 
