@@ -13,7 +13,13 @@ import type { ModifierTypeOption } from "#modifiers/modifier-type";
 import { getPlayerShopModifierTypeOptionsForWave, TmModifierType } from "#modifiers/modifier-type";
 import { AwaitableUiHandler } from "#ui/awaitable-ui-handler";
 import { MoveInfoOverlay } from "#ui/move-info-overlay";
-import { addBBCodeTextObject, addTextObject, getModifierTierTextTint, getTextColor, getTextStyleOptions } from "#ui/text";
+import {
+  addBBCodeTextObject,
+  addTextObject,
+  getModifierTierTextTint,
+  getTextColor,
+  getTextStyleOptions,
+} from "#ui/text";
 import { formatMoney, NumberHolder } from "#utils/common";
 import i18next from "i18next";
 import Phaser from "phaser";
@@ -836,9 +842,17 @@ class ModifierOption extends Phaser.GameObjects.Container {
         this.add(this.itemOriginalCostText);
       }
 
-      this.itemCostText = addTextObject(0, this.modifierTypeOption.originalCost && this.modifierTypeOption.originalCost > this.modifierTypeOption.cost ? 55 : 45, "", TextStyle.MONEY, {
-        align: "center",
-      });
+      this.itemCostText = addTextObject(
+        0,
+        this.modifierTypeOption.originalCost && this.modifierTypeOption.originalCost > this.modifierTypeOption.cost
+          ? 55
+          : 45,
+        "",
+        TextStyle.MONEY,
+        {
+          align: "center",
+        },
+      );
 
       this.itemCostText.setOrigin(0.5, 0);
       this.itemCostText.setAlpha(0);
@@ -1070,7 +1084,9 @@ class ModifierOption extends Phaser.GameObjects.Container {
     // Update original price text if it exists (with strikethrough effect using BBCode)
     if (this.itemOriginalCostText && this.modifierTypeOption.originalCost) {
       const formattedOriginalMoney = formatMoney(globalScene.moneyFormat, this.modifierTypeOption.originalCost);
-      const originalCostText = i18next.t("modifierSelectUiHandler:itemCost", { formattedMoney: formattedOriginalMoney });
+      const originalCostText = i18next.t("modifierSelectUiHandler:itemCost", {
+        formattedMoney: formattedOriginalMoney,
+      });
       // Create strikethrough effect using BBCode [s] tag and gray color
       this.itemOriginalCostText.setText(`[color=#888888][s]${originalCostText}[/s][/color]`);
     }

@@ -1,6 +1,6 @@
 import { globalScene } from "#app/global-scene";
 import { GameModes } from "#enums/game-modes";
-import { SpeciesId } from "#enums/species-id";
+import type { SpeciesId } from "#enums/species-id";
 import { randSeedInt } from "#utils/common";
 
 /**
@@ -31,7 +31,7 @@ export class RandomStatsManager {
 
     // Initialize all stats to minimum value
     const randomStats = new Array(statCount).fill(MIN_STAT);
-    let remainingPoints = total - MIN_STAT * statCount;
+    const remainingPoints = total - MIN_STAT * statCount;
 
     // Distribute remaining points randomly using a different approach
     // Generate random weights using seeded random
@@ -44,7 +44,7 @@ export class RandomStatsManager {
     // Calculate target points for each stat based on weights
     const targetPoints: number[] = [];
     let allocatedTotal = 0;
-    
+
     for (let i = 0; i < statCount - 1; i++) {
       const proportion = weights[i] / weightSum;
       const points = Math.floor(remainingPoints * proportion);
@@ -53,7 +53,7 @@ export class RandomStatsManager {
       targetPoints.push(actualPoints);
       allocatedTotal += actualPoints;
     }
-    
+
     // Last stat gets exactly what's left to ensure total is correct
     const lastStatPoints = Math.min(remainingPoints - allocatedTotal, MAX_STAT - MIN_STAT);
     targetPoints.push(lastStatPoints);
@@ -144,4 +144,3 @@ export class RandomStatsManager {
 
 // Global instance
 export const randomStatsManager = new RandomStatsManager();
-

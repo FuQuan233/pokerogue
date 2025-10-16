@@ -1,7 +1,6 @@
 import { TYPE_BOOST_ITEM_BOOST_PERCENT } from "#app/constants";
 import { timedEventManager } from "#app/global-event-manager";
 import { globalScene } from "#app/global-scene";
-import { GameModes } from "#enums/game-modes";
 import { getPokemonNameWithAffix } from "#app/messages";
 import Overrides from "#app/overrides";
 import { EvolutionItem, pokemonEvolutions } from "#balance/pokemon-evolutions";
@@ -18,6 +17,7 @@ import { BattlerTagType } from "#enums/battler-tag-type";
 import { BerryType } from "#enums/berry-type";
 import { ChallengeType } from "#enums/challenge-type";
 import { FormChangeItem } from "#enums/form-change-item";
+import { GameModes } from "#enums/game-modes";
 import { ModifierPoolType } from "#enums/modifier-pool-type";
 import { ModifierTier } from "#enums/modifier-tier";
 import { MoveId } from "#enums/move-id";

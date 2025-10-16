@@ -1,7 +1,7 @@
 import { globalScene } from "#app/global-scene";
 import { starterColors } from "#app/global-vars/starter-colors";
-import { randomStatsManager } from "#app/system/random-stats-manager";
 import Overrides from "#app/overrides";
+import { randomStatsManager } from "#app/system/random-stats-manager";
 import type { BiomeTierTod } from "#balance/biomes";
 import { BiomePoolTier, catchableSpecies } from "#balance/biomes";
 import { speciesEggMoves } from "#balance/egg-moves";
@@ -817,11 +817,7 @@ export class PokedexPageUiHandler extends MessageUiHandler {
       this.evolutions = allEvolutions.filter(e => e.preFormKey === form.formKey || e.preFormKey === null);
       // Apply random stats in RANDOM_STATS mode
       if (globalScene.gameMode?.modeId === GameModes.RANDOM_STATS) {
-        this.baseStats = randomStatsManager.getRandomizedStats(
-          species.speciesId,
-          this.formIndex,
-          form.baseStats
-        );
+        this.baseStats = randomStatsManager.getRandomizedStats(species.speciesId, this.formIndex, form.baseStats);
         this.baseTotal = this.baseStats.reduce((sum, stat) => sum + stat, 0);
       } else {
         this.baseStats = form.baseStats;
@@ -836,11 +832,7 @@ export class PokedexPageUiHandler extends MessageUiHandler {
       this.evolutions = allEvolutions;
       // Apply random stats in RANDOM_STATS mode
       if (globalScene.gameMode?.modeId === GameModes.RANDOM_STATS) {
-        this.baseStats = randomStatsManager.getRandomizedStats(
-          species.speciesId,
-          this.formIndex,
-          species.baseStats
-        );
+        this.baseStats = randomStatsManager.getRandomizedStats(species.speciesId, this.formIndex, species.baseStats);
         this.baseTotal = this.baseStats.reduce((sum, stat) => sum + stat, 0);
       } else {
         this.baseStats = species.baseStats;

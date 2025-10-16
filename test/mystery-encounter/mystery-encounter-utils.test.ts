@@ -256,7 +256,6 @@ describe("Mystery Encounter Utils", () => {
       expect(pokeSpecies.speciesId).toBe(SpeciesId.GROUDON);
     });
   });
-  
 
   describe("koPlayerPokemon", () => {
     it("KOs a pokemon", () => {
