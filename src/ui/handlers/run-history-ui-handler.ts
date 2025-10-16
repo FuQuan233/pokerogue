@@ -95,8 +95,8 @@ export class RunHistoryUiHandler extends MessageUiHandler {
         this.clearCursor();
       }
 
-      // Show upload hint in PvP mode
-      if (this.isPvPMode && this.runs.length > 0) {
+      // Show upload hint whenever there are runs (not just in PvP mode)
+      if (this.runs.length > 0) {
         this.showUploadHint();
       }
     });
@@ -140,8 +140,8 @@ export class RunHistoryUiHandler extends MessageUiHandler {
         success = true;
         return success;
       }
-      if (button === Button.SUBMIT && this.isPvPMode) {
-        // Upload selected run in PvP mode
+      if (button === Button.SUBMIT) {
+        // Upload selected run (available in all modes, not just PvP)
         const cursor = this.cursor + this.scrollCursor;
         if (this.runs[cursor]) {
           this.uploadRun(this.runs[cursor].entryData);
@@ -193,12 +193,10 @@ export class RunHistoryUiHandler extends MessageUiHandler {
    */
   private async populateRuns() {
     const response = await globalScene.gameData.getRunHistoryData();
-    let timestamps = Object.keys(response);
+    const timestamps = Object.keys(response);
 
-    // In PvP mode, filter to only show victories
-    if (this.isPvPMode) {
-      timestamps = timestamps.filter(ts => response[Number(ts)].isVictory);
-    }
+    // No longer filter by victory in PvP mode - show all runs
+    // Players can choose any run to challenge with
 
     if (timestamps.length === 0) {
       this.showEmpty();

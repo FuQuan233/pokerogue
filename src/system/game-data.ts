@@ -149,6 +149,7 @@ export class GameData {
   public eggPity: number[];
   public unlockPity: number[];
   public pvpData: PvPData;
+  public pvpBattleContext?: { playerRunData: SessionSaveData; opponentTrainerId: number; opponentName: string };
 
   constructor() {
     this.loadSettings();

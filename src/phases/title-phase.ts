@@ -143,14 +143,8 @@ export class TitlePhase extends Phase {
       {
         label: i18next.t("menu:pvpChallenge"),
         handler: () => {
-          // Check if player has any victory runs (async)
-          globalScene.gameData.hasVictoryRuns().then(hasRuns => {
-            if (!hasRuns) {
-              globalScene.ui.showText(i18next.t("menu:noPvpTeams"), null, () => this.showOptions());
-            } else {
-              this.initPvPChallenge();
-            }
-          });
+          // Open run history to let player choose which run to use for PvP
+          this.initPvPChallenge();
           return true;
         },
       },
@@ -360,7 +354,8 @@ export class TitlePhase extends Phase {
 
   initPvPChallenge(): void {
     globalScene.ui.clearText();
-    // Open run history in PvP mode
-    globalScene.ui.setMode(UiMode.RUN_HISTORY, true); // true = PvP mode
+    // Open run history in PvP mode (true = PvP mode)
+    // Player will select their run, then choose opponents
+    globalScene.ui.setMode(UiMode.RUN_HISTORY, true);
   }
 }

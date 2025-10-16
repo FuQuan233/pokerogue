@@ -77,15 +77,32 @@ export class PvPGameOverPhase extends Phase {
     const playerModifiers = globalScene.modifiers;
     playerModifiers.length = 0;
 
-    // Reset to title and open PvP team select
+    // Reset UI
     globalScene.ui.setMode(UiMode.MESSAGE);
     globalScene.ui.clearText();
 
     globalScene.phaseManager.clearPhaseQueue();
-    globalScene.phaseManager.unshiftNew("TitlePhase");
 
-    // Note: Player will need to click PvP Challenge again from title screen
-    // Could be improved to go directly back to team select
+    // Check if we have context to return to opponent runs list
+    const context = globalScene.gameData.pvpBattleContext;
+    if (context) {
+      // Return to opponent runs list instead of title screen
+      globalScene.phaseManager.unshiftNew("TitlePhase");
+      // After title phase loads, navigate back to opponent runs
+      setTimeout(() => {
+        globalScene.ui.setMode(
+          UiMode.PVP_OPPONENT_RUNS,
+          context.playerRunData,
+          context.opponentTrainerId,
+          context.opponentName,
+        );
+      }, 100);
+      // Clear context
+      globalScene.gameData.pvpBattleContext = undefined;
+    } else {
+      // No context, go to title screen
+      globalScene.phaseManager.unshiftNew("TitlePhase");
+    }
 
     this.end();
   }

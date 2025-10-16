@@ -24,9 +24,7 @@ import { FightUiHandler } from "#ui/fight-ui-handler";
 import { GameStatsUiHandler } from "#ui/game-stats-ui-handler";
 import { GamepadBindingUiHandler } from "#ui/gamepad-binding-ui-handler";
 import { PvPOpponentRunsUiHandler } from "#ui/handlers/pvp-opponent-runs-ui-handler";
-import { PvPOpponentSelectUiHandler } from "#ui/handlers/pvp-opponent-select-ui-handler";
 import { PvPPlayerListUiHandler } from "#ui/handlers/pvp-player-list-ui-handler";
-import { PvPTeamSelectUiHandler } from "#ui/handlers/pvp-team-select-ui-handler";
 import { KeyboardBindingUiHandler } from "#ui/keyboard-binding-ui-handler";
 import { LoadingModalUiHandler } from "#ui/loading-modal-ui-handler";
 import { LoginFormUiHandler } from "#ui/login-form-ui-handler";
@@ -182,8 +180,6 @@ export class UI extends Phaser.GameObjects.Container {
       new AdminUiHandler(),
       new MysteryEncounterUiHandler(),
       new ChangePasswordFormUiHandler(),
-      new PvPTeamSelectUiHandler(),
-      new PvPOpponentSelectUiHandler(),
       new PvPPlayerListUiHandler(),
       new PvPOpponentRunsUiHandler(),
     ];

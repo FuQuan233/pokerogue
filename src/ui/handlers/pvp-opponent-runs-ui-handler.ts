@@ -177,7 +177,15 @@ export class PvPOpponentRunsUiHandler extends MessageUiHandler {
     };
 
     globalScene.phaseManager.clearPhaseQueue();
-    globalScene.phaseManager.unshiftNew("PvPBattlePhase", playerRunEntry, selectedRun.runEntry, this.opponentName);
+    // Pass player's run, opponent's run, opponent name, opponent trainerId, and player's run data for return
+    globalScene.phaseManager.unshiftNew(
+      "PvPBattlePhase",
+      playerRunEntry,
+      selectedRun.runEntry,
+      this.opponentName,
+      this.opponentTrainerId,
+      this.playerRunData,
+    );
   }
 
   override setCursor(cursor: number): boolean {

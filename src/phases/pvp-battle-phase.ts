@@ -5,7 +5,7 @@ import { BattleType } from "#enums/battle-type";
 import { GameModes } from "#enums/game-modes";
 import { UiMode } from "#enums/ui-mode";
 import type { EnemyPokemon, PlayerPokemon } from "#field/pokemon";
-import type { RunEntry } from "#types/save-data";
+import type { RunEntry, SessionSaveData } from "#types/save-data";
 import i18next from "i18next";
 
 export class PvPBattlePhase extends Phase {
@@ -13,12 +13,22 @@ export class PvPBattlePhase extends Phase {
   private playerRun: RunEntry;
   private opponentRun: RunEntry;
   private opponentName: string;
+  private opponentTrainerId: number;
+  private playerRunData: SessionSaveData;
 
-  constructor(playerRun: RunEntry, opponentRun: RunEntry, opponentName: string) {
+  constructor(
+    playerRun: RunEntry,
+    opponentRun: RunEntry,
+    opponentName: string,
+    opponentTrainerId: number,
+    playerRunData: SessionSaveData,
+  ) {
     super();
     this.playerRun = playerRun;
     this.opponentRun = opponentRun;
     this.opponentName = opponentName;
+    this.opponentTrainerId = opponentTrainerId;
+    this.playerRunData = playerRunData;
   }
 
   start(): void {
@@ -123,6 +133,13 @@ export class PvPBattlePhase extends Phase {
 
     // Queue up battle phases
     globalScene.phaseManager.pushNew("EncounterPhase", true);
+
+    // Set up PvPGameOverPhase with context for return navigation
+    globalScene.gameData.pvpBattleContext = {
+      playerRunData: this.playerRunData,
+      opponentTrainerId: this.opponentTrainerId,
+      opponentName: this.opponentName,
+    };
 
     // Add custom end handler for PvP
     this.end();
