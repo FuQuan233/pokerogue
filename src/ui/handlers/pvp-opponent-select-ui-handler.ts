@@ -145,25 +145,37 @@ export class PvPOpponentSelectUiHandler extends AbstractOptionSelectUiHandler {
 
     PvPAPI.uploadRun(this.playerRun, playerName, globalScene.gameData.trainerId).then(success => {
       if (success) {
-        globalScene.ui.showText(i18next.t("pvp:uploadSuccess"), null, () => {
-          // Clear UI and reload opponents list
-          globalScene.ui.clearText();
+        globalScene.ui.showText(
+          i18next.t("pvp:uploadSuccess"),
+          null,
+          () => {
+            // Clear UI and reload opponents list
+            globalScene.ui.clearText();
 
-          // Re-fetch opponents from server
-          PvPAPI.getOpponentRuns(10, globalScene.gameData.trainerId)
-            .then(runs => {
-              this.opponentRuns = runs;
-              this.displayOpponents();
-            })
-            .catch(err => {
-              console.error("Failed to reload opponents:", err);
-              globalScene.ui.setMode(UiMode.PVP_TEAM_SELECT);
-            });
-        });
+            // Re-fetch opponents from server
+            PvPAPI.getOpponentRuns(10, globalScene.gameData.trainerId)
+              .then(runs => {
+                this.opponentRuns = runs;
+                this.displayOpponents();
+              })
+              .catch(err => {
+                console.error("Failed to reload opponents:", err);
+                globalScene.ui.setMode(UiMode.PVP_TEAM_SELECT);
+              });
+          },
+          null,
+          true,
+        ); // Add prompt mode
       } else {
-        globalScene.ui.showText(i18next.t("pvp:uploadFailed"), null, () => {
-          this.displayOpponents();
-        });
+        globalScene.ui.showText(
+          i18next.t("pvp:uploadFailed"),
+          null,
+          () => {
+            this.displayOpponents();
+          },
+          null,
+          true,
+        ); // Add prompt mode
       }
     });
   }

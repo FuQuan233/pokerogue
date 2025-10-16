@@ -321,22 +321,19 @@ export class RunHistoryUiHandler extends MessageUiHandler {
       // Check if this run is already uploaded
       PvPAPI.isRunUploaded(runEntry, globalScene.gameData.trainerId).then(isUploaded => {
         if (isUploaded) {
-          globalScene.ui.showText(i18next.t("pvp:alreadyUploaded"), null, () => {
-            globalScene.ui.clearText();
-          });
+          // Show already uploaded message and wait for user to acknowledge
+          globalScene.ui.showText(i18next.t("pvp:alreadyUploaded"), null, () => {}, null, true);
           return;
         }
 
         // Upload the run
         PvPAPI.uploadRun(runEntry, playerName, globalScene.gameData.trainerId).then(success => {
           if (success) {
-            globalScene.ui.showText(i18next.t("pvp:uploadSuccess"), null, () => {
-              globalScene.ui.clearText();
-            });
+            // Show success message and wait for user to acknowledge
+            globalScene.ui.showText(i18next.t("pvp:uploadSuccess"), null, () => {}, null, true);
           } else {
-            globalScene.ui.showText(i18next.t("pvp:uploadFailed"), null, () => {
-              globalScene.ui.clearText();
-            });
+            // Show failure message and wait for user to acknowledge
+            globalScene.ui.showText(i18next.t("pvp:uploadFailed"), null, () => {}, null, true);
           }
         });
       });
