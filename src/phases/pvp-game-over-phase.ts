@@ -58,21 +58,24 @@ export class PvPGameOverPhase extends Phase {
 
   returnToTeamSelect(): void {
     // Clear battle state
-    for (const p of globalScene.getPlayerParty()) {
+    const playerParty = globalScene.getPlayerParty();
+    for (const p of playerParty) {
       p.destroy();
     }
-    globalScene.party = [];
+    playerParty.length = 0;
 
-    for (const p of globalScene.getEnemyParty()) {
+    const enemyParty = globalScene.getEnemyParty();
+    for (const p of enemyParty) {
       p.destroy();
     }
-    globalScene.enemyParty = [];
+    enemyParty.length = 0;
 
     // Clear modifiers
     globalScene.clearEnemyModifiers();
     globalScene.clearEnemyHeldItemModifiers();
-    globalScene.modifiers = [];
-    globalScene.enemyModifiers = [];
+    // Clear player modifiers manually since there's no clearModifiers method
+    const playerModifiers = globalScene.modifiers;
+    playerModifiers.length = 0;
 
     // Reset to title and open PvP team select
     globalScene.ui.setMode(UiMode.MESSAGE);

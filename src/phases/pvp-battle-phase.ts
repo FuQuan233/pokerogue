@@ -4,7 +4,7 @@ import { Phase } from "#app/phase";
 import { BattleType } from "#enums/battle-type";
 import { GameModes } from "#enums/game-modes";
 import { UiMode } from "#enums/ui-mode";
-import type { PlayerPokemon } from "#field/pokemon";
+import type { EnemyPokemon, PlayerPokemon } from "#field/pokemon";
 import type { RunEntry } from "#types/save-data";
 import i18next from "i18next";
 
@@ -34,7 +34,7 @@ export class PvPBattlePhase extends Phase {
     globalScene.updateScoreText();
 
     // Set seed for reproducible battles (optional)
-    globalScene.setSeed();
+    globalScene.setSeed(Date.now().toString());
     globalScene.resetSeed();
 
     // Show battle start message
@@ -69,7 +69,7 @@ export class PvPBattlePhase extends Phase {
 
     // Apply player's modifiers
     for (const modifierData of this.playerRun.entry.modifiers) {
-      const modifier = modifierData.toModifier();
+      const modifier = modifierData.toModifier(this.constructor);
       if (modifier) {
         globalScene.addModifier(modifier, true, false, false, true);
       }
@@ -92,7 +92,9 @@ export class PvPBattlePhase extends Phase {
     // Load opponent's pokemon as enemy pokemon
     for (let i = 0; i < this.opponentRun.entry.party.length; i++) {
       const pokemonData = this.opponentRun.entry.party[i];
-      const enemyPokemon = pokemonData.toPokemon(BattleType.WILD, i, false);
+      // Ensure the pokemon is created as an enemy by setting player to false
+      pokemonData.player = false;
+      const enemyPokemon = pokemonData.toPokemon(BattleType.WILD, i, false) as EnemyPokemon;
 
       // Make it an AI-controlled enemy
       enemyPokemon.setVisible(false);
@@ -103,7 +105,7 @@ export class PvPBattlePhase extends Phase {
 
     // Apply opponent's modifiers (to enemy side)
     for (const modifierData of this.opponentRun.entry.modifiers) {
-      const modifier = modifierData.toModifier();
+      const modifier = modifierData.toModifier(this.constructor);
       if (modifier) {
         globalScene.addModifier(modifier, false, false, false, true);
       }

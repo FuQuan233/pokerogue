@@ -1,5 +1,6 @@
 import type { ModifierData } from "#system/modifier-data";
 import type { PokemonData } from "#system/pokemon-data";
+import type { RunEntry } from "#types/save-data";
 
 /**
  * Represents a saved team composition from a classic mode victory
