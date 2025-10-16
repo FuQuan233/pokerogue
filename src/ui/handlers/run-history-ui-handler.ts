@@ -314,8 +314,6 @@ export class RunHistoryUiHandler extends MessageUiHandler {
   private uploadRun(runEntry: RunEntry): void {
     // Import PvPAPI dynamically
     import("#api/pvp-api").then(({ PvPAPI }) => {
-      globalScene.ui.showText(i18next.t("pvp:uploadingRun"), null);
-
       const playerName = globalScene.gameData.trainerId.toString();
 
       // Check if this run is already uploaded
@@ -326,16 +324,25 @@ export class RunHistoryUiHandler extends MessageUiHandler {
           return;
         }
 
-        // Upload the run
-        PvPAPI.uploadRun(runEntry, playerName, globalScene.gameData.trainerId).then(success => {
-          if (success) {
-            // Show success message and wait for user to acknowledge
-            globalScene.ui.showText(i18next.t("pvp:uploadSuccess"), null, () => {}, null, true);
-          } else {
-            // Show failure message and wait for user to acknowledge
-            globalScene.ui.showText(i18next.t("pvp:uploadFailed"), null, () => {}, null, true);
-          }
-        });
+        // Show uploading message
+        globalScene.ui.showText(
+          i18next.t("pvp:uploadingRun"),
+          null,
+          () => {
+            // After user acknowledges the uploading message, start upload
+            PvPAPI.uploadRun(runEntry, playerName, globalScene.gameData.trainerId).then(success => {
+              if (success) {
+                // Show success message and wait for user to acknowledge
+                globalScene.ui.showText(i18next.t("pvp:uploadSuccess"), null, () => {}, null, true);
+              } else {
+                // Show failure message and wait for user to acknowledge
+                globalScene.ui.showText(i18next.t("pvp:uploadFailed"), null, () => {}, null, true);
+              }
+            });
+          },
+          null,
+          true,
+        );
       });
     });
   }
