@@ -171,13 +171,6 @@ export class PvPCodeInputUiHandler extends UiHandler {
   }
 
   private startBattle(opponentRun: RunEntry, opponentName: string): void {
-    // Hide this UI
-    this.clear();
-
-    // Start PvP battle
-    globalScene.ui.setMode(UiMode.MESSAGE);
-    globalScene.ui.clearText();
-
     // Initialize PvP battle phase
     const playerRunEntry = {
       entry: this.playerRunData,
@@ -185,8 +178,12 @@ export class PvPCodeInputUiHandler extends UiHandler {
       isFavorite: false,
     };
 
+    // Clear all UI and prepare for battle
+    globalScene.ui.setMode(UiMode.MESSAGE);
+    globalScene.ui.clearText();
+
+    // Start PvP battle phase
     globalScene.phaseManager.clearPhaseQueue();
-    // For base64 mode, we don't have opponentTrainerId, so use 0
     globalScene.phaseManager.unshiftNew(
       "PvPBattlePhase",
       playerRunEntry,

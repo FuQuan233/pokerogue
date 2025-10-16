@@ -59,13 +59,11 @@ export class PvPBattlePhase extends Phase {
   }
 
   setupBattle(): void {
-    // Initialize arena
-    globalScene.newArena(globalScene.arena.biomeType);
-    globalScene.arena.init();
-
-    // Load player's team from their run entry
+    // Clear existing parties
     const playerParty = globalScene.getPlayerParty();
-    playerParty.splice(0, playerParty.length); // Clear existing party
+    playerParty.splice(0, playerParty.length);
+    const enemyParty = globalScene.getEnemyParty();
+    enemyParty.splice(0, enemyParty.length);
 
     const loadPokemonAssets: Promise<void>[] = [];
 
@@ -86,16 +84,22 @@ export class PvPBattlePhase extends Phase {
     }
     globalScene.updateModifiers(true);
 
-    // Create battle against opponent team
-    const battle = globalScene.newBattle(1, BattleType.WILD, undefined, false);
+    // Initialize battle and arena (order matters!)
+    globalScene.newBattle();
+    globalScene.arena.init();
+
+    // Set session time
+    globalScene.sessionPlayTime = 0;
+    globalScene.lastSavePlayTime = 0;
 
     Promise.all(loadPokemonAssets).then(() => {
       // Load opponent's pokemon
-      this.loadOpponentTeam(battle);
+      this.loadOpponentTeam();
     });
   }
 
-  loadOpponentTeam(battle: any): void {
+  loadOpponentTeam(): void {
+    const battle = globalScene.currentBattle;
     const enemyParty = globalScene.getEnemyParty();
     const loadEnemyAssets: Promise<void>[] = [];
 
@@ -110,7 +114,9 @@ export class PvPBattlePhase extends Phase {
       enemyPokemon.setVisible(false);
       loadEnemyAssets.push(enemyPokemon.loadAssets());
       enemyParty.push(enemyPokemon);
-      battle.enemyLevels.push(enemyPokemon.level);
+      if (battle.enemyLevels) {
+        battle.enemyLevels.push(enemyPokemon.level);
+      }
     }
 
     // Apply opponent's modifiers (to enemy side)
