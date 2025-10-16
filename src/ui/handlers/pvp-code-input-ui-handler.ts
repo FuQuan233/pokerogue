@@ -107,6 +107,12 @@ export class PvPCodeInputUiHandler extends UiHandler {
       return false;
     }
 
+    // Convert player's party JSON objects to PokemonData instances
+    if (this.playerRunEntry.entry.party) {
+      this.playerRunEntry.entry.party = this.playerRunEntry.entry.party.map((p: any) => new PokemonData(p));
+      console.log("[PvP] Player party converted to PokemonData instances");
+    }
+
     this.bgWindow.setVisible(true);
     this.titleText.setVisible(true);
     this.instructionText.setVisible(true);
