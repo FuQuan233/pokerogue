@@ -314,6 +314,26 @@ export class TitlePhase extends Phase {
   }
 
   end(): void {
+    // Check if we have PvP battle data waiting to start
+    const pvpData = (globalScene as any).pvpBattleData;
+    if (pvpData) {
+      console.log("[TitlePhase] Starting PvP battle from end()");
+      // Clear the PvP data
+      (globalScene as any).pvpBattleData = undefined;
+
+      // Start PvP battle phase
+      globalScene.phaseManager.pushNew(
+        "PvPBattlePhase",
+        pvpData.playerRun,
+        pvpData.opponentRun,
+        pvpData.opponentName,
+        0,
+        pvpData.playerRunData,
+      );
+      super.end();
+      return;
+    }
+
     if (!this.loaded && !globalScene.gameMode.isDaily) {
       globalScene.arena.preloadBgm();
       globalScene.gameMode = getGameMode(this.gameMode);
