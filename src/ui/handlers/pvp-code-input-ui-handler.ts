@@ -2,6 +2,7 @@ import { globalScene } from "#app/global-scene";
 import { Button } from "#enums/buttons";
 import { TextStyle } from "#enums/text-style";
 import { UiMode } from "#enums/ui-mode";
+import { ModifierData } from "#system/modifier-data";
 import { PokemonData } from "#system/pokemon-data";
 import type { RunEntry } from "#types/save-data";
 import { addTextObject } from "#ui/text";
@@ -113,6 +114,14 @@ export class PvPCodeInputUiHandler extends UiHandler {
       console.log("[PvP] Player party converted to PokemonData instances");
     }
 
+    // Convert player's modifiers JSON objects to ModifierData instances
+    if (this.playerRunEntry.entry.modifiers) {
+      this.playerRunEntry.entry.modifiers = this.playerRunEntry.entry.modifiers.map(
+        (m: any) => new ModifierData(m, true),
+      );
+      console.log("[PvP] Player modifiers converted to ModifierData instances");
+    }
+
     this.bgWindow.setVisible(true);
     this.titleText.setVisible(true);
     this.instructionText.setVisible(true);
@@ -174,8 +183,13 @@ export class PvPCodeInputUiHandler extends UiHandler {
         opponentRunEntry.entry.party = opponentRunEntry.entry.party.map((p: any) => new PokemonData(p));
       }
 
+      // Convert modifiers JSON objects to ModifierData instances
+      if (opponentRunEntry.entry.modifiers) {
+        opponentRunEntry.entry.modifiers = opponentRunEntry.entry.modifiers.map((m: any) => new ModifierData(m, false));
+      }
+
       console.log("[PvP] Starting battle against:", opponentName);
-      console.log("[PvP] Opponent party converted to PokemonData instances");
+      console.log("[PvP] Opponent data converted to class instances");
 
       // Start PvP battle
       this.startBattle(opponentRunEntry, opponentName);
