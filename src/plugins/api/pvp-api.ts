@@ -123,6 +123,31 @@ export class PvPAPI {
   }
 
   /**
+   * Check if a run has already been uploaded
+   * @param runEntry The run entry to check
+   * @param trainerId The player's trainer ID
+   * @returns Promise resolving to true if already uploaded
+   */
+  static async isRunUploaded(runEntry: RunEntry, trainerId: number): Promise<boolean> {
+    try {
+      // TODO: Implement actual API call when backend is ready
+
+      // Temporary: Check in localStorage
+      const allRuns = PvPAPI.getLocalStorageRuns();
+
+      // Check if a run with same timestamp and trainerId exists
+      const exists = allRuns.some(
+        r => r.trainerId === trainerId && r.runEntry.entry.timestamp === runEntry.entry.timestamp,
+      );
+
+      return exists;
+    } catch (error) {
+      console.error("Failed to check if run is uploaded:", error);
+      return false;
+    }
+  }
+
+  /**
    * Clear all uploaded runs (for testing)
    */
   static clearLocalRuns(): void {

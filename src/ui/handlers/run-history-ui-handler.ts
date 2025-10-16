@@ -39,6 +39,7 @@ export class RunHistoryUiHandler extends MessageUiHandler {
   private runContainerInitialY: number;
 
   private isPvPMode = false; // Track if in PvP mode
+  private uploadHintText: Phaser.GameObjects.Text | null = null;
 
   constructor() {
     super(UiMode.RUN_HISTORY);
@@ -92,6 +93,11 @@ export class RunHistoryUiHandler extends MessageUiHandler {
       if (this.runs.length === 0) {
         this.clearCursor();
       }
+
+      // Show upload hint in PvP mode
+      if (this.isPvPMode && this.runs.length > 0) {
+        this.showUploadHint();
+      }
     });
 
     return true;
@@ -102,6 +108,7 @@ export class RunHistoryUiHandler extends MessageUiHandler {
    * @param button
    * The user can navigate through the runs with Button.UP/Button.DOWN.
    * Button.ACTION allows the user to access more information about their runs.
+   * Button.SUBMIT allows uploading runs in PvP mode.
    * Button.CANCEL allows the user to go back.
    */
   override processInput(button: Button): boolean {
@@ -110,7 +117,7 @@ export class RunHistoryUiHandler extends MessageUiHandler {
     let success = false;
     const error = false;
 
-    if ([Button.ACTION, Button.CANCEL].includes(button)) {
+    if ([Button.ACTION, Button.CANCEL, Button.SUBMIT].includes(button)) {
       if (button === Button.ACTION) {
         const cursor = this.cursor + this.scrollCursor;
         if (this.runs[cursor]) {
@@ -128,6 +135,15 @@ export class RunHistoryUiHandler extends MessageUiHandler {
           }
         } else {
           return false;
+        }
+        success = true;
+        return success;
+      }
+      if (button === Button.SUBMIT && this.isPvPMode) {
+        // Upload selected run in PvP mode
+        const cursor = this.cursor + this.scrollCursor;
+        if (this.runs[cursor]) {
+          this.uploadRun(this.runs[cursor].entryData);
         }
         success = true;
         return success;
@@ -255,6 +271,11 @@ export class RunHistoryUiHandler extends MessageUiHandler {
     this.setScrollCursor(0);
     this.clearCursor();
     this.clearRuns();
+    if (this.uploadHintText) {
+      this.uploadHintText.destroy();
+      this.uploadHintText = null;
+    }
+    this.isPvPMode = false;
   }
 
   private clearCursor() {
@@ -267,6 +288,59 @@ export class RunHistoryUiHandler extends MessageUiHandler {
   private clearRuns() {
     this.runs.splice(0, this.runs.length);
     this.runsContainer.removeAll(true);
+  }
+
+  /**
+   * Show upload hint text (PvP mode only)
+   */
+  private showUploadHint(): void {
+    if (this.uploadHintText) {
+      this.uploadHintText.destroy();
+    }
+
+    this.uploadHintText = addTextObject(
+      globalScene.scaledCanvas.width - 8,
+      -globalScene.scaledCanvas.height + 8,
+      i18next.t("pvp:uploadHint"),
+      TextStyle.WINDOW,
+    );
+    this.uploadHintText.setOrigin(1, 0);
+    this.runSelectContainer.add(this.uploadHintText);
+  }
+
+  /**
+   * Upload a run to the server (PvP mode only)
+   */
+  private uploadRun(runEntry: RunEntry): void {
+    // Import PvPAPI dynamically
+    import("#api/pvp-api").then(({ PvPAPI }) => {
+      globalScene.ui.showText(i18next.t("pvp:uploadingRun"), null);
+
+      const playerName = globalScene.gameData.trainerId.toString();
+
+      // Check if this run is already uploaded
+      PvPAPI.isRunUploaded(runEntry, globalScene.gameData.trainerId).then(isUploaded => {
+        if (isUploaded) {
+          globalScene.ui.showText(i18next.t("pvp:alreadyUploaded"), null, () => {
+            globalScene.ui.clearText();
+          });
+          return;
+        }
+
+        // Upload the run
+        PvPAPI.uploadRun(runEntry, playerName, globalScene.gameData.trainerId).then(success => {
+          if (success) {
+            globalScene.ui.showText(i18next.t("pvp:uploadSuccess"), null, () => {
+              globalScene.ui.clearText();
+            });
+          } else {
+            globalScene.ui.showText(i18next.t("pvp:uploadFailed"), null, () => {
+              globalScene.ui.clearText();
+            });
+          }
+        });
+      });
+    });
   }
 }
 
