@@ -2,6 +2,7 @@ import { globalScene } from "#app/global-scene";
 import { Button } from "#enums/buttons";
 import { TextStyle } from "#enums/text-style";
 import { UiMode } from "#enums/ui-mode";
+import { PokemonData } from "#system/pokemon-data";
 import type { RunEntry } from "#types/save-data";
 import { addTextObject } from "#ui/text";
 import { UiHandler } from "#ui/ui-handler";
@@ -162,7 +163,13 @@ export class PvPCodeInputUiHandler extends UiHandler {
       const opponentRunEntry: RunEntry = importData.runEntry;
       const opponentName = importData.playerName || importData.trainerId.toString();
 
+      // Convert party JSON objects to PokemonData instances
+      if (opponentRunEntry.entry.party) {
+        opponentRunEntry.entry.party = opponentRunEntry.entry.party.map((p: any) => new PokemonData(p));
+      }
+
       console.log("[PvP] Starting battle against:", opponentName);
+      console.log("[PvP] Opponent party converted to PokemonData instances");
 
       // Start PvP battle
       this.startBattle(opponentRunEntry, opponentName);
