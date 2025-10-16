@@ -34,8 +34,10 @@ export class PvPOpponentSelectUiHandler extends AbstractOptionSelectUiHandler {
       return false;
     }
 
+    const messageHandler = globalScene.ui.getMessageHandler();
+
     // Show loading text
-    globalScene.ui.showText(i18next.t("pvp:loadingOpponents"), null);
+    messageHandler.showText(i18next.t("pvp:loadingOpponents"), null);
 
     // Fetch opponent runs from server
     PvPAPI.getOpponentRuns(10, globalScene.gameData.trainerId)
@@ -45,7 +47,7 @@ export class PvPOpponentSelectUiHandler extends AbstractOptionSelectUiHandler {
       })
       .catch(err => {
         console.error("Failed to load opponent runs:", err);
-        globalScene.ui.showText(i18next.t("pvp:failedToLoadOpponents"), null, () => {
+        messageHandler.showText(i18next.t("pvp:failedToLoadOpponents"), null, () => {
           globalScene.ui.setMode(UiMode.PVP_TEAM_SELECT);
         });
       });
@@ -54,11 +56,12 @@ export class PvPOpponentSelectUiHandler extends AbstractOptionSelectUiHandler {
   }
 
   displayOpponents(): void {
-    globalScene.ui.clearText();
+    const messageHandler = globalScene.ui.getMessageHandler();
+    messageHandler.clearText();
 
     if (this.opponentRuns.length === 0) {
       // No opponents available - offer to upload own run
-      globalScene.ui.showText(i18next.t("pvp:noOpponents"), null, () => {
+      messageHandler.showText(i18next.t("pvp:noOpponents"), null, () => {
         this.offerUpload();
       });
       return;
@@ -139,18 +142,19 @@ export class PvPOpponentSelectUiHandler extends AbstractOptionSelectUiHandler {
   }
 
   uploadRun(): void {
-    globalScene.ui.showText(i18next.t("pvp:uploadingRun"), null);
+    const messageHandler = globalScene.ui.getMessageHandler();
+    messageHandler.showText(i18next.t("pvp:uploadingRun"), null);
 
     const playerName = globalScene.gameData.trainerId.toString(); // Use trainer ID as name for now
 
     PvPAPI.uploadRun(this.playerRun, playerName, globalScene.gameData.trainerId).then(success => {
       if (success) {
-        globalScene.ui.showText(
+        messageHandler.showText(
           i18next.t("pvp:uploadSuccess"),
           null,
           () => {
             // Clear UI and reload opponents list
-            globalScene.ui.clearText();
+            messageHandler.clearText();
 
             // Re-fetch opponents from server
             PvPAPI.getOpponentRuns(10, globalScene.gameData.trainerId)
@@ -167,7 +171,7 @@ export class PvPOpponentSelectUiHandler extends AbstractOptionSelectUiHandler {
           true,
         ); // Add prompt mode
       } else {
-        globalScene.ui.showText(
+        messageHandler.showText(
           i18next.t("pvp:uploadFailed"),
           null,
           () => {
@@ -181,7 +185,8 @@ export class PvPOpponentSelectUiHandler extends AbstractOptionSelectUiHandler {
   }
 
   offerUpload(): void {
-    globalScene.ui.showText(i18next.t("pvp:offerUpload"), null, () => {
+    const messageHandler = globalScene.ui.getMessageHandler();
+    messageHandler.showText(i18next.t("pvp:offerUpload"), null, () => {
       const options: OptionSelectItem[] = [
         {
           label: i18next.t("pvp:uploadRun"),

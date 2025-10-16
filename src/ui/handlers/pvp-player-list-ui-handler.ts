@@ -38,8 +38,10 @@ export class PvPPlayerListUiHandler extends AbstractOptionSelectUiHandler {
       return false;
     }
 
+    const messageHandler = globalScene.ui.getMessageHandler();
+
     // Show loading text
-    globalScene.ui.showText(i18next.t("pvp:loadingPlayers"), null);
+    messageHandler.showText(i18next.t("pvp:loadingPlayers"), null);
 
     // Fetch player list from server
     PvPAPI.getPlayerList(globalScene.gameData.trainerId)
@@ -49,7 +51,7 @@ export class PvPPlayerListUiHandler extends AbstractOptionSelectUiHandler {
       })
       .catch(err => {
         console.error("Failed to load player list:", err);
-        globalScene.ui.showText(i18next.t("pvp:failedToLoadPlayers"), null, () => {
+        messageHandler.showText(i18next.t("pvp:failedToLoadPlayers"), null, () => {
           globalScene.ui.revertMode();
         });
       });
@@ -58,11 +60,12 @@ export class PvPPlayerListUiHandler extends AbstractOptionSelectUiHandler {
   }
 
   displayPlayers(): void {
-    globalScene.ui.clearText();
+    const messageHandler = globalScene.ui.getMessageHandler();
+    messageHandler.clearText();
 
     if (this.players.length === 0) {
       // No other players found
-      globalScene.ui.showText(i18next.t("pvp:noPlayers"), null, () => {
+      messageHandler.showText(i18next.t("pvp:noPlayers"), null, () => {
         globalScene.ui.revertMode();
       });
       return;

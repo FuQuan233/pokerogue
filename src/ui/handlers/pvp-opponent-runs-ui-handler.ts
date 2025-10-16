@@ -66,8 +66,10 @@ export class PvPOpponentRunsUiHandler extends MessageUiHandler {
     this.getUi().bringToTop(this.runSelectContainer);
     this.runSelectContainer.setVisible(true);
 
+    const messageHandler = globalScene.ui.getMessageHandler();
+
     // Show loading message
-    globalScene.ui.showText(i18next.t("pvp:loadingOpponentRuns", { player: this.opponentName }), null);
+    messageHandler.showText(i18next.t("pvp:loadingOpponentRuns", { player: this.opponentName }), null);
 
     // Fetch opponent's runs
     PvPAPI.getOpponentRuns(25, undefined).then(uploadedRuns => {
@@ -75,14 +77,14 @@ export class PvPOpponentRunsUiHandler extends MessageUiHandler {
       const playerRuns = uploadedRuns.filter(r => r.trainerId === this.opponentTrainerId);
 
       if (playerRuns.length === 0) {
-        globalScene.ui.showText(i18next.t("pvp:noOpponentRuns"), null, () => {
+        messageHandler.showText(i18next.t("pvp:noOpponentRuns"), null, () => {
           globalScene.ui.revertMode();
         });
         return;
       }
 
       this.populateRuns(playerRuns).then(() => {
-        globalScene.ui.clearText();
+        messageHandler.clearText();
         this.setScrollCursor(0);
         this.setCursor(0);
 

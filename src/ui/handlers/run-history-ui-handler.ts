@@ -1,3 +1,4 @@
+import { PvPAPI } from "#api/pvp-api";
 import { globalScene } from "#app/global-scene";
 import { BattleType } from "#enums/battle-type";
 import { Button } from "#enums/buttons";
@@ -312,38 +313,36 @@ export class RunHistoryUiHandler extends MessageUiHandler {
    * Upload a run to the server (PvP mode only)
    */
   private uploadRun(runEntry: RunEntry): void {
-    // Import PvPAPI dynamically
-    import("#api/pvp-api").then(({ PvPAPI }) => {
-      const playerName = globalScene.gameData.trainerId.toString();
+    const playerName = globalScene.gameData.trainerId.toString();
+    const messageHandler = globalScene.ui.getMessageHandler();
 
-      // Check if this run is already uploaded
-      PvPAPI.isRunUploaded(runEntry, globalScene.gameData.trainerId).then(isUploaded => {
-        if (isUploaded) {
-          // Show already uploaded message and wait for user to acknowledge
-          globalScene.ui.showText(i18next.t("pvp:alreadyUploaded"), null, () => {}, null, true);
-          return;
-        }
+    // Check if this run is already uploaded
+    PvPAPI.isRunUploaded(runEntry, globalScene.gameData.trainerId).then(isUploaded => {
+      if (isUploaded) {
+        // Show already uploaded message and wait for user to acknowledge
+        messageHandler.showText(i18next.t("pvp:alreadyUploaded"), null, () => {}, null, true);
+        return;
+      }
 
-        // Show uploading message
-        globalScene.ui.showText(
-          i18next.t("pvp:uploadingRun"),
-          null,
-          () => {
-            // After user acknowledges the uploading message, start upload
-            PvPAPI.uploadRun(runEntry, playerName, globalScene.gameData.trainerId).then(success => {
-              if (success) {
-                // Show success message and wait for user to acknowledge
-                globalScene.ui.showText(i18next.t("pvp:uploadSuccess"), null, () => {}, null, true);
-              } else {
-                // Show failure message and wait for user to acknowledge
-                globalScene.ui.showText(i18next.t("pvp:uploadFailed"), null, () => {}, null, true);
-              }
-            });
-          },
-          null,
-          true,
-        );
-      });
+      // Show uploading message
+      messageHandler.showText(
+        i18next.t("pvp:uploadingRun"),
+        null,
+        () => {
+          // After user acknowledges the uploading message, start upload
+          PvPAPI.uploadRun(runEntry, playerName, globalScene.gameData.trainerId).then(success => {
+            if (success) {
+              // Show success message and wait for user to acknowledge
+              messageHandler.showText(i18next.t("pvp:uploadSuccess"), null, () => {}, null, true);
+            } else {
+              // Show failure message and wait for user to acknowledge
+              messageHandler.showText(i18next.t("pvp:uploadFailed"), null, () => {}, null, true);
+            }
+          });
+        },
+        null,
+        true,
+      );
     });
   }
 }
