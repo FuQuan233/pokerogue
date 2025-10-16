@@ -2,14 +2,14 @@ import { globalScene } from "#app/global-scene";
 import { Button } from "#enums/buttons";
 import { TextStyle } from "#enums/text-style";
 import { UiMode } from "#enums/ui-mode";
-import type { RunEntry, SessionSaveData } from "#types/save-data";
+import type { RunEntry } from "#types/save-data";
 import { addTextObject } from "#ui/text";
 import { UiHandler } from "#ui/ui-handler";
 import { addWindow } from "#ui/ui-theme";
 import i18next from "i18next";
 
 export class PvPCodeInputUiHandler extends UiHandler {
-  private playerRunData: SessionSaveData;
+  private playerRunEntry: RunEntry;
   private bgWindow: Phaser.GameObjects.NineSlice;
   private titleText: Phaser.GameObjects.Text;
   private instructionText: Phaser.GameObjects.Text;
@@ -97,11 +97,11 @@ export class PvPCodeInputUiHandler extends UiHandler {
   override show(args: any[]): boolean {
     super.show(args);
 
-    // First arg is the player's selected run data
-    this.playerRunData = args[0] as SessionSaveData;
+    // First arg is the player's selected run entry (RunEntry type)
+    this.playerRunEntry = args[0] as RunEntry;
 
-    if (!this.playerRunData) {
-      console.error("No player run data provided to PvPCodeInputUiHandler");
+    if (!this.playerRunEntry) {
+      console.error("No player run entry provided to PvPCodeInputUiHandler");
       globalScene.ui.revertMode();
       return false;
     }
@@ -179,23 +179,17 @@ export class PvPCodeInputUiHandler extends UiHandler {
 
   private startBattle(opponentRun: RunEntry, opponentName: string): void {
     console.log("[PvP] startBattle called");
-    console.log("[PvP] Player run data:", this.playerRunData);
+    console.log("[PvP] Player run entry:", this.playerRunEntry);
     console.log("[PvP] Opponent run:", opponentRun);
     console.log("[PvP] Opponent name:", opponentName);
 
-    // Initialize PvP battle phase
-    const playerRunEntry = {
-      entry: this.playerRunData,
-      isVictory: true,
-      isFavorite: false,
-    };
-
     // Store battle data for TitlePhase to pick up
+    // playerRunEntry is already a RunEntry, no need to wrap it again
     (globalScene as any).pvpBattleData = {
-      playerRun: playerRunEntry,
+      playerRun: this.playerRunEntry,
       opponentRun,
       opponentName,
-      playerRunData: this.playerRunData,
+      playerRunData: this.playerRunEntry.entry, // Pass SessionSaveData for return navigation
     };
 
     console.log("[PvP] Battle data stored, ending current phase to start battle...");
