@@ -32,10 +32,12 @@ export class PvPBattlePhase extends Phase {
   }
 
   start(): void {
+    console.log("[PvPBattlePhase] Phase started");
     super.start();
 
     // Set up PvP game mode
     globalScene.gameMode = getGameMode(GameModes.PVP);
+    console.log("[PvPBattlePhase] Game mode set to PVP");
 
     // Reset scene for fresh battle
     globalScene.money = 0;
@@ -46,36 +48,45 @@ export class PvPBattlePhase extends Phase {
     // Set seed for reproducible battles (optional)
     globalScene.setSeed(Date.now().toString());
     globalScene.resetSeed();
+    console.log("[PvPBattlePhase] Scene reset complete");
 
     // Show battle start message
     globalScene.ui.setMode(UiMode.MESSAGE);
+    console.log("[PvPBattlePhase] Showing battle start message");
     globalScene.ui.showText(
       i18next.t("pvp:battleStart") + "\n" + i18next.t("pvp:vsPlayer", { playerName: this.opponentName }),
       null,
       () => {
+        console.log("[PvPBattlePhase] Battle start message acknowledged, setting up battle...");
         this.setupBattle();
       },
     );
   }
 
   setupBattle(): void {
+    console.log("[PvPBattlePhase] setupBattle called");
+
     // Clear existing parties
     const playerParty = globalScene.getPlayerParty();
     playerParty.splice(0, playerParty.length);
     const enemyParty = globalScene.getEnemyParty();
     enemyParty.splice(0, enemyParty.length);
+    console.log("[PvPBattlePhase] Parties cleared");
 
     const loadPokemonAssets: Promise<void>[] = [];
 
     // Add player's pokemon from victory run
+    console.log("[PvPBattlePhase] Loading player's pokemon, count:", this.playerRun.entry.party.length);
     for (const pokemonData of this.playerRun.entry.party) {
       const pokemon = pokemonData.toPokemon() as PlayerPokemon;
       pokemon.setVisible(false);
       loadPokemonAssets.push(pokemon.loadAssets(false));
       playerParty.push(pokemon);
     }
+    console.log("[PvPBattlePhase] Player's pokemon loaded");
 
     // Apply player's modifiers
+    console.log("[PvPBattlePhase] Applying player's modifiers, count:", this.playerRun.entry.modifiers.length);
     for (const modifierData of this.playerRun.entry.modifiers) {
       const modifier = modifierData.toModifier(this.constructor);
       if (modifier) {
@@ -85,14 +96,17 @@ export class PvPBattlePhase extends Phase {
     globalScene.updateModifiers(true);
 
     // Initialize battle and arena (order matters!)
+    console.log("[PvPBattlePhase] Initializing battle and arena...");
     globalScene.newBattle();
     globalScene.arena.init();
 
     // Set session time
     globalScene.sessionPlayTime = 0;
     globalScene.lastSavePlayTime = 0;
+    console.log("[PvPBattlePhase] Battle and arena initialized");
 
     Promise.all(loadPokemonAssets).then(() => {
+      console.log("[PvPBattlePhase] Player assets loaded, loading opponent team...");
       // Load opponent's pokemon
       this.loadOpponentTeam();
     });
@@ -135,9 +149,11 @@ export class PvPBattlePhase extends Phase {
   }
 
   startPvPBattle(): void {
+    console.log("[PvPBattlePhase] startPvPBattle called");
     globalScene.currentBattle.started = true;
 
     // Queue up battle phases
+    console.log("[PvPBattlePhase] Queueing EncounterPhase...");
     globalScene.phaseManager.pushNew("EncounterPhase", true);
 
     // Set up PvPGameOverPhase with context for return navigation
@@ -148,6 +164,7 @@ export class PvPBattlePhase extends Phase {
     };
 
     // Add custom end handler for PvP
+    console.log("[PvPBattlePhase] Battle setup complete, ending phase");
     this.end();
   }
 }

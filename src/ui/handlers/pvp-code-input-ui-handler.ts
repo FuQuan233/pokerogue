@@ -137,6 +137,8 @@ export class PvPCodeInputUiHandler extends UiHandler {
     const inputElement = this.codeInput.node as HTMLInputElement;
     const code = inputElement.value.trim();
 
+    console.log("[PvP] Confirming input, code length:", code.length);
+
     if (!code) {
       this.showError(i18next.t("pvp:codeEmpty"));
       return;
@@ -147,8 +149,11 @@ export class PvPCodeInputUiHandler extends UiHandler {
       const jsonStr = decodeURIComponent(escape(atob(code)));
       const importData = JSON.parse(jsonStr);
 
+      console.log("[PvP] Decoded data:", importData);
+
       // Validate structure
       if (!importData.runEntry || !importData.trainerId) {
+        console.error("[PvP] Invalid structure:", importData);
         this.showError(i18next.t("pvp:codeInvalid"));
         return;
       }
@@ -157,10 +162,12 @@ export class PvPCodeInputUiHandler extends UiHandler {
       const opponentRunEntry: RunEntry = importData.runEntry;
       const opponentName = importData.playerName || importData.trainerId.toString();
 
+      console.log("[PvP] Starting battle against:", opponentName);
+
       // Start PvP battle
       this.startBattle(opponentRunEntry, opponentName);
     } catch (error) {
-      console.error("Failed to decode base64:", error);
+      console.error("[PvP] Failed to decode base64:", error);
       this.showError(i18next.t("pvp:codeInvalid"));
     }
   }
@@ -171,12 +178,19 @@ export class PvPCodeInputUiHandler extends UiHandler {
   }
 
   private startBattle(opponentRun: RunEntry, opponentName: string): void {
+    console.log("[PvP] startBattle called");
+    console.log("[PvP] Player run data:", this.playerRunData);
+    console.log("[PvP] Opponent run:", opponentRun);
+    console.log("[PvP] Opponent name:", opponentName);
+
     // Initialize PvP battle phase
     const playerRunEntry = {
       entry: this.playerRunData,
       isVictory: true,
       isFavorite: false,
     };
+
+    console.log("[PvP] Clearing phase queue and starting PvPBattlePhase...");
 
     // Clear all UI and prepare for battle
     globalScene.ui.setMode(UiMode.MESSAGE);
@@ -192,6 +206,8 @@ export class PvPCodeInputUiHandler extends UiHandler {
       0,
       this.playerRunData,
     );
+
+    console.log("[PvP] PvPBattlePhase queued");
   }
 
   private cancel(): void {
