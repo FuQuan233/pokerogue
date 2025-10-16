@@ -46,6 +46,5 @@ export enum UiMode {
   ADMIN,
   MYSTERY_ENCOUNTER,
   CHANGE_PASSWORD_FORM,
-  PVP_PLAYER_LIST,
-  PVP_OPPONENT_RUNS,
+  PVP_CODE_INPUT, // PvP base64 code input
 }

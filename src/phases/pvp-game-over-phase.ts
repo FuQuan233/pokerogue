@@ -83,26 +83,17 @@ export class PvPGameOverPhase extends Phase {
 
     globalScene.phaseManager.clearPhaseQueue();
 
-    // Check if we have context to return to opponent runs list
-    const context = globalScene.gameData.pvpBattleContext;
-    if (context) {
-      // Return to opponent runs list instead of title screen
-      globalScene.phaseManager.unshiftNew("TitlePhase");
-      // After title phase loads, navigate back to opponent runs
-      setTimeout(() => {
-        globalScene.ui.setMode(
-          UiMode.PVP_OPPONENT_RUNS,
-          context.playerRunData,
-          context.opponentTrainerId,
-          context.opponentName,
-        );
-      }, 100);
-      // Clear context
-      globalScene.gameData.pvpBattleContext = undefined;
-    } else {
-      // No context, go to title screen
-      globalScene.phaseManager.unshiftNew("TitlePhase");
-    }
+    // Return to title, then navigate to PvP run history
+    globalScene.phaseManager.unshiftNew("TitlePhase");
+
+    // After title phase loads, navigate back to PvP run history
+    // This allows player to choose another run or input another code
+    setTimeout(() => {
+      globalScene.ui.setMode(UiMode.RUN_HISTORY, true); // true = PvP mode
+    }, 100);
+
+    // Clear context
+    globalScene.gameData.pvpBattleContext = undefined;
 
     this.end();
   }
