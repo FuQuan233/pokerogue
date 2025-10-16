@@ -2,8 +2,6 @@ import { globalScene } from "#app/global-scene";
 import { Button } from "#enums/buttons";
 import { TextStyle } from "#enums/text-style";
 import { UiMode } from "#enums/ui-mode";
-import { ModifierData } from "#system/modifier-data";
-import { PokemonData } from "#system/pokemon-data";
 import type { RunEntry } from "#types/save-data";
 import { addTextObject } from "#ui/text";
 import { UiHandler } from "#ui/ui-handler";
@@ -100,27 +98,26 @@ export class PvPCodeInputUiHandler extends UiHandler {
     super.show(args);
 
     // First arg is the player's selected run entry (RunEntry type)
-    this.playerRunEntry = args[0] as RunEntry;
+    const rawRunEntry = args[0] as RunEntry;
 
-    if (!this.playerRunEntry) {
+    if (!rawRunEntry) {
       console.error("No player run entry provided to PvPCodeInputUiHandler");
       globalScene.ui.revertMode();
       return false;
     }
 
-    // Convert player's party JSON objects to PokemonData instances
-    if (this.playerRunEntry.entry.party) {
-      this.playerRunEntry.entry.party = this.playerRunEntry.entry.party.map((p: any) => new PokemonData(p));
-      console.log("[PvP] Player party converted to PokemonData instances");
-    }
+    // Use parseSessionData to properly convert all JSON objects to class instances
+    // This handles party, enemyParty, modifiers, enemyModifiers, trainer, arena, etc.
+    const sessionDataStr = JSON.stringify(rawRunEntry.entry);
+    const parsedSessionData = globalScene.gameData.parseSessionData(sessionDataStr);
 
-    // Convert player's modifiers JSON objects to ModifierData instances
-    if (this.playerRunEntry.entry.modifiers) {
-      this.playerRunEntry.entry.modifiers = this.playerRunEntry.entry.modifiers.map(
-        (m: any) => new ModifierData(m, true),
-      );
-      console.log("[PvP] Player modifiers converted to ModifierData instances");
-    }
+    this.playerRunEntry = {
+      entry: parsedSessionData,
+      isVictory: rawRunEntry.isVictory,
+      isFavorite: rawRunEntry.isFavorite,
+    };
+
+    console.log("[PvP] Player run data parsed and converted to class instances");
 
     this.bgWindow.setVisible(true);
     this.titleText.setVisible(true);
@@ -174,22 +171,22 @@ export class PvPCodeInputUiHandler extends UiHandler {
         return;
       }
 
-      // Convert to RunEntry format
-      const opponentRunEntry: RunEntry = importData.runEntry;
+      // Convert opponent's RunEntry
+      const rawOpponentRunEntry: RunEntry = importData.runEntry;
       const opponentName = importData.playerName || importData.trainerId.toString();
 
-      // Convert party JSON objects to PokemonData instances
-      if (opponentRunEntry.entry.party) {
-        opponentRunEntry.entry.party = opponentRunEntry.entry.party.map((p: any) => new PokemonData(p));
-      }
+      // Use parseSessionData to properly convert all JSON objects to class instances
+      const opponentSessionDataStr = JSON.stringify(rawOpponentRunEntry.entry);
+      const parsedOpponentData = globalScene.gameData.parseSessionData(opponentSessionDataStr);
 
-      // Convert modifiers JSON objects to ModifierData instances
-      if (opponentRunEntry.entry.modifiers) {
-        opponentRunEntry.entry.modifiers = opponentRunEntry.entry.modifiers.map((m: any) => new ModifierData(m, false));
-      }
+      const opponentRunEntry: RunEntry = {
+        entry: parsedOpponentData,
+        isVictory: rawOpponentRunEntry.isVictory,
+        isFavorite: rawOpponentRunEntry.isFavorite,
+      };
 
       console.log("[PvP] Starting battle against:", opponentName);
-      console.log("[PvP] Opponent data converted to class instances");
+      console.log("[PvP] Opponent data parsed and converted to class instances");
 
       // Start PvP battle
       this.startBattle(opponentRunEntry, opponentName);
