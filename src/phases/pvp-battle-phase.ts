@@ -132,9 +132,12 @@ export class PvPBattlePhase extends Phase {
       enemyPokemon.setVisible(false);
       loadEnemyAssets.push(enemyPokemon.loadAssets());
       enemyParty.push(enemyPokemon);
-      if (battle.enemyLevels) {
-        battle.enemyLevels.push(enemyPokemon.level);
+
+      // Ensure battle.enemyLevels exists and has the correct level
+      if (!battle.enemyLevels) {
+        battle.enemyLevels = [];
       }
+      battle.enemyLevels.push(enemyPokemon.level);
     }
 
     // Apply opponent's modifiers (to enemy side)
