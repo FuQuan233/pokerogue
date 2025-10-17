@@ -84,7 +84,7 @@ export class PvPBattlePhase extends Phase {
     console.log("[PvPBattlePhase] Loading player's pokemon, count:", this.playerRun.entry.party.length);
     for (const pokemonData of this.playerRun.entry.party) {
       const pokemon = pokemonData.toPokemon() as PlayerPokemon;
-      pokemon.setVisible(false);
+      pokemon.setVisible(true); // Show player's pokemon in PvP
       loadPokemonAssets.push(pokemon.loadAssets(false));
       playerParty.push(pokemon);
     }
@@ -108,6 +108,7 @@ export class PvPBattlePhase extends Phase {
     const dummyTrainer = new Trainer(TrainerType.YOUNGSTER, TrainerVariant.DEFAULT);
     dummyTrainer.setName(this.opponentName);
     globalScene.currentBattle.trainer = dummyTrainer;
+    globalScene.field.add(dummyTrainer); // Add trainer to scene
     // Link battle.enemyParty to globalScene's enemy party so EncounterPhase can find them
     globalScene.currentBattle.enemyParty = globalScene.getEnemyParty();
     globalScene.arena.init();
@@ -164,6 +165,10 @@ export class PvPBattlePhase extends Phase {
     globalScene.updateModifiers(false);
 
     Promise.all(loadEnemyAssets).then(() => {
+      // Set up AI for opponent's pokemon
+      if (globalScene.currentBattle.trainer) {
+        globalScene.currentBattle.trainer.genAI(globalScene.getEnemyParty());
+      }
       // Start the battle
       this.startPvPBattle();
     });
