@@ -121,6 +121,9 @@ export class PvPBattlePhase extends Phase {
     const enemyParty = globalScene.getEnemyParty();
     const loadEnemyAssets: Promise<void>[] = [];
 
+    // Clear and initialize battle.enemyLevels first
+    battle.enemyLevels = [];
+
     // Load opponent's pokemon as enemy pokemon
     for (let i = 0; i < this.opponentRun.entry.party.length; i++) {
       const pokemonData = this.opponentRun.entry.party[i];
@@ -133,12 +136,15 @@ export class PvPBattlePhase extends Phase {
       loadEnemyAssets.push(enemyPokemon.loadAssets());
       enemyParty.push(enemyPokemon);
 
-      // Ensure battle.enemyLevels exists and has the correct level
-      if (!battle.enemyLevels) {
-        battle.enemyLevels = [];
-      }
+      // Add level to battle.enemyLevels
       battle.enemyLevels.push(enemyPokemon.level);
     }
+
+    console.log("[PvPBattlePhase] Loaded opponent team:", {
+      enemyPartyLength: enemyParty.length,
+      enemyLevelsLength: battle.enemyLevels.length,
+      enemyLevels: battle.enemyLevels,
+    });
 
     // Apply opponent's modifiers (to enemy side)
     for (const modifierData of this.opponentRun.entry.modifiers) {

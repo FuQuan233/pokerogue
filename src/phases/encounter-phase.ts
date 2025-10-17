@@ -137,6 +137,10 @@ export class EncounterPhase extends BattlePhase {
         }
       }
       const enemyPokemon = globalScene.getEnemyParty()[e];
+      if (!enemyPokemon) {
+        console.warn(`[EncounterPhase] No enemy pokemon found at index ${e}, skipping...`);
+        return true; // Continue to next iteration
+      }
       if (e < (battle.double ? 2 : 1)) {
         enemyPokemon.setX(-66 + enemyPokemon.getFieldPositionOffset()[0]);
         enemyPokemon.fieldSetup(true);
