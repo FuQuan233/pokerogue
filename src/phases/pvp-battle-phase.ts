@@ -5,6 +5,8 @@ import { BattleType } from "#enums/battle-type";
 import { GameModes } from "#enums/game-modes";
 import { UiMode } from "#enums/ui-mode";
 import type { EnemyPokemon, PlayerPokemon } from "#field/pokemon";
+// biome-ignore lint/performance/noNamespaceImport: Need to access Modifier classes dynamically via className
+import * as Modifier from "#modifiers/modifier";
 import type { RunEntry, SessionSaveData } from "#types/save-data";
 import i18next from "i18next";
 
@@ -88,7 +90,7 @@ export class PvPBattlePhase extends Phase {
     // Apply player's modifiers
     console.log("[PvPBattlePhase] Applying player's modifiers, count:", this.playerRun.entry.modifiers.length);
     for (const modifierData of this.playerRun.entry.modifiers) {
-      const modifier = modifierData.toModifier(this.constructor);
+      const modifier = modifierData.toModifier(Modifier[modifierData.className]);
       if (modifier) {
         globalScene.addModifier(modifier, true, false, false, true);
       }
@@ -135,7 +137,7 @@ export class PvPBattlePhase extends Phase {
 
     // Apply opponent's modifiers (to enemy side)
     for (const modifierData of this.opponentRun.entry.modifiers) {
-      const modifier = modifierData.toModifier(this.constructor);
+      const modifier = modifierData.toModifier(Modifier[modifierData.className]);
       if (modifier) {
         globalScene.addModifier(modifier, false, false, false, true);
       }
