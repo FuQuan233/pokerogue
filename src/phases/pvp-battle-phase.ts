@@ -100,6 +100,8 @@ export class PvPBattlePhase extends Phase {
     // Initialize battle and arena (order matters!)
     console.log("[PvPBattlePhase] Initializing battle and arena...");
     globalScene.newBattle();
+    // Link battle.enemyParty to globalScene's enemy party so EncounterPhase can find them
+    globalScene.currentBattle.enemyParty = globalScene.getEnemyParty();
     globalScene.arena.init();
 
     // Set session time
