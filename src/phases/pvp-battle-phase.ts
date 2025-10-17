@@ -3,8 +3,11 @@ import { globalScene } from "#app/global-scene";
 import { Phase } from "#app/phase";
 import { BattleType } from "#enums/battle-type";
 import { GameModes } from "#enums/game-modes";
+import { TrainerType } from "#enums/trainer-type";
+import { TrainerVariant } from "#enums/trainer-variant";
 import { UiMode } from "#enums/ui-mode";
 import type { EnemyPokemon, PlayerPokemon } from "#field/pokemon";
+import { Trainer } from "#field/trainer";
 // biome-ignore lint/performance/noNamespaceImport: Need to access Modifier classes dynamically via className
 import * as Modifier from "#modifiers/modifier";
 import type { RunEntry, SessionSaveData } from "#types/save-data";
@@ -99,7 +102,12 @@ export class PvPBattlePhase extends Phase {
 
     // Initialize battle and arena (order matters!)
     console.log("[PvPBattlePhase] Initializing battle and arena...");
-    globalScene.newBattle();
+    // Create battle as TRAINER type to prevent pokeball usage
+    globalScene.newBattle(1, BattleType.TRAINER);
+    // Create a dummy trainer for PvP mode
+    const dummyTrainer = new Trainer(TrainerType.YOUNGSTER, TrainerVariant.DEFAULT);
+    dummyTrainer.setName(this.opponentName);
+    globalScene.currentBattle.trainer = dummyTrainer;
     // Link battle.enemyParty to globalScene's enemy party so EncounterPhase can find them
     globalScene.currentBattle.enemyParty = globalScene.getEnemyParty();
     globalScene.arena.init();
@@ -129,10 +137,10 @@ export class PvPBattlePhase extends Phase {
       const pokemonData = this.opponentRun.entry.party[i];
       // Ensure the pokemon is created as an enemy by setting player to false
       pokemonData.player = false;
-      const enemyPokemon = pokemonData.toPokemon(BattleType.WILD, i, false) as EnemyPokemon;
+      const enemyPokemon = pokemonData.toPokemon(BattleType.TRAINER, i, false) as EnemyPokemon;
 
-      // Make it an AI-controlled enemy
-      enemyPokemon.setVisible(false);
+      // Make it an AI-controlled enemy (but visible for PvP)
+      enemyPokemon.setVisible(true);
       loadEnemyAssets.push(enemyPokemon.loadAssets());
       enemyParty.push(enemyPokemon);
 

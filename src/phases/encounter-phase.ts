@@ -13,6 +13,7 @@ import { BattleType } from "#enums/battle-type";
 import { BattlerIndex } from "#enums/battler-index";
 import { BiomeId } from "#enums/biome-id";
 import { FieldPosition } from "#enums/field-position";
+import { GameModes } from "#enums/game-modes";
 import { ModifierPoolType } from "#enums/modifier-pool-type";
 import { MysteryEncounterMode } from "#enums/mystery-encounter-mode";
 import { PlayerGender } from "#enums/player-gender";
@@ -267,7 +268,10 @@ export class EncounterPhase extends BattlePhase {
             }
             enemyPokemon.tint(0, 0.5);
           } else if (battle.battleType === BattleType.TRAINER) {
-            enemyPokemon.setVisible(false);
+            // Don't hide enemy pokemon in PvP mode
+            if (globalScene.gameMode.modeId !== GameModes.PVP) {
+              enemyPokemon.setVisible(false);
+            }
             globalScene.currentBattle.trainer?.tint(0, 0.5);
           }
           if (battle.double) {
