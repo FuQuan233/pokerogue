@@ -121,6 +121,84 @@ function applyAbAttrsInternal<T extends CallableAbAttrString>(
       }
     }
 
+    // Apply base Pokemon A's passive ability
+    const basePassiveId = params.pokemon.species.getPassiveAbility(params.pokemon.formIndex);
+    if (basePassiveId !== AbilityId.NONE && params.pokemon.hasPassive() && params.pokemon.canApplyAbility(true)) {
+      const basePassive = allAbilities[basePassiveId];
+      const attrs = basePassive.getAttrs(attrType);
+      if (!(gainedMidTurn && attrs.some(attr => attr.is("PostSummonAbAttr") && !attr.shouldActivateOnGain()))) {
+        for (const attr of attrs) {
+          const condition = attr.getCondition();
+          if ((condition && !condition(params.pokemon)) || !attr.canApply(params as any)) {
+            continue;
+          }
+
+          let abShown = false;
+          if (attr.showAbility && !simulated) {
+            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, true, true);
+            abShown = true;
+          }
+
+          const message = attr.getTriggerMessage(params as any, basePassive.name);
+          if (message) {
+            if (!simulated) {
+              globalScene.phaseManager.queueMessage(message);
+            }
+            messages.push(message);
+          }
+
+          attr.apply(params as any);
+
+          if (abShown) {
+            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, true, false);
+          }
+
+          if (!simulated) {
+            params.pokemon.waveData.abilitiesApplied.add(basePassive.id);
+          }
+        }
+      }
+    }
+
+    // Apply fusion Pokemon B's main ability
+    const fusionAbilityId = params.pokemon.getFusionSpeciesForm().getAbility(params.pokemon.fusionAbilityIndex);
+    if (fusionAbilityId !== AbilityId.NONE && params.pokemon.canApplyAbility()) {
+      const fusionAbility = allAbilities[fusionAbilityId];
+      const attrs = fusionAbility.getAttrs(attrType);
+      if (!(gainedMidTurn && attrs.some(attr => attr.is("PostSummonAbAttr") && !attr.shouldActivateOnGain()))) {
+        for (const attr of attrs) {
+          const condition = attr.getCondition();
+          if ((condition && !condition(params.pokemon)) || !attr.canApply(params as any)) {
+            continue;
+          }
+
+          let abShown = false;
+          if (attr.showAbility && !simulated) {
+            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, false, true);
+            abShown = true;
+          }
+
+          const message = attr.getTriggerMessage(params as any, fusionAbility.name);
+          if (message) {
+            if (!simulated) {
+              globalScene.phaseManager.queueMessage(message);
+            }
+            messages.push(message);
+          }
+
+          attr.apply(params as any);
+
+          if (abShown) {
+            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, false, false);
+          }
+
+          if (!simulated) {
+            params.pokemon.waveData.abilitiesApplied.add(fusionAbility.id);
+          }
+        }
+      }
+    }
+
     // Apply fusion Pokemon B's passive ability
     const fusionPassiveId = params.pokemon.fusionSpecies!.getPassiveAbility(params.pokemon.fusionFormIndex);
     if (fusionPassiveId !== AbilityId.NONE && params.pokemon.hasPassive() && params.pokemon.canApplyAbility(true)) {
@@ -229,6 +307,78 @@ export function applyOnGainAbAttrs(params: AbAttrBaseParams): void {
       }
     }
 
+    // Apply base Pokemon A's passive ability (PostSummonAbAttr)
+    const basePassiveId = pokemon.species.getPassiveAbility(pokemon.formIndex);
+    if (basePassiveId !== AbilityId.NONE && pokemon.hasPassive() && pokemon.canApplyAbility(true)) {
+      const basePassive = allAbilities[basePassiveId];
+      const attrs = basePassive.getAttrs("PostSummonAbAttr");
+      if (!attrs.some(attr => !attr.shouldActivateOnGain())) {
+        for (const attr of attrs) {
+          const condition = attr.getCondition();
+          if ((condition && !condition(pokemon)) || !attr.canApply(params as any)) {
+            continue;
+          }
+
+          let abShown = false;
+          if (attr.showAbility && !simulated) {
+            globalScene.phaseManager.queueAbilityDisplay(pokemon, true, true);
+            abShown = true;
+          }
+
+          const message = attr.getTriggerMessage(params as any, basePassive.name);
+          if (message && !simulated) {
+            globalScene.phaseManager.queueMessage(message);
+          }
+
+          attr.apply(params as any);
+
+          if (abShown) {
+            globalScene.phaseManager.queueAbilityDisplay(pokemon, true, false);
+          }
+
+          if (!simulated) {
+            pokemon.waveData.abilitiesApplied.add(basePassive.id);
+          }
+        }
+      }
+    }
+
+    // Apply fusion Pokemon B's main ability (PostSummonAbAttr)
+    const fusionAbilityId = pokemon.getFusionSpeciesForm().getAbility(pokemon.fusionAbilityIndex);
+    if (fusionAbilityId !== AbilityId.NONE && pokemon.canApplyAbility()) {
+      const fusionAbility = allAbilities[fusionAbilityId];
+      const attrs = fusionAbility.getAttrs("PostSummonAbAttr");
+      if (!attrs.some(attr => !attr.shouldActivateOnGain())) {
+        for (const attr of attrs) {
+          const condition = attr.getCondition();
+          if ((condition && !condition(pokemon)) || !attr.canApply(params as any)) {
+            continue;
+          }
+
+          let abShown = false;
+          if (attr.showAbility && !simulated) {
+            globalScene.phaseManager.queueAbilityDisplay(pokemon, false, true);
+            abShown = true;
+          }
+
+          const message = attr.getTriggerMessage(params as any, fusionAbility.name);
+          if (message && !simulated) {
+            globalScene.phaseManager.queueMessage(message);
+          }
+
+          attr.apply(params as any);
+
+          if (abShown) {
+            globalScene.phaseManager.queueAbilityDisplay(pokemon, false, false);
+          }
+
+          if (!simulated) {
+            pokemon.waveData.abilitiesApplied.add(fusionAbility.id);
+          }
+        }
+      }
+    }
+
     // Apply fusion Pokemon B's passive ability (PostSummonAbAttr)
     const fusionPassiveId = pokemon.fusionSpecies!.getPassiveAbility(pokemon.fusionFormIndex);
     if (fusionPassiveId !== AbilityId.NONE && pokemon.hasPassive() && pokemon.canApplyAbility(true)) {
@@ -285,6 +435,42 @@ export function applyOnLoseAbAttrs(params: AbAttrBaseParams): void {
 
       for (const attrType of ["PreLeaveFieldAbAttr", "IllusionBreakAbAttr"] as const) {
         const attrs = baseAbility.getAttrs(attrType);
+        for (const attr of attrs) {
+          const condition = attr.getCondition();
+          if ((condition && !condition(pokemon)) || !attr.canApply(params as any)) {
+            continue;
+          }
+
+          attr.apply(params as any);
+        }
+      }
+    }
+
+    // Apply base Pokemon A's passive ability (PreLeaveFieldAbAttr and IllusionBreakAbAttr)
+    const basePassiveId = pokemon.species.getPassiveAbility(pokemon.formIndex);
+    if (basePassiveId !== AbilityId.NONE && pokemon.hasPassive() && pokemon.canApplyAbility(true)) {
+      const basePassive = allAbilities[basePassiveId];
+
+      for (const attrType of ["PreLeaveFieldAbAttr", "IllusionBreakAbAttr"] as const) {
+        const attrs = basePassive.getAttrs(attrType);
+        for (const attr of attrs) {
+          const condition = attr.getCondition();
+          if ((condition && !condition(pokemon)) || !attr.canApply(params as any)) {
+            continue;
+          }
+
+          attr.apply(params as any);
+        }
+      }
+    }
+
+    // Apply fusion Pokemon B's main ability (PreLeaveFieldAbAttr and IllusionBreakAbAttr)
+    const fusionAbilityId = pokemon.getFusionSpeciesForm().getAbility(pokemon.fusionAbilityIndex);
+    if (fusionAbilityId !== AbilityId.NONE && pokemon.canApplyAbility()) {
+      const fusionAbility = allAbilities[fusionAbilityId];
+
+      for (const attrType of ["PreLeaveFieldAbAttr", "IllusionBreakAbAttr"] as const) {
+        const attrs = fusionAbility.getAttrs(attrType);
         for (const attr of attrs) {
           const condition = attr.getCondition();
           if ((condition && !condition(pokemon)) || !attr.canApply(params as any)) {
