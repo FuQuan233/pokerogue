@@ -440,9 +440,12 @@ export class PhaseManager {
    * @param pokemon - The {@linkcode Pokemon} whose ability is being activated
    * @param passive - Whether the ability is a passive
    * @param show - If `true`, show the bar. Otherwise, hide it
+   * @param abilityName - Optional ability name to display (for fusion Pokemon with multiple abilities)
    */
-  public queueAbilityDisplay(pokemon: Pokemon, passive: boolean, show: boolean): void {
-    this.unshiftPhase(show ? new ShowAbilityPhase(pokemon.getBattlerIndex(), passive) : new HideAbilityPhase());
+  public queueAbilityDisplay(pokemon: Pokemon, passive: boolean, show: boolean, abilityName?: string): void {
+    this.unshiftPhase(
+      show ? new ShowAbilityPhase(pokemon.getBattlerIndex(), passive, abilityName) : new HideAbilityPhase(),
+    );
   }
 
   /**

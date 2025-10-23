@@ -96,7 +96,7 @@ function applyAbAttrsInternal<T extends CallableAbAttrString>(
 
           let abShown = false;
           if (attr.showAbility && !simulated) {
-            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, false, true);
+            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, false, true, baseAbility.name);
             abShown = true;
           }
 
@@ -135,7 +135,7 @@ function applyAbAttrsInternal<T extends CallableAbAttrString>(
 
           let abShown = false;
           if (attr.showAbility && !simulated) {
-            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, true, true);
+            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, true, true, basePassive.name);
             abShown = true;
           }
 
@@ -174,7 +174,7 @@ function applyAbAttrsInternal<T extends CallableAbAttrString>(
 
           let abShown = false;
           if (attr.showAbility && !simulated) {
-            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, false, true);
+            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, false, true, fusionAbility.name);
             abShown = true;
           }
 
@@ -213,7 +213,7 @@ function applyAbAttrsInternal<T extends CallableAbAttrString>(
 
           let abShown = false;
           if (attr.showAbility && !simulated) {
-            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, true, true);
+            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, true, true, fusionPassive.name);
             abShown = true;
           }
 
@@ -285,7 +285,7 @@ export function applyOnGainAbAttrs(params: AbAttrBaseParams): void {
 
           let abShown = false;
           if (attr.showAbility && !simulated) {
-            globalScene.phaseManager.queueAbilityDisplay(pokemon, false, true);
+            globalScene.phaseManager.queueAbilityDisplay(pokemon, false, true, baseAbility.name);
             abShown = true;
           }
 
@@ -321,7 +321,7 @@ export function applyOnGainAbAttrs(params: AbAttrBaseParams): void {
 
           let abShown = false;
           if (attr.showAbility && !simulated) {
-            globalScene.phaseManager.queueAbilityDisplay(pokemon, true, true);
+            globalScene.phaseManager.queueAbilityDisplay(pokemon, true, true, basePassive.name);
             abShown = true;
           }
 
@@ -357,7 +357,7 @@ export function applyOnGainAbAttrs(params: AbAttrBaseParams): void {
 
           let abShown = false;
           if (attr.showAbility && !simulated) {
-            globalScene.phaseManager.queueAbilityDisplay(pokemon, false, true);
+            globalScene.phaseManager.queueAbilityDisplay(pokemon, false, true, fusionAbility.name);
             abShown = true;
           }
 
@@ -393,7 +393,7 @@ export function applyOnGainAbAttrs(params: AbAttrBaseParams): void {
 
           let abShown = false;
           if (attr.showAbility && !simulated) {
-            globalScene.phaseManager.queueAbilityDisplay(pokemon, true, true);
+            globalScene.phaseManager.queueAbilityDisplay(pokemon, true, true, fusionPassive.name);
             abShown = true;
           }
 
