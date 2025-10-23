@@ -2165,6 +2165,18 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
       if (basePassiveId !== AbilityId.NONE && this.hasPassive() && (!canApply || this.canApplyAbility(true))) {
         abilityAttrs.push(...allAbilities[basePassiveId].getAttrs(attrType));
       }
+
+      // Get fusion Pokemon's (B) ability
+      const fusionAbilityId = this.getFusionSpeciesForm(ignoreOverride).getAbility(this.fusionAbilityIndex);
+      if (fusionAbilityId !== AbilityId.NONE && (!canApply || this.canApplyAbility())) {
+        abilityAttrs.push(...allAbilities[fusionAbilityId].getAttrs(attrType));
+      }
+
+      // Get fusion Pokemon's (B) passive ability
+      const fusionPassiveId = this.fusionSpecies!.getPassiveAbility(this.fusionFormIndex);
+      if (fusionPassiveId !== AbilityId.NONE && this.hasPassive() && (!canApply || this.canApplyAbility(true))) {
+        abilityAttrs.push(...allAbilities[fusionPassiveId].getAttrs(attrType));
+      }
     }
 
     return abilityAttrs;
@@ -2303,6 +2315,18 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
 
       const basePassiveId = this.species.getPassiveAbility(this.formIndex);
       if (basePassiveId === ability && this.hasPassive() && (!canApply || this.canApplyAbility(true))) {
+        return true;
+      }
+
+      // Check fusion Pokemon's (B) ability
+      const fusionAbilityId = this.getFusionSpeciesForm(ignoreOverride).getAbility(this.fusionAbilityIndex);
+      if (fusionAbilityId === ability && (!canApply || this.canApplyAbility())) {
+        return true;
+      }
+
+      // Check fusion Pokemon's (B) passive ability
+      const fusionPassiveId = this.fusionSpecies!.getPassiveAbility(this.fusionFormIndex);
+      if (fusionPassiveId === ability && this.hasPassive() && (!canApply || this.canApplyAbility(true))) {
         return true;
       }
     }
