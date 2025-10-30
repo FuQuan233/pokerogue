@@ -73,12 +73,17 @@ function applyAbAttrsInternal<T extends CallableAbAttrString>(
     applySingleAbAttrs(attrType, params, gainedMidTurn, messages);
     return;
   }
-  for (const passive of [false, true]) {
-    params.passive = passive;
-    applySingleAbAttrs(attrType, params, gainedMidTurn, messages);
+
+  // For fusion Pokemon, skip the standard main/passive loop and handle all 4 abilities below
+  // to prevent duplicate triggering of base Pokemon A's abilities
+  if (!params.pokemon.isFusion()) {
+    for (const passive of [false, true]) {
+      params.passive = passive;
+      applySingleAbAttrs(attrType, params, gainedMidTurn, messages);
+    }
   }
 
-  // For fusion Pokemon, also apply abilities from base Pokemon A and fusion Pokemon B
+  // For fusion Pokemon, apply abilities from base Pokemon A and fusion Pokemon B
   if (params.pokemon.isFusion()) {
     const { simulated = false } = params;
 

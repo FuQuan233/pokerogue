@@ -17,12 +17,15 @@ export class PostSummonActivateAbilityPhase extends PostSummonPhase {
 
   start() {
     // For fusion Pokemon, only trigger all abilities when idx=0 (main ability phase)
-    // This prevents duplicate triggering since both main and passive phases would otherwise trigger all 4 abilities
-    if (this.getPokemon().isFusion() && !this.passive) {
-      // Trigger all 4 abilities (base A main/passive + fusion B main/passive)
-      applyAbAttrs("PostSummonAbAttr", { pokemon: this.getPokemon() });
+    // Skip the passive phase (idx=1) entirely to prevent duplicate triggering
+    if (this.getPokemon().isFusion()) {
+      if (!this.passive) {
+        // Trigger all 4 abilities (base A main/passive + fusion B main/passive)
+        applyAbAttrs("PostSummonAbAttr", { pokemon: this.getPokemon() });
+      }
+      // else: Skip passive phase for fusion Pokemon since all abilities were already triggered in main phase
     } else {
-      // For regular Pokemon or fusion Pokemon's passive phase, use the specified passive flag
+      // For regular Pokemon, use the specified passive flag to trigger the correct ability
       applyAbAttrs("PostSummonAbAttr", { pokemon: this.getPokemon(), passive: this.passive });
     }
 
