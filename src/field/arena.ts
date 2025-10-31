@@ -24,6 +24,7 @@ import { ArenaTagSide } from "#enums/arena-tag-side";
 import type { ArenaTagType } from "#enums/arena-tag-type";
 import type { BattlerIndex } from "#enums/battler-index";
 import { BiomeId } from "#enums/biome-id";
+import { GameModes } from "#enums/game-modes";
 import { CommonAnim } from "#enums/move-anims-common";
 import type { MoveId } from "#enums/move-id";
 import type { PokemonType } from "#enums/pokemon-type";
@@ -38,6 +39,7 @@ import type { Move } from "#moves/move";
 import type { AbstractConstructor } from "#types/type-helpers";
 import { type Constructor, NumberHolder, randSeedInt } from "#utils/common";
 import { getPokemonSpecies } from "#utils/pokemon-utils";
+import i18next from "i18next";
 
 export class Arena {
   public biomeType: BiomeId;
@@ -322,6 +324,24 @@ export class Arena {
     }
 
     const oldWeatherType = this.weather?.weatherType || WeatherType.NONE;
+
+    // Check if trying to replace snow weather in classic mode
+    if (
+      globalScene.gameMode?.modeId === GameModes.CLASSIC
+      && oldWeatherType === WeatherType.SNOW
+      && weather !== WeatherType.SNOW
+      && weather !== WeatherType.NONE
+    ) {
+      // Snow weather cannot be replaced in classic mode
+      globalScene.phaseManager.unshiftNew(
+        "CommonAnimPhase",
+        undefined,
+        undefined,
+        CommonAnim.SUNNY + (oldWeatherType - 1),
+      );
+      globalScene.phaseManager.queueMessage(i18next.t("weather:snowOngoing"));
+      return false;
+    }
 
     if (
       this.weather?.isImmutable()
