@@ -53,7 +53,6 @@ export class Weather {
     switch (this.weatherType) {
       case WeatherType.SANDSTORM:
       case WeatherType.HAIL:
-      case WeatherType.SNOW:
         return true;
     }
 
@@ -65,7 +64,6 @@ export class Weather {
       case WeatherType.SANDSTORM:
         return type === PokemonType.GROUND || type === PokemonType.ROCK || type === PokemonType.STEEL;
       case WeatherType.HAIL:
-      case WeatherType.SNOW:
         return type === PokemonType.ICE;
     }
 

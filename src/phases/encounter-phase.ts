@@ -20,7 +20,6 @@ import { PlayerGender } from "#enums/player-gender";
 import { SpeciesId } from "#enums/species-id";
 import { TrainerSlot } from "#enums/trainer-slot";
 import { UiMode } from "#enums/ui-mode";
-import { WeatherType } from "#enums/weather-type";
 import { EncounterPhaseEvent } from "#events/battle-scene";
 import type { Pokemon } from "#field/pokemon";
 import {
@@ -668,12 +667,7 @@ export class EncounterPhase extends BattlePhase {
    */
   trySetWeatherIfNewBiome(): void {
     if (!this.loaded) {
-      // Force snow weather in classic mode, otherwise use random weather
-      if (globalScene.gameMode.modeId === GameModes.CLASSIC) {
-        globalScene.arena.trySetWeather(WeatherType.SNOW);
-      } else {
-        globalScene.arena.trySetWeather(getRandomWeatherType(globalScene.arena));
-      }
+      globalScene.arena.trySetWeather(getRandomWeatherType(globalScene.arena));
     }
   }
 }

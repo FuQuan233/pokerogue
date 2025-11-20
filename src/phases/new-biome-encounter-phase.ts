@@ -1,8 +1,6 @@
 import { applyAbAttrs } from "#abilities/apply-ab-attrs";
 import { globalScene } from "#app/global-scene";
 import { getRandomWeatherType } from "#data/weather";
-import { GameModes } from "#enums/game-modes";
-import { WeatherType } from "#enums/weather-type";
 import { NextEncounterPhase } from "#phases/next-encounter-phase";
 
 export class NewBiomeEncounterPhase extends NextEncounterPhase {
@@ -44,11 +42,6 @@ export class NewBiomeEncounterPhase extends NextEncounterPhase {
    * Set biome weather.
    */
   trySetWeatherIfNewBiome(): void {
-    // Force snow weather in classic mode, otherwise use random weather
-    if (globalScene.gameMode.modeId === GameModes.CLASSIC) {
-      globalScene.arena.trySetWeather(WeatherType.SNOW);
-    } else {
-      globalScene.arena.trySetWeather(getRandomWeatherType(globalScene.arena));
-    }
+    globalScene.arena.trySetWeather(getRandomWeatherType(globalScene.arena));
   }
 }
