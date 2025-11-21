@@ -131,6 +131,7 @@ import {
   TempCritBoosterModifier,
   TempStatStageBoosterModifier,
 } from "#modifiers/modifier";
+import { getPartyLuckValue } from "#modifiers/modifier-type";
 import { applyMoveAttrs } from "#moves/apply-attrs";
 import type { Move } from "#moves/move";
 import { getMoveTargets } from "#moves/move-utils";
@@ -1406,6 +1407,24 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     if (critBoostTag) {
       // Dragon cheer only gives +1 crit stage to non-dragon types
       critStage.value += critBoostTag.critStages;
+    }
+
+    // Classic mode: Luck-based crit stage boost
+    // B (4), A (7), S (10) each add +1 crit stage (max 3)
+    if (globalScene.gameMode.isClassic && source.isPlayer()) {
+      const partyLuckValue = getPartyLuckValue(globalScene.getPlayerParty());
+      let luckCritBoost = 0;
+      if (partyLuckValue >= 10) {
+        // S or higher: +3 total (B +1, A +1, S +1)
+        luckCritBoost = 3;
+      } else if (partyLuckValue >= 7) {
+        // A or higher: +2 total (B +1, A +1)
+        luckCritBoost = 2;
+      } else if (partyLuckValue >= 4) {
+        // B or higher: +1 total
+        luckCritBoost = 1;
+      }
+      critStage.value = Math.min(critStage.value + luckCritBoost, 3);
     }
 
     console.log(`crit stage: +${critStage.value}`);
@@ -3758,7 +3777,20 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     }
 
     /** The damage multiplier when the given move critically hits */
-    const criticalMultiplier = new NumberHolder(isCritical ? 1.5 : 1);
+    let baseCritMultiplier = isCritical ? 1.5 : 1;
+
+    // Classic mode: Luck-based crit damage boost (only if luck >= S)
+    // S (10): 1.7x, S+ (11): 1.9x, SS (12): 2.1x, SS+ (13): 2.3x, SSS (14): 2.5x
+    if (isCritical && globalScene.gameMode.isClassic && source.isPlayer()) {
+      const partyLuckValue = getPartyLuckValue(globalScene.getPlayerParty());
+      if (partyLuckValue >= 10) {
+        // S or higher: add 0.2x per level above S
+        const luckBonus = 0.2 * (partyLuckValue - 9); // S (10) = 0.2, S+ (11) = 0.4, etc.
+        baseCritMultiplier = 1.5 + luckBonus;
+      }
+    }
+
+    const criticalMultiplier = new NumberHolder(baseCritMultiplier);
     applyAbAttrs("MultCritAbAttr", { pokemon: source, simulated, critMult: criticalMultiplier });
 
     /**
