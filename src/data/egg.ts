@@ -179,7 +179,8 @@ export class Egg {
 
       this._id = eggOptions?.id ?? randInt(EGG_SEED, EGG_SEED * this._tier);
 
-      this._sourceType = eggOptions?.sourceType ?? undefined;
+      // Don't override _sourceType here, it was already set above
+      // this._sourceType = eggOptions?.sourceType ?? undefined;
       this._hatchWaves = eggOptions?.hatchWaves ?? this.getEggTierDefaultHatchWaves();
       this._timestamp = eggOptions?.timestamp ?? Date.now();
 
