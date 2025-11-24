@@ -694,10 +694,6 @@ export class Egg {
       return isNonShinyCaught || isVariant1Caught || isVariant2Caught || isVariant3Caught;
     });
 
-    console.log(
-      `UNLOCK gacha: Total obtainable species: ${allObtainableSpecies.length}, Caught species: ${caughtSpecies.length}`,
-    );
-
     // If not all species are caught, return an uncaught species
     if (caughtSpecies.length < allObtainableSpecies.length - 1) {
       // -1 for ETERNATUS
@@ -708,9 +704,6 @@ export class Egg {
         const dexEntry = globalScene.gameData.dexData[speciesId];
         // If dexEntry doesn't exist, species is uncaught
         if (!dexEntry) {
-          console.log(
-            `UNLOCK gacha: Species ${speciesId} (${getPokemonSpecies(speciesId).name}) has no dexEntry, marking as uncaught`,
-          );
           return true;
         }
         const caughtAttr = dexEntry.caughtAttr ?? 0n;
@@ -721,32 +714,16 @@ export class Egg {
         const isVariant3Caught = isShinyCaught && !!(caughtAttr & DexAttr.VARIANT_3);
         // Species is uncaught if no form is caught
         const isUncaught = !isNonShinyCaught && !isVariant1Caught && !isVariant2Caught && !isVariant3Caught;
-
-        if (isUncaught) {
-          const species = getPokemonSpecies(speciesId);
-          console.log(
-            `UNLOCK gacha: Species ${speciesId} (${species.name}) is uncaught. caughtAttr: ${caughtAttr.toString(16)}, NON_SHINY: ${isNonShinyCaught}, SHINY: ${isShinyCaught}, VAR1: ${isVariant1Caught}, VAR2: ${isVariant2Caught}, VAR3: ${isVariant3Caught}`,
-          );
-        }
         return isUncaught;
       });
-
-      console.log(`UNLOCK gacha: Found ${uncaughtSpecies.length} uncaught species (excluding Eternatus)`);
 
       if (uncaughtSpecies.length > 0) {
         // Return a random uncaught species
         // Use this._id to ensure different eggs get different species
         const index = ((this._id % uncaughtSpecies.length) + uncaughtSpecies.length) % uncaughtSpecies.length;
         const selectedSpecies = uncaughtSpecies[index];
-        const selectedSpeciesName = getPokemonSpecies(selectedSpecies).name;
-        console.log(
-          `UNLOCK gacha: Selected uncaught species ${selectedSpecies} (${selectedSpeciesName}) from ${uncaughtSpecies.length} uncaught species (index: ${index})`,
-        );
         return selectedSpecies;
       }
-      console.warn(
-        `UNLOCK gacha: No uncaught species found, but caughtSpecies.length (${caughtSpecies.length}) < allObtainableSpecies.length - 1 (${allObtainableSpecies.length - 1})`,
-      );
     }
 
     // All species are caught, return a species without red shiny variant
