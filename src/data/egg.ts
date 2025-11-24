@@ -164,10 +164,15 @@ export class Egg {
       //if (eggOptions.tier && eggOptions.species) throw Error("Error egg can't have species and tier as option. only choose one of them.")
 
       this._sourceType = eggOptions?.sourceType!; // TODO: is this bang correct?
+      // For UNLOCK gacha, skip tier rolling as it will be set based on species
       // Ensure _sourceType is defined before invoking rollEggTier(), as it is referenced
-      this._tier = eggOptions?.tier ?? Overrides.EGG_TIER_OVERRIDE ?? this.rollEggTier();
+      this._tier =
+        eggOptions?.tier
+        ?? Overrides.EGG_TIER_OVERRIDE
+        ?? (this._sourceType === EggSourceType.GACHA_UNLOCK ? EggTier.COMMON : this.rollEggTier());
       // If egg was pulled, check if egg pity needs to override the egg tier
-      if (eggOptions?.pulled) {
+      // Skip pity for UNLOCK gacha as tier will be set based on species
+      if (eggOptions?.pulled && this._sourceType !== EggSourceType.GACHA_UNLOCK) {
         // Needs this._tier and this._sourceType to work
         this.checkForPityTierOverrides();
       }
