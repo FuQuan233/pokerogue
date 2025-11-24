@@ -4,6 +4,7 @@ import { handleTutorial, Tutorial } from "#app/tutorial";
 import type { IEggOptions } from "#data/egg";
 import { Egg, getLegendaryGachaSpeciesForTimestamp } from "#data/egg";
 import { Button } from "#enums/buttons";
+import type { EggSourceType } from "#enums/egg-source-types";
 import { EggTier } from "#enums/egg-type";
 import { GachaType } from "#enums/gacha-types";
 import { TextStyle } from "#enums/text-style";
@@ -440,10 +441,12 @@ export class EggGachaUiHandler extends MessageUiHandler {
    */
   private pullEggs(pullCount: number): Egg[] {
     const eggs: Egg[] = [];
+    // Convert GachaType to EggSourceType
+    const sourceType = this.gachaCursor as unknown as EggSourceType;
     for (let i = 1; i <= pullCount; i++) {
       const eggOptions: IEggOptions = {
         pulled: true,
-        sourceType: this.gachaCursor,
+        sourceType,
       };
 
       // Before creating the last egg, check if the guaranteed egg tier was already generated
