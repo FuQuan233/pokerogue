@@ -8,7 +8,7 @@ import { EggTier } from "#enums/egg-type";
 import { GachaType } from "#enums/gacha-types";
 import { TextStyle } from "#enums/text-style";
 import { UiMode } from "#enums/ui-mode";
-import { getVoucherTypeIcon, VoucherType } from "#system/voucher";
+import { getVoucherTypeIcon, getVoucherTypeName, VoucherType } from "#system/voucher";
 import { MessageUiHandler } from "#ui/message-ui-handler";
 import { addTextObject, getEggTierTextTint, getTextStyleOptions } from "#ui/text";
 import { addWindow } from "#ui/ui-theme";
@@ -684,9 +684,9 @@ export class EggGachaUiHandler extends MessageUiHandler {
         case 0:
           return [VoucherType.REGULAR, 100, 1];
         case 1:
-          return [VoucherType.REGULAR, 20, 1];
+          return [VoucherType.PLUS, 20, 1];
         case 2:
-          return [VoucherType.REGULAR, 10, 1];
+          return [VoucherType.PREMIUM, 10, 1];
         case 3:
           return [VoucherType.GOLDEN, 4, 1];
       }
@@ -897,22 +897,22 @@ export class EggGachaUiHandler extends MessageUiHandler {
       ? [
           {
             multiplier: multiplierOne,
-            description: `100 ${i18next.t("egg:pulls")}`,
+            description: `${getVoucherTypeName(VoucherType.REGULAR)}×100 1${i18next.t("egg:pull")}`,
             icon: getVoucherTypeIcon(VoucherType.REGULAR),
           },
           {
             multiplier: multiplierOne,
-            description: `20 ${i18next.t("egg:pulls")}`,
-            icon: getVoucherTypeIcon(VoucherType.REGULAR),
+            description: `${getVoucherTypeName(VoucherType.PLUS)}×20 1${i18next.t("egg:pull")}`,
+            icon: getVoucherTypeIcon(VoucherType.PLUS),
           },
           {
             multiplier: multiplierOne,
-            description: `10 ${i18next.t("egg:pulls")}`,
-            icon: getVoucherTypeIcon(VoucherType.REGULAR),
+            description: `${getVoucherTypeName(VoucherType.PREMIUM)}×10 1${i18next.t("egg:pull")}`,
+            icon: getVoucherTypeIcon(VoucherType.PREMIUM),
           },
           {
             multiplier: multiplierOne,
-            description: `4 ${i18next.t("egg:pulls")}`,
+            description: `${getVoucherTypeName(VoucherType.GOLDEN)}×4 1${i18next.t("egg:pull")}`,
             icon: getVoucherTypeIcon(VoucherType.GOLDEN),
           },
         ]

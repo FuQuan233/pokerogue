@@ -186,9 +186,10 @@ export class Egg {
       this._overrideHiddenAbility = eggOptions?.overrideHiddenAbility ?? false;
 
       // Override egg tier and hatchwaves if species was given
-      if (eggOptions?.species) {
+      // Also override for UNLOCK gacha since species is determined first
+      if (eggOptions?.species || (this._sourceType === EggSourceType.GACHA_UNLOCK && this._species)) {
         this._tier = this.getEggTier();
-        this._hatchWaves = eggOptions.hatchWaves ?? this.getEggTierDefaultHatchWaves();
+        this._hatchWaves = eggOptions?.hatchWaves ?? this.getEggTierDefaultHatchWaves();
       }
       // If species has no variant, set variantTier to common. This needs to
       // be done because species with no variants get filtered at rollSpecies but if the
