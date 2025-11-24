@@ -663,8 +663,14 @@ export class Egg {
     const ignoredSpecies = [SpeciesId.PHIONE, SpeciesId.MANAPHY];
 
     // Get all obtainable species except ignored ones
+    // Only include species that are available as starters (same as starter selection screen)
     const allObtainableSpecies = allSpecies
-      .filter(s => s.isObtainable() && ignoredSpecies.indexOf(s.speciesId) === -1)
+      .filter(
+        s =>
+          s.isObtainable()
+          && ignoredSpecies.indexOf(s.speciesId) === -1
+          && speciesStarterCosts.hasOwnProperty(s.speciesId),
+      )
       .map(s => s.speciesId);
 
     // Check if all species (except ETERNATUS) are caught
