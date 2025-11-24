@@ -28,7 +28,9 @@ import {
 } from "#balance/rates";
 import { speciesEggTiers } from "#balance/species-egg-tiers";
 import { speciesStarterCosts } from "#balance/starters";
+import { allSpecies } from "#data/data-lists";
 import type { PokemonSpecies } from "#data/pokemon-species";
+import { DexAttr } from "#enums/dex-attr";
 import { EggSourceType } from "#enums/egg-source-types";
 import { EggTier } from "#enums/egg-type";
 import { SpeciesId } from "#enums/species-id";
@@ -338,6 +340,8 @@ export class Egg {
         return this._eggDescriptor ?? i18next.t("egg:gachaTypeShiny");
       case EggSourceType.GACHA_MOVE:
         return this._eggDescriptor ?? i18next.t("egg:gachaTypeMove");
+      case EggSourceType.GACHA_UNLOCK:
+        return this._eggDescriptor ?? i18next.t("egg:gachaTypeMove");
       case EggSourceType.EVENT:
         return this._eggDescriptor ?? i18next.t("egg:eventType");
       default:
@@ -421,6 +425,11 @@ export class Egg {
     }
     if (this.tier === EggTier.LEGENDARY && this._sourceType === EggSourceType.GACHA_LEGENDARY && !randSeedInt(2)) {
       return getLegendaryGachaSpeciesForTimestamp(this.timestamp);
+    }
+
+    // UNLOCK gacha: Guaranteed unlocked species or shiny variant
+    if (this._sourceType === EggSourceType.GACHA_UNLOCK) {
+      return this.rollUnlockGachaSpecies();
     }
 
     let minStarterValue: number;
@@ -524,6 +533,11 @@ export class Egg {
    * @returns `true` if the egg is shiny
    */
   private rollShiny(): boolean {
+    // UNLOCK gacha: Always shiny (red shiny)
+    if (this._sourceType === EggSourceType.GACHA_UNLOCK) {
+      return true;
+    }
+
     let shinyChance = GACHA_DEFAULT_SHINY_RATE;
     switch (this._sourceType) {
       case EggSourceType.GACHA_SHINY:
@@ -545,6 +559,11 @@ export class Egg {
   private rollVariant(): VariantTier {
     if (!this.isShiny) {
       return VariantTier.STANDARD;
+    }
+
+    // UNLOCK gacha: Guaranteed EPIC variant (red shiny)
+    if (this._sourceType === EggSourceType.GACHA_UNLOCK) {
+      return VariantTier.EPIC;
     }
 
     const rand = randSeedInt(10);
@@ -599,6 +618,75 @@ export class Egg {
 
   private getEggTier(): EggTier {
     return speciesEggTiers[this.species] ?? EggTier.COMMON;
+  }
+
+  /**
+   * Rolls a species for UNLOCK gacha.
+   * If player hasn't unlocked all species (except ETERNATUS), returns an unlocked species.
+   * If all species are unlocked, returns a species without red shiny variant (including ETERNATUS).
+   */
+  private rollUnlockGachaSpecies(): SpeciesId {
+    const ignoredSpecies = [SpeciesId.PHIONE, SpeciesId.MANAPHY];
+
+    // Get all obtainable species except ignored ones
+    const allObtainableSpecies = allSpecies
+      .filter(s => s.isObtainable() && ignoredSpecies.indexOf(s.speciesId) === -1)
+      .map(s => s.speciesId);
+
+    // Check if all species (except ETERNATUS) are unlocked
+    const unlockedSpecies = allObtainableSpecies.filter(speciesId => {
+      if (speciesId === SpeciesId.ETERNATUS) {
+        return false; // Always exclude ETERNATUS from unlock check
+      }
+      const dexEntry = globalScene.gameData.dexData[speciesId];
+      const fullUnlocks = getPokemonSpecies(speciesId).getFullUnlocksData();
+      // Check if at least one form is caught (NON_SHINY or SHINY)
+      return (dexEntry?.caughtAttr ?? 0n) & (DexAttr.NON_SHINY | DexAttr.SHINY) & fullUnlocks;
+    });
+
+    // If not all species are unlocked, return an unlocked species
+    if (unlockedSpecies.length < allObtainableSpecies.length - 1) {
+      // -1 for ETERNATUS
+      const lockedSpecies = allObtainableSpecies.filter(speciesId => {
+        if (speciesId === SpeciesId.ETERNATUS) {
+          return false; // Exclude ETERNATUS from unlock pool
+        }
+        const dexEntry = globalScene.gameData.dexData[speciesId];
+        const fullUnlocks = getPokemonSpecies(speciesId).getFullUnlocksData();
+        return !((dexEntry?.caughtAttr ?? 0n) & (DexAttr.NON_SHINY | DexAttr.SHINY) & fullUnlocks);
+      });
+
+      if (lockedSpecies.length > 0) {
+        // Return a random locked species
+        return lockedSpecies[randSeedInt(lockedSpecies.length)];
+      }
+    }
+
+    // All species are unlocked, return a species without red shiny variant
+    const speciesWithoutRedShiny = allObtainableSpecies.filter(speciesId => {
+      const dexEntry = globalScene.gameData.dexData[speciesId];
+      const species = getPokemonSpecies(speciesId);
+      const fullUnlocks = species.getFullUnlocksData();
+      const caughtAttr = (dexEntry?.caughtAttr ?? 0n) & fullUnlocks;
+
+      // Check if species has variants
+      if (!species.hasVariants()) {
+        // Species without variants: check if shiny is caught
+        return !(caughtAttr & DexAttr.SHINY);
+      }
+
+      // Species with variants: check if red shiny (SHINY + VARIANT_3) is caught
+      // Red shiny requires both SHINY and VARIANT_3 to be set
+      return !(caughtAttr & DexAttr.SHINY && caughtAttr & DexAttr.VARIANT_3);
+    });
+
+    if (speciesWithoutRedShiny.length > 0) {
+      // Return a random species without red shiny
+      return speciesWithoutRedShiny[randSeedInt(speciesWithoutRedShiny.length)];
+    }
+
+    // Fallback: return a random species (shouldn't happen)
+    return allObtainableSpecies[randSeedInt(allObtainableSpecies.length)];
   }
 
   ////
