@@ -144,7 +144,7 @@ export class EggGachaUiHandler extends MessageUiHandler {
           gachaUpLabel.setAlign("center").setY(0);
         }
 
-        gachaUpLabel.setText(i18next.t("egg:moveUpGacha")).setX(0).setOrigin(0.5, 0);
+        gachaUpLabel.setText("NEW-UP!").setX(0).setOrigin(0.5, 0);
         break;
     }
 
