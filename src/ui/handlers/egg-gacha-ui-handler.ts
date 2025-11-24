@@ -247,8 +247,7 @@ export class EggGachaUiHandler extends MessageUiHandler {
       this.optionIcons.push(icon);
     }
 
-    // Update options based on default gacha cursor
-    this.updatePullOptions();
+    // Note: updatePullOptions() will be called in show() after gachaCursor is set
 
     this.eggGachaContainer.add(this.eggGachaOptionsContainer);
 
