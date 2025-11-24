@@ -8,7 +8,7 @@ import { EggTier } from "#enums/egg-type";
 import { GachaType } from "#enums/gacha-types";
 import { TextStyle } from "#enums/text-style";
 import { UiMode } from "#enums/ui-mode";
-import { getVoucherTypeIcon, getVoucherTypeName, VoucherType } from "#system/voucher";
+import { getVoucherTypeIcon, VoucherType } from "#system/voucher";
 import { MessageUiHandler } from "#ui/message-ui-handler";
 import { addTextObject, getEggTierTextTint, getTextStyleOptions } from "#ui/text";
 import { addWindow } from "#ui/ui-theme";
@@ -896,23 +896,23 @@ export class EggGachaUiHandler extends MessageUiHandler {
     const pullOptions = isUnlockGacha
       ? [
           {
-            multiplier: multiplierOne,
-            description: `${getVoucherTypeName(VoucherType.REGULAR)}×100 1${i18next.t("egg:pull")}`,
+            multiplier: "x100",
+            description: `1 ${i18next.t("egg:pull")}`,
             icon: getVoucherTypeIcon(VoucherType.REGULAR),
           },
           {
-            multiplier: multiplierOne,
-            description: `${getVoucherTypeName(VoucherType.PLUS)}×20 1${i18next.t("egg:pull")}`,
+            multiplier: "x20",
+            description: `1 ${i18next.t("egg:pull")}`,
             icon: getVoucherTypeIcon(VoucherType.PLUS),
           },
           {
-            multiplier: multiplierOne,
-            description: `${getVoucherTypeName(VoucherType.PREMIUM)}×10 1${i18next.t("egg:pull")}`,
+            multiplier: "x10",
+            description: `1 ${i18next.t("egg:pull")}`,
             icon: getVoucherTypeIcon(VoucherType.PREMIUM),
           },
           {
-            multiplier: multiplierOne,
-            description: `${getVoucherTypeName(VoucherType.GOLDEN)}×4 1${i18next.t("egg:pull")}`,
+            multiplier: "x4",
+            description: `1 ${i18next.t("egg:pull")}`,
             icon: getVoucherTypeIcon(VoucherType.GOLDEN),
           },
         ]
