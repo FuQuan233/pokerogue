@@ -193,7 +193,7 @@ export class Egg {
 
       // Override egg tier and hatchwaves if species was given
       // Also override for UNLOCK gacha since species is determined first
-      if (eggOptions?.species || (this._sourceType === EggSourceType.GACHA_UNLOCK && this._species)) {
+      if (eggOptions?.species || this._sourceType === EggSourceType.GACHA_UNLOCK) {
         this._tier = this.getEggTier();
         this._hatchWaves = eggOptions?.hatchWaves ?? this.getEggTierDefaultHatchWaves();
       }
@@ -624,7 +624,8 @@ export class Egg {
   }
 
   private getEggTier(): EggTier {
-    return speciesEggTiers[this.species] ?? EggTier.COMMON;
+    const rootSpeciesId = getPokemonSpecies(this.species).getRootSpeciesId();
+    return speciesEggTiers[rootSpeciesId] ?? EggTier.COMMON;
   }
 
   /**
