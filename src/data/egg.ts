@@ -194,7 +194,28 @@ export class Egg {
       // Override egg tier and hatchwaves if species was given
       // Also override for UNLOCK gacha since species is determined first
       if (eggOptions?.species || this._sourceType === EggSourceType.GACHA_UNLOCK) {
-        this._tier = this.getEggTier();
+        // For UNLOCK gacha, always set tier based on species
+        if (this._sourceType === EggSourceType.GACHA_UNLOCK && this._species) {
+          const species = getPokemonSpecies(this._species);
+          const rootId = species.getRootSpeciesId();
+          const tierFromMap = speciesEggTiers[rootId];
+          if (tierFromMap !== undefined) {
+            this._tier = tierFromMap;
+          } else {
+            // Fallback: try direct lookup
+            const tierEntry = Object.entries(speciesEggTiers).find(([id]) => Number.parseInt(id) === rootId);
+            if (tierEntry) {
+              this._tier = tierEntry[1] as EggTier;
+            } else {
+              console.error(
+                `UNLOCK gacha: Could not find tier for species ${this._species} (root: ${rootId}), keeping COMMON`,
+              );
+              // Keep COMMON as fallback
+            }
+          }
+        } else {
+          this._tier = this.getEggTier();
+        }
         this._hatchWaves = eggOptions?.hatchWaves ?? this.getEggTierDefaultHatchWaves();
       }
       // If species has no variant, set variantTier to common. This needs to
