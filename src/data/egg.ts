@@ -221,7 +221,12 @@ export class Egg {
       // If species has no variant, set variantTier to common. This needs to
       // be done because species with no variants get filtered at rollSpecies but if the
       // species is set via options or the legendary gacha pokemon gets choosen the check never happens
-      if (this._species && !getPokemonSpecies(this._species).hasVariants()) {
+      // Exception: UNLOCK gacha should always have EPIC variant (red shiny) even for species without variants
+      if (
+        this._species
+        && !getPokemonSpecies(this._species).hasVariants()
+        && this._sourceType !== EggSourceType.GACHA_UNLOCK
+      ) {
         this._variantTier = VariantTier.STANDARD;
       }
       // Needs this._tier so it needs to be generated afer the tier override if bought from same species
@@ -662,60 +667,97 @@ export class Egg {
       .filter(s => s.isObtainable() && ignoredSpecies.indexOf(s.speciesId) === -1)
       .map(s => s.speciesId);
 
-    // Check if all species (except ETERNATUS) are unlocked
-    const unlockedSpecies = allObtainableSpecies.filter(speciesId => {
+    // Check if all species (except ETERNATUS) are caught
+    // "Uncaught" means: no NON_SHINY, no DEFAULT_VARIANT, no VARIANT_2, no VARIANT_3
+    const caughtSpecies = allObtainableSpecies.filter(speciesId => {
       if (speciesId === SpeciesId.ETERNATUS) {
-        return false; // Always exclude ETERNATUS from unlock check
+        return false; // Always exclude ETERNATUS from caught check
       }
       const dexEntry = globalScene.gameData.dexData[speciesId];
-      const fullUnlocks = getPokemonSpecies(speciesId).getFullUnlocksData();
-      // Check if at least one form is caught (NON_SHINY or SHINY)
-      return (dexEntry?.caughtAttr ?? 0n) & (DexAttr.NON_SHINY | DexAttr.SHINY) & fullUnlocks;
+      // If dexEntry doesn't exist, species is uncaught
+      if (!dexEntry) {
+        return false;
+      }
+      const caughtAttr = dexEntry.caughtAttr ?? 0n;
+      const isNonShinyCaught = !!(caughtAttr & DexAttr.NON_SHINY);
+      const isShinyCaught = !!(caughtAttr & DexAttr.SHINY);
+      const isVariant1Caught = isShinyCaught && !!(caughtAttr & DexAttr.DEFAULT_VARIANT);
+      const isVariant2Caught = isShinyCaught && !!(caughtAttr & DexAttr.VARIANT_2);
+      const isVariant3Caught = isShinyCaught && !!(caughtAttr & DexAttr.VARIANT_3);
+      // Species is caught if any form is caught
+      return isNonShinyCaught || isVariant1Caught || isVariant2Caught || isVariant3Caught;
     });
 
-    // If not all species are unlocked, return an unlocked species
-    if (unlockedSpecies.length < allObtainableSpecies.length - 1) {
+    // If not all species are caught, return an uncaught species
+    if (caughtSpecies.length < allObtainableSpecies.length - 1) {
       // -1 for ETERNATUS
-      const lockedSpecies = allObtainableSpecies.filter(speciesId => {
+      const uncaughtSpecies = allObtainableSpecies.filter(speciesId => {
         if (speciesId === SpeciesId.ETERNATUS) {
-          return false; // Exclude ETERNATUS from unlock pool
+          return false; // Exclude ETERNATUS from uncaught pool
         }
         const dexEntry = globalScene.gameData.dexData[speciesId];
-        const fullUnlocks = getPokemonSpecies(speciesId).getFullUnlocksData();
-        return !((dexEntry?.caughtAttr ?? 0n) & (DexAttr.NON_SHINY | DexAttr.SHINY) & fullUnlocks);
+        // If dexEntry doesn't exist, species is uncaught
+        if (!dexEntry) {
+          return true;
+        }
+        const caughtAttr = dexEntry.caughtAttr ?? 0n;
+        const isNonShinyCaught = !!(caughtAttr & DexAttr.NON_SHINY);
+        const isShinyCaught = !!(caughtAttr & DexAttr.SHINY);
+        const isVariant1Caught = isShinyCaught && !!(caughtAttr & DexAttr.DEFAULT_VARIANT);
+        const isVariant2Caught = isShinyCaught && !!(caughtAttr & DexAttr.VARIANT_2);
+        const isVariant3Caught = isShinyCaught && !!(caughtAttr & DexAttr.VARIANT_3);
+        // Species is uncaught if no form is caught
+        const isUncaught = !isNonShinyCaught && !isVariant1Caught && !isVariant2Caught && !isVariant3Caught;
+        return isUncaught;
       });
 
-      if (lockedSpecies.length > 0) {
-        // Return a random locked species
-        return lockedSpecies[randSeedInt(lockedSpecies.length)];
+      if (uncaughtSpecies.length > 0) {
+        // Return a random uncaught species
+        // Use this._id to ensure different eggs get different species
+        const index = ((this._id % uncaughtSpecies.length) + uncaughtSpecies.length) % uncaughtSpecies.length;
+        const selectedSpecies = uncaughtSpecies[index];
+        console.log(
+          `UNLOCK gacha: Selected uncaught species ${selectedSpecies} from ${uncaughtSpecies.length} uncaught species`,
+        );
+        return selectedSpecies;
       }
+      console.warn(
+        `UNLOCK gacha: No uncaught species found, but caughtSpecies.length (${caughtSpecies.length}) < allObtainableSpecies.length - 1 (${allObtainableSpecies.length - 1})`,
+      );
     }
 
-    // All species are unlocked, return a species without red shiny variant
+    // All species are caught, return a species without red shiny variant
     const speciesWithoutRedShiny = allObtainableSpecies.filter(speciesId => {
       const dexEntry = globalScene.gameData.dexData[speciesId];
-      const species = getPokemonSpecies(speciesId);
-      const fullUnlocks = species.getFullUnlocksData();
-      const caughtAttr = (dexEntry?.caughtAttr ?? 0n) & fullUnlocks;
+      const caughtAttr = dexEntry?.caughtAttr ?? 0n;
+      const isShinyCaught = !!(caughtAttr & DexAttr.SHINY);
+      const isVariant3Caught = isShinyCaught && !!(caughtAttr & DexAttr.VARIANT_3);
 
       // Check if species has variants
+      const species = getPokemonSpecies(speciesId);
       if (!species.hasVariants()) {
         // Species without variants: check if shiny is caught
-        return !(caughtAttr & DexAttr.SHINY);
+        return !isShinyCaught;
       }
 
       // Species with variants: check if red shiny (SHINY + VARIANT_3) is caught
       // Red shiny requires both SHINY and VARIANT_3 to be set
-      return !(caughtAttr & DexAttr.SHINY && caughtAttr & DexAttr.VARIANT_3);
+      return !isVariant3Caught;
     });
 
     if (speciesWithoutRedShiny.length > 0) {
       // Return a random species without red shiny
-      return speciesWithoutRedShiny[randSeedInt(speciesWithoutRedShiny.length)];
+      // Use this._id to ensure different eggs get different species
+      const index =
+        ((this._id % speciesWithoutRedShiny.length) + speciesWithoutRedShiny.length) % speciesWithoutRedShiny.length;
+      return speciesWithoutRedShiny[index];
     }
 
     // Fallback: return a random species (shouldn't happen)
-    return allObtainableSpecies[randSeedInt(allObtainableSpecies.length)];
+    // Use this._id to ensure different eggs get different species
+    const index =
+      ((this._id % allObtainableSpecies.length) + allObtainableSpecies.length) % allObtainableSpecies.length;
+    return allObtainableSpecies[index];
   }
 
   ////
