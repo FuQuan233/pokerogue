@@ -17,7 +17,6 @@ import { BattlerTagType } from "#enums/battler-tag-type";
 import { BerryType } from "#enums/berry-type";
 import { ChallengeType } from "#enums/challenge-type";
 import { FormChangeItem } from "#enums/form-change-item";
-import { GameModes } from "#enums/game-modes";
 import { ModifierPoolType } from "#enums/modifier-pool-type";
 import { ModifierTier } from "#enums/modifier-tier";
 import { MoveId } from "#enums/move-id";
@@ -2669,18 +2668,6 @@ export function getPlayerShopModifierTypeOptionsForWave(waveIndex: number, baseC
       return status.value;
     });
 
-  // Apply random discount (0-9 折) in Classic mode
-  if (globalScene.gameMode?.modeId === GameModes.CLASSIC) {
-    filteredOptions.forEach(option => {
-      // Generate random discount: 0折-9折 (0% to 90% of original price)
-      const discount = randSeedInt(10); // 0, 1, 2, ..., 9
-      const priceMultiplier = discount * 0.1; // 0.0, 0.1, 0.2, ..., 0.9
-      // Save original price before applying discount
-      option.originalCost = option.cost;
-      option.cost = Math.ceil(option.cost * priceMultiplier);
-    });
-  }
-
   return filteredOptions;
 }
 
@@ -2908,7 +2895,6 @@ export class ModifierTypeOption {
   public type: ModifierType;
   public upgradeCount: number;
   public cost: number;
-  public originalCost?: number;
 
   constructor(type: ModifierType, upgradeCount: number, cost = 0) {
     this.type = type;

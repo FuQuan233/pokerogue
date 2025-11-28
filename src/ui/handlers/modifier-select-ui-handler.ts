@@ -13,17 +13,10 @@ import type { ModifierTypeOption } from "#modifiers/modifier-type";
 import { getPlayerShopModifierTypeOptionsForWave, TmModifierType } from "#modifiers/modifier-type";
 import { AwaitableUiHandler } from "#ui/awaitable-ui-handler";
 import { MoveInfoOverlay } from "#ui/move-info-overlay";
-import {
-  addBBCodeTextObject,
-  addTextObject,
-  getModifierTierTextTint,
-  getTextColor,
-  getTextStyleOptions,
-} from "#ui/text";
+import { addTextObject, getModifierTierTextTint, getTextColor, getTextStyleOptions } from "#ui/text";
 import { formatMoney, NumberHolder } from "#utils/common";
 import i18next from "i18next";
 import Phaser from "phaser";
-import type BBCodeText from "phaser3-rex-plugins/plugins/gameobjects/tagtext/bbcodetext/BBCodeText";
 
 export const SHOP_OPTIONS_ROW_LIMIT = 7;
 const SINGLE_SHOP_ROW_YOFFSET = 12;
@@ -778,7 +771,6 @@ class ModifierOption extends Phaser.GameObjects.Container {
   private itemTint: Phaser.GameObjects.Sprite;
   private itemText: Phaser.GameObjects.Text;
   private itemCostText: Phaser.GameObjects.Text;
-  private itemOriginalCostText: BBCodeText;
 
   constructor(x: number, y: number, modifierTypeOption: ModifierTypeOption) {
     super(globalScene, x, y);
@@ -832,27 +824,9 @@ class ModifierOption extends Phaser.GameObjects.Container {
     this.add(this.itemText);
 
     if (this.modifierTypeOption.cost) {
-      // Add original price text (strikethrough) if there's a discount
-      if (this.modifierTypeOption.originalCost && this.modifierTypeOption.originalCost > this.modifierTypeOption.cost) {
-        this.itemOriginalCostText = addBBCodeTextObject(0, 45, "", TextStyle.PARTY, {
-          align: "center",
-        });
-        this.itemOriginalCostText.setOrigin(0.5, 0);
-        this.itemOriginalCostText.setAlpha(0);
-        this.add(this.itemOriginalCostText);
-      }
-
-      this.itemCostText = addTextObject(
-        0,
-        this.modifierTypeOption.originalCost && this.modifierTypeOption.originalCost > this.modifierTypeOption.cost
-          ? 55
-          : 45,
-        "",
-        TextStyle.MONEY,
-        {
-          align: "center",
-        },
-      );
+      this.itemCostText = addTextObject(0, 45, "", TextStyle.MONEY, {
+        align: "center",
+      });
 
       this.itemCostText.setOrigin(0.5, 0);
       this.itemCostText.setAlpha(0);
@@ -1033,20 +1007,6 @@ class ModifierOption extends Phaser.GameObjects.Container {
       });
       finalPromises.push(itemTextPromise);
 
-      if (this.itemOriginalCostText) {
-        const { resolve: itemOriginalCostResolve, promise: itemOriginalCostPromise } = Promise.withResolvers<void>();
-        globalScene.tweens.add({
-          targets: this.itemOriginalCostText,
-          delay,
-          duration: 500,
-          alpha: 1,
-          y: 45,
-          ease: "Cubic.easeInOut",
-          onComplete: () => itemOriginalCostResolve(),
-        });
-        finalPromises.push(itemOriginalCostPromise);
-      }
-
       if (this.itemCostText) {
         const { resolve: itemCostResolve, promise: itemCostPromise } = Promise.withResolvers<void>();
         globalScene.tweens.add({
@@ -1054,7 +1014,7 @@ class ModifierOption extends Phaser.GameObjects.Container {
           delay,
           duration: 500,
           alpha: 1,
-          y: this.itemOriginalCostText ? 55 : 35,
+          y: 35,
           ease: "Cubic.easeInOut",
           onComplete: () => itemCostResolve(),
         });
@@ -1080,15 +1040,5 @@ class ModifierOption extends Phaser.GameObjects.Container {
     this.itemCostText.setText(i18next.t("modifierSelectUiHandler:itemCost", { formattedMoney }));
     this.itemCostText.setColor(getTextColor(textStyle, false));
     this.itemCostText.setShadowColor(getTextColor(textStyle, true));
-
-    // Update original price text if it exists (with strikethrough effect using BBCode)
-    if (this.itemOriginalCostText && this.modifierTypeOption.originalCost) {
-      const formattedOriginalMoney = formatMoney(globalScene.moneyFormat, this.modifierTypeOption.originalCost);
-      const originalCostText = i18next.t("modifierSelectUiHandler:itemCost", {
-        formattedMoney: formattedOriginalMoney,
-      });
-      // Create strikethrough effect using BBCode [s] tag and gray color
-      this.itemOriginalCostText.setText(`[color=#888888][s]${originalCostText}[/s][/color]`);
-    }
   }
 }
