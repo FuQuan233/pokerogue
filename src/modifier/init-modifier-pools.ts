@@ -324,6 +324,7 @@ function initGreatModifierPool() {
         ? 1
         : 0,
     ),
+    // TODO: DNA_SPLICERS已移至ROGUE池，如需还原请取消注释
     /*new WeightedModifierType(
       modifierTypes.DNA_SPLICERS,
       (party: Pokemon[]) => {
@@ -339,7 +340,7 @@ function initGreatModifierPool() {
       },
       4,
     ),*/
-    new WeightedModifierType(
+    /*new WeightedModifierType(
       modifierTypes.DNA_SPLICERS,
       (party: Pokemon[]) => {
         if (
@@ -351,7 +352,7 @@ function initGreatModifierPool() {
         return 0;
       },
       16,
-    ),
+    ),*/
 
     new WeightedModifierType(
       modifierTypes.VOUCHER,
@@ -628,6 +629,20 @@ function initRogueModifierPool() {
       (_party: Pokemon[], rerollCount: number) =>
         !globalScene.gameMode.isDaily ? Math.max(3 - rerollCount * 1, 0) : 0,
       3,
+    ),
+    // TODO: DNA_SPLICERS从GREAT池移至ROGUE池，权重约为ROGUE池的10%
+    new WeightedModifierType(
+      modifierTypes.DNA_SPLICERS,
+      (party: Pokemon[]) => {
+        if (
+          globalScene.gameMode.isClassic // 经典模式限定
+          && party.filter(p => !p.fusionSpecies).length > 1
+        ) {
+          return 16; // 权重约为ROGUE池总权重的10%
+        }
+        return 0;
+      },
+      16,
     ),
   ].map(m => {
     m.setTier(ModifierTier.ROGUE);
