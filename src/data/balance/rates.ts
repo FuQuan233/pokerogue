@@ -6,7 +6,9 @@
 
 // #region Encounterable properties
 /** `512/65536 -> 1/128` */
-export const BASE_SHINY_CHANCE = 512;
+// TODO: 限时活动 - 闪光概率提升8倍，活动结束后需还原
+// 原始值: export const BASE_SHINY_CHANCE = 512;
+export const BASE_SHINY_CHANCE = 4096; // 512 * 8 (限时活动)
 
 /** `2048/65536 -> 1/32` */
 export const BASE_HIDDEN_ABILITY_CHANCE = 2048;
