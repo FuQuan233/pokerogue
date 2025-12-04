@@ -4,6 +4,7 @@ import { pokemonEvolutions } from "#balance/pokemon-evolutions";
 import { allAbilities, allMoves } from "#data/data-lists";
 import { SpeciesFormChangeItemTrigger } from "#data/form-change-triggers";
 import { Gender, getGenderColor, getGenderSymbol } from "#data/gender";
+import { AbilityId } from "#enums/ability-id";
 import { Button } from "#enums/buttons";
 import { ChallengeType } from "#enums/challenge-type";
 import { Challenges } from "#enums/challenges";
@@ -1477,16 +1478,65 @@ export class PartyUiHandler extends MessageUiHandler {
 
   /**
    * 更新回忆咖啡模式的选项列表
-   * 显示本局习得过但现在没有的特性
+   * 显示本局习得过或图鉴已解锁但现在没有的特性
    */
   private updateOptionsWithRememberAbilityModifierMode(pokemon: PlayerPokemon): void {
-    const learnedAbilities = pokemon.customPokemonData.learnedAbilities || [];
-    const currentAbilities = pokemon.getAllAbilities().map(a => a.id);
-    const forgottenAbilities = learnedAbilities.filter(a => !currentAbilities.includes(a));
+    const recallableAbilities = this.getRecallableAbilities(pokemon);
 
-    for (let i = 0; i < forgottenAbilities.length; i++) {
+    for (let i = 0; i < recallableAbilities.length; i++) {
       this.options.push(i);
     }
+  }
+
+  /**
+   * 获取宝可梦可回忆的特性列表
+   * 包括：本局习得过但现在没有的特性 + 图鉴已解锁但现在没有的特性
+   */
+  private getRecallableAbilities(pokemon: PlayerPokemon): AbilityId[] {
+    const currentAbilities = pokemon.getAllAbilities().map(a => a.id);
+    const recallableSet = new Set<AbilityId>();
+
+    // 1. 本局习得过但现在没有的特性
+    const learnedAbilities = pokemon.customPokemonData.learnedAbilities || [];
+    for (const abilityId of learnedAbilities) {
+      if (!currentAbilities.includes(abilityId)) {
+        recallableSet.add(abilityId);
+      }
+    }
+
+    // 2. 图鉴已解锁但现在没有的特性（基于宝可梦的根形态）
+    const rootSpeciesId = pokemon.species.getRootSpeciesId();
+    const starterData = globalScene.gameData.starterData[rootSpeciesId];
+    if (starterData) {
+      const abilityAttr = starterData.abilityAttr || 0;
+      const speciesForm = pokemon.getSpeciesForm();
+
+      // 检查 ability1 是否已解锁 (bit 0)
+      if (abilityAttr & 1) {
+        const ability1 = speciesForm.ability1;
+        if (ability1 !== AbilityId.NONE && !currentAbilities.includes(ability1)) {
+          recallableSet.add(ability1);
+        }
+      }
+
+      // 检查 ability2 是否已解锁 (bit 1)
+      if (abilityAttr & 2) {
+        const ability2 = speciesForm.ability2;
+        if (ability2 !== AbilityId.NONE && !currentAbilities.includes(ability2)) {
+          recallableSet.add(ability2);
+        }
+      }
+
+      // 检查隐藏特性是否已解锁 (bit 2)
+      if (abilityAttr & 4) {
+        const abilityHidden = speciesForm.abilityHidden;
+        if (abilityHidden !== AbilityId.NONE && !currentAbilities.includes(abilityHidden)) {
+          recallableSet.add(abilityHidden);
+        }
+      }
+    }
+
+    return Array.from(recallableSet);
   }
 
   private updateOptionsWithMoveModifierMode(pokemon): void {
@@ -1763,12 +1813,10 @@ export class PartyUiHandler extends MessageUiHandler {
         const abilityLabels = this.getAbilitySlotLabels(pokemon);
         optionName = abilityLabels[option] || `槽位 ${option + 1}`;
       } else if (this.partyUiMode === PartyUiMode.REMEMBER_ABILITY_MODIFIER) {
-        // 回忆咖啡模式：显示可回忆的特性名称
-        const learnedAbilities = pokemon.customPokemonData.learnedAbilities || [];
-        const currentAbilities = pokemon.getAllAbilities().map(a => a.id);
-        const forgottenAbilities = learnedAbilities.filter(a => !currentAbilities.includes(a));
-        if (option < forgottenAbilities.length) {
-          const ability = allAbilities[forgottenAbilities[option]];
+        // 回忆咖啡模式：显示可回忆的特性名称（包括本局习得过的和图鉴已解锁的）
+        const recallableAbilities = this.getRecallableAbilities(pokemon);
+        if (option < recallableAbilities.length) {
+          const ability = allAbilities[recallableAbilities[option]];
           optionName = ability?.name || `特性 ${option + 1}`;
         } else {
           optionName = `特性 ${option + 1}`;
