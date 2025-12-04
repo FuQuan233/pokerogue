@@ -781,9 +781,9 @@ export class AbilityLearnerModifierType extends PokemonModifierType {
  * 回忆咖啡类型 - 类似回忆蘑菇，但用于恢复本局习得过的特性
  */
 export class RememberAbilityModifierType extends PokemonModifierType {
-  constructor(localeKey: string, iconImage: string, group?: string) {
+  constructor(iconImage: string, group?: string) {
     super(
-      localeKey,
+      "",
       iconImage,
       (type, args) => new RememberAbilityModifier(type, (args[0] as PlayerPokemon).id, args[1] as number),
       (pokemon: PlayerPokemon) => {
@@ -798,6 +798,14 @@ export class RememberAbilityModifierType extends PokemonModifierType {
       },
       group,
     );
+  }
+
+  get name(): string {
+    return "回忆咖啡";
+  }
+
+  getDescription(): string {
+    return "使宝可梦回忆起本局习得过但现在没有的一个特性。";
   }
 }
 
@@ -2095,7 +2103,7 @@ const modifierTypeInitObj = Object.freeze({
   ABILITY_LEARNER: () => new AbilityLearnerModifierTypeGenerator(),
 
   // 回忆咖啡 - 商店贩售道具，可恢复本局习得过的特性
-  MEMORY_COFFEE: () => new RememberAbilityModifierType("回忆咖啡", "big_mushroom"),
+  MEMORY_COFFEE: () => new RememberAbilityModifierType("big_mushroom"),
 
   EXP_SHARE: () =>
     new ModifierType("modifierType:ModifierType.EXP_SHARE", "exp_share", (type, _args) => new ExpShareModifier(type)),
