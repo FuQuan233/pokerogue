@@ -269,15 +269,12 @@ export class SelectModifierPhase extends BattlePhase {
    */
   private applyModifier(modifier: Modifier, cost = -1, playSound = false): void {
     const result = globalScene.addModifier(modifier, false, playSound, undefined, undefined, cost);
-    // Queue a copy of this phase when applying a TM, Memory Mushroom, Ability Learner, or Memory Coffee.
+    // Queue a copy of this phase when applying a TM or Memory Mushroom.
     // If the player selects either of these, then escapes out of consuming them,
     // they are returned to a shop in the same state.
-    if (
-      modifier.type instanceof RememberMoveModifierType
-      || modifier.type instanceof TmModifierType
-      || modifier.type instanceof AbilityLearnerModifierType
-      || modifier.type instanceof RememberAbilityModifierType
-    ) {
+    // Note: AbilityLearnerModifierType and RememberAbilityModifierType handle shop closing
+    // in their apply() methods via tryRemovePhase, so they don't need a copy.
+    if (modifier.type instanceof RememberMoveModifierType || modifier.type instanceof TmModifierType) {
       globalScene.phaseManager.unshiftPhase(this.copy());
     }
 

@@ -2404,19 +2404,8 @@ export class AbilityLearnerModifier extends ConsumablePokemonModifier {
       }
     }
 
-    // 移除商店 phase，使商店在使用后关闭（与 TM 行为一致）
-    globalScene.phaseManager.tryRemovePhase("SelectModifierPhase");
-
+    // 播放音效反馈
     globalScene.playSound("se/item_fanfare");
-    globalScene.ui.showText(
-      `${getPokemonNameWithAffix(playerPokemon)}习得了特性！`,
-      undefined,
-      () => {
-        globalScene.ui.showText("", 0);
-      },
-      null,
-      true,
-    );
 
     return true;
   }
@@ -2458,16 +2447,8 @@ export class RememberAbilityModifier extends ConsumablePokemonModifier {
         globalScene.playSound("se/buy");
       }
 
+      // 播放音效反馈
       globalScene.playSound("se/item_fanfare");
-      globalScene.ui.showText(
-        `${getPokemonNameWithAffix(playerPokemon)}回忆起了特性！`,
-        undefined,
-        () => {
-          globalScene.ui.showText("", 0);
-        },
-        null,
-        true,
-      );
     }
 
     return true;
