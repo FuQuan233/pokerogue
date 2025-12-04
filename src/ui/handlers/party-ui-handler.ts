@@ -85,6 +85,16 @@ export enum PartyUiMode {
    */
   REMEMBER_MOVE_MODIFIER,
   /**
+   * Indicates that the party UI is open to select a mon to learn an ability.
+   * This type of selection can be cancelled.
+   */
+  ABILITY_MODIFIER,
+  /**
+   * Indicates that the party UI is open to select a mon to remember an ability.
+   * This type of selection can be cancelled.
+   */
+  REMEMBER_ABILITY_MODIFIER,
+  /**
    * Indicates that the party UI is open to transfer items between mons.  This
    * type of selection can be cancelled.
    */
@@ -1403,6 +1413,48 @@ export class PartyUiHandler extends MessageUiHandler {
     }
   }
 
+  /**
+   * 更新特性学习器模式的选项列表
+   * 显示宝可梦当前的特性和被动列表供选择替换
+   */
+  private updateOptionsWithAbilityModifierMode(pokemon: PlayerPokemon): void {
+    // 普通宝可梦有1-2个特性槽（普通特性 + 可能的被动）
+    // 融合宝可梦有2-4个特性槽（两边各有普通特性 + 可能的被动）
+
+    // 槽位 0: 普通特性
+    this.options.push(0);
+
+    // 槽位 1: 被动特性（如果有）
+    if (pokemon.hasPassive()) {
+      this.options.push(1);
+    }
+
+    // 融合宝可梦的额外槽位
+    if (pokemon.isFusion()) {
+      // 槽位 2: 融合部分的普通特性
+      this.options.push(2);
+
+      // 槽位 3: 融合部分的被动特性（如果有）
+      if (pokemon.hasPassive()) {
+        this.options.push(3);
+      }
+    }
+  }
+
+  /**
+   * 更新回忆咖啡模式的选项列表
+   * 显示本局习得过但现在没有的特性
+   */
+  private updateOptionsWithRememberAbilityModifierMode(pokemon: PlayerPokemon): void {
+    const learnedAbilities = pokemon.customPokemonData.learnedAbilities || [];
+    const currentAbilities = pokemon.getAllAbilities().map(a => a.id);
+    const forgottenAbilities = learnedAbilities.filter(a => !currentAbilities.includes(a));
+
+    for (let i = 0; i < forgottenAbilities.length; i++) {
+      this.options.push(i);
+    }
+  }
+
   private updateOptionsWithMoveModifierMode(pokemon): void {
     // MOVE_1, MOVE_2, MOVE_3, MOVE_4
     for (let m = 0; m < pokemon.moveset.length; m++) {
@@ -1479,6 +1531,12 @@ export class PartyUiHandler extends MessageUiHandler {
         break;
       case PartyUiMode.REMEMBER_MOVE_MODIFIER:
         this.updateOptionsWithRememberMoveModifierMode(pokemon);
+        break;
+      case PartyUiMode.ABILITY_MODIFIER:
+        this.updateOptionsWithAbilityModifierMode(pokemon);
+        break;
+      case PartyUiMode.REMEMBER_ABILITY_MODIFIER:
+        this.updateOptionsWithRememberAbilityModifierMode(pokemon);
         break;
       case PartyUiMode.MODIFIER_TRANSFER:
         if (!this.transferMode) {

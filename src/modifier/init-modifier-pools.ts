@@ -132,6 +132,12 @@ function initCommonModifierPool() {
     new WeightedModifierType(modifierTypes.TEMP_STAT_STAGE_BOOSTER, 4),
     new WeightedModifierType(modifierTypes.BERRY, 2),
     new WeightedModifierType(modifierTypes.TM_COMMON, 2),
+    // 特性学习器 - 权重约为普通球(6)的十分之一
+    new WeightedModifierType(
+      modifierTypes.ABILITY_LEARNER,
+      () => (globalScene.gameMode.isClassic ? 1 : 0), // 仅经典模式
+      1,
+    ),
     // TODO: 限时活动 - 高级扭蛋券从MASTER移到COMMON，活动结束后需还原
     new WeightedModifierType(
       modifierTypes.VOUCHER_PREMIUM,

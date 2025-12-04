@@ -10,6 +10,7 @@ import { getLevelTotalExp } from "#data/exp";
 import { SpeciesFormChangeItemTrigger } from "#data/form-change-triggers";
 import { MAX_PER_TYPE_POKEBALLS } from "#data/pokeball";
 import { getStatusEffectHealText } from "#data/status-effect";
+import { AbilityId } from "#enums/ability-id";
 import { BattlerTagType } from "#enums/battler-tag-type";
 import { BerryType } from "#enums/berry-type";
 import { Color, ShadowColor } from "#enums/color";
@@ -25,6 +26,7 @@ import { StatusEffect } from "#enums/status-effect";
 import { TextStyle } from "#enums/text-style";
 import type { PlayerPokemon, Pokemon } from "#field/pokemon";
 import type {
+  AbilityLearnerModifierType,
   DoubleBattleChanceBoosterModifierType,
   EvolutionItemModifierType,
   FormChangeItemModifierType,
@@ -2325,6 +2327,150 @@ export class RememberMoveModifier extends ConsumablePokemonModifier {
   }
 }
 
+/**
+ * 特性学习器修改器 - 用于教授宝可梦新特性
+ */
+export class AbilityLearnerModifier extends ConsumablePokemonModifier {
+  public declare type: AbilityLearnerModifierType;
+  public abilitySlotIndex: number;
+
+  constructor(type: AbilityLearnerModifierType, pokemonId: number, abilitySlotIndex: number) {
+    super(type, pokemonId);
+    this.abilitySlotIndex = abilitySlotIndex;
+  }
+
+  /**
+   * Applies {@linkcode AbilityLearnerModifier}
+   * @param playerPokemon The {@linkcode PlayerPokemon} that should learn the ability
+   * @returns always `true`
+   */
+  override apply(playerPokemon: PlayerPokemon): boolean {
+    const newAbilityId = this.type.abilityId;
+
+    // 初始化 learnedAbilities 列表
+    if (!playerPokemon.customPokemonData.learnedAbilities) {
+      playerPokemon.customPokemonData.learnedAbilities = [];
+    }
+
+    // 获取当前槽位的特性ID并记录（被替换的特性）
+    let currentAbilityId: AbilityId | undefined;
+    if (this.abilitySlotIndex === 0) {
+      currentAbilityId = playerPokemon.getAbility().id;
+    } else if (this.abilitySlotIndex === 1) {
+      currentAbilityId = playerPokemon.getPassiveAbility().id;
+    } else if (playerPokemon.isFusion()) {
+      if (this.abilitySlotIndex === 2) {
+        const fusionAbilityId = playerPokemon.getFusionSpeciesForm().getAbility(playerPokemon.fusionAbilityIndex);
+        currentAbilityId = fusionAbilityId !== AbilityId.NONE ? fusionAbilityId : undefined;
+      } else if (this.abilitySlotIndex === 3 && playerPokemon.fusionSpecies) {
+        currentAbilityId = playerPokemon.fusionSpecies.getPassiveAbility(playerPokemon.fusionFormIndex);
+      }
+    }
+
+    // 记录被替换的特性（如果不在列表中）
+    if (currentAbilityId && !playerPokemon.customPokemonData.learnedAbilities.includes(currentAbilityId)) {
+      playerPokemon.customPokemonData.learnedAbilities.push(currentAbilityId);
+    }
+
+    // 记录新习得的特性
+    if (!playerPokemon.customPokemonData.learnedAbilities.includes(newAbilityId)) {
+      playerPokemon.customPokemonData.learnedAbilities.push(newAbilityId);
+    }
+
+    // 根据选择的槽位替换特性
+    // 槽位: 0 = 普通特性, 1 = 被动特性, 2+ = 融合宝可梦的额外特性/被动
+    if (this.abilitySlotIndex === 0) {
+      // 替换普通特性
+      playerPokemon.customPokemonData.ability = newAbilityId;
+    } else if (this.abilitySlotIndex === 1) {
+      // 替换被动特性
+      playerPokemon.customPokemonData.passive = newAbilityId;
+    } else if (playerPokemon.isFusion()) {
+      // 融合宝可梦的额外槽位
+      if (this.abilitySlotIndex === 2) {
+        // 融合特性
+        if (!playerPokemon.fusionCustomPokemonData) {
+          playerPokemon.fusionCustomPokemonData = { ability: newAbilityId, passive: -1 } as any;
+        } else {
+          playerPokemon.fusionCustomPokemonData.ability = newAbilityId;
+        }
+      } else if (this.abilitySlotIndex === 3) {
+        // 融合被动
+        if (!playerPokemon.fusionCustomPokemonData) {
+          playerPokemon.fusionCustomPokemonData = { ability: -1, passive: newAbilityId } as any;
+        } else {
+          playerPokemon.fusionCustomPokemonData.passive = newAbilityId;
+        }
+      }
+    }
+
+    globalScene.playSound("se/item_fanfare");
+    globalScene.ui.showText(
+      `${getPokemonNameWithAffix(playerPokemon)}习得了特性！`,
+      undefined,
+      () => {
+        globalScene.ui.showText("", 0);
+      },
+      null,
+      true,
+    );
+
+    return true;
+  }
+}
+
+/**
+ * 回忆咖啡修改器 - 用于恢复本局习得过但现在没有的特性
+ */
+export class RememberAbilityModifier extends ConsumablePokemonModifier {
+  public abilityIndex: number;
+
+  constructor(type: ModifierType, pokemonId: number, abilityIndex: number) {
+    super(type, pokemonId);
+    this.abilityIndex = abilityIndex;
+  }
+
+  /**
+   * Applies {@linkcode RememberAbilityModifier}
+   * @param playerPokemon The {@linkcode PlayerPokemon} that should remember the ability
+   * @param cost The cost of the modifier
+   * @returns always `true`
+   */
+  override apply(playerPokemon: PlayerPokemon, cost?: number): boolean {
+    // 获取本局习得过但现在没有的特性
+    const learnedAbilities = playerPokemon.customPokemonData.learnedAbilities || [];
+    const currentAbilities = playerPokemon.getAllAbilities().map(a => a.id);
+    const forgottenAbilities = learnedAbilities.filter(a => !currentAbilities.includes(a));
+
+    if (this.abilityIndex >= 0 && this.abilityIndex < forgottenAbilities.length) {
+      const abilityToRemember = forgottenAbilities[this.abilityIndex];
+
+      // 默认替换普通特性
+      playerPokemon.customPokemonData.ability = abilityToRemember;
+
+      if (cost != null && cost > 0) {
+        globalScene.money -= cost;
+        globalScene.updateMoneyText();
+        globalScene.animateMoneyChanged(false);
+        globalScene.playSound("se/buy");
+      }
+
+      globalScene.playSound("se/item_fanfare");
+      globalScene.ui.showText(
+        `${getPokemonNameWithAffix(playerPokemon)}回忆起了特性！`,
+        undefined,
+        () => {
+          globalScene.ui.showText("", 0);
+        },
+        null,
+        true,
+      );
+    }
+
+    return true;
+  }
+}
+
 export class EvolutionItemModifier extends ConsumablePokemonModifier {
   public declare type: EvolutionItemModifierType;
   /**
@@ -3845,6 +3991,8 @@ const ModifierClassMap = Object.freeze({
   PokemonLevelIncrementModifier,
   TmModifier,
   RememberMoveModifier,
+  AbilityLearnerModifier,
+  RememberAbilityModifier,
   EvolutionItemModifier,
   FusePokemonModifier,
   MultipleParticipantExpBonusModifier,

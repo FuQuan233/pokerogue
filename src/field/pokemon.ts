@@ -2151,6 +2151,41 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
   }
 
   /**
+   * 获取此宝可梦的所有特性（包括普通特性、被动特性，融合宝可梦还包括融合部分的特性）
+   * @returns 所有特性的 Ability 数组
+   */
+  public getAllAbilities(): Ability[] {
+    const abilities: Ability[] = [];
+
+    // 普通特性
+    abilities.push(this.getAbility());
+
+    // 被动特性（如果有）
+    if (this.hasPassive()) {
+      abilities.push(this.getPassiveAbility());
+    }
+
+    // 融合宝可梦的额外特性
+    if (this.isFusion()) {
+      // 融合部分的普通特性
+      const fusionAbilityId = this.getFusionSpeciesForm().getAbility(this.fusionAbilityIndex);
+      if (fusionAbilityId !== AbilityId.NONE) {
+        abilities.push(allAbilities[fusionAbilityId]);
+      }
+
+      // 融合部分的被动特性
+      if (this.fusionSpecies && this.hasPassive()) {
+        const fusionPassiveId = this.fusionSpecies.getPassiveAbility(this.fusionFormIndex);
+        if (fusionPassiveId !== AbilityId.NONE) {
+          abilities.push(allAbilities[fusionPassiveId]);
+        }
+      }
+    }
+
+    return abilities;
+  }
+
+  /**
    * Gets a list of all instances of a given ability attribute among abilities this pokemon has.
    * Accounts for all the various effects which can affect whether an ability will be present or
    * in effect, and both passive and non-passive.

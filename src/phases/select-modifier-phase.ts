@@ -12,6 +12,7 @@ import {
 } from "#modifiers/modifier";
 import type { CustomModifierSettings, ModifierType, ModifierTypeOption } from "#modifiers/modifier-type";
 import {
+  AbilityLearnerModifierType,
   FusePokemonModifierType,
   getPlayerModifierTypeOptions,
   getPlayerShopModifierTypeOptionsForWave,
@@ -19,6 +20,7 @@ import {
   PokemonMoveModifierType,
   PokemonPpRestoreModifierType,
   PokemonPpUpModifierType,
+  RememberAbilityModifierType,
   RememberMoveModifierType,
   regenerateModifierPoolThresholds,
   TmModifierType,
@@ -267,14 +269,23 @@ export class SelectModifierPhase extends BattlePhase {
    */
   private applyModifier(modifier: Modifier, cost = -1, playSound = false): void {
     const result = globalScene.addModifier(modifier, false, playSound, undefined, undefined, cost);
-    // Queue a copy of this phase when applying a TM or Memory Mushroom.
+    // Queue a copy of this phase when applying a TM, Memory Mushroom, Ability Learner, or Memory Coffee.
     // If the player selects either of these, then escapes out of consuming them,
     // they are returned to a shop in the same state.
-    if (modifier.type instanceof RememberMoveModifierType || modifier.type instanceof TmModifierType) {
+    if (
+      modifier.type instanceof RememberMoveModifierType
+      || modifier.type instanceof TmModifierType
+      || modifier.type instanceof AbilityLearnerModifierType
+      || modifier.type instanceof RememberAbilityModifierType
+    ) {
       globalScene.phaseManager.unshiftPhase(this.copy());
     }
 
-    if (cost !== -1 && !(modifier.type instanceof RememberMoveModifierType)) {
+    // 回忆咖啡和回忆蘑菇一样，扣款在 modifier.apply 中处理
+    const skipCostDeduction =
+      modifier.type instanceof RememberMoveModifierType || modifier.type instanceof RememberAbilityModifierType;
+
+    if (cost !== -1 && !skipCostDeduction) {
       if (result) {
         if (!Overrides.WAIVE_ROLL_FEE_OVERRIDE) {
           globalScene.money -= cost;
@@ -334,6 +345,8 @@ export class SelectModifierPhase extends BattlePhase {
     const isMoveModifier = modifierType instanceof PokemonMoveModifierType;
     const isTmModifier = modifierType instanceof TmModifierType;
     const isRememberMoveModifier = modifierType instanceof RememberMoveModifierType;
+    const isAbilityLearnerModifier = modifierType instanceof AbilityLearnerModifierType;
+    const isRememberAbilityModifier = modifierType instanceof RememberAbilityModifierType;
     const isPpRestoreModifier =
       modifierType instanceof PokemonPpRestoreModifierType || modifierType instanceof PokemonPpUpModifierType;
     const partyUiMode = isMoveModifier
@@ -342,7 +355,11 @@ export class SelectModifierPhase extends BattlePhase {
         ? PartyUiMode.TM_MODIFIER
         : isRememberMoveModifier
           ? PartyUiMode.REMEMBER_MOVE_MODIFIER
-          : PartyUiMode.MODIFIER;
+          : isAbilityLearnerModifier
+            ? PartyUiMode.ABILITY_MODIFIER
+            : isRememberAbilityModifier
+              ? PartyUiMode.REMEMBER_ABILITY_MODIFIER
+              : PartyUiMode.MODIFIER;
     const tmMoveId = isTmModifier ? (modifierType as TmModifierType).moveId : undefined;
     globalScene.ui.setModeWithoutClear(
       UiMode.PARTY,
@@ -352,7 +369,7 @@ export class SelectModifierPhase extends BattlePhase {
         if (slotIndex < 6) {
           globalScene.ui.setMode(UiMode.MODIFIER_SELECT, this.isPlayer()).then(() => {
             const modifier = !isMoveModifier
-              ? !isRememberMoveModifier
+              ? !isRememberMoveModifier && !isAbilityLearnerModifier && !isRememberAbilityModifier
                 ? modifierType.newModifier(party[slotIndex])
                 : modifierType.newModifier(party[slotIndex], option as number)
               : modifierType.newModifier(party[slotIndex], option - PartyOption.MOVE_1);

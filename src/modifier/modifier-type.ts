@@ -7,12 +7,13 @@ import { EvolutionItem, pokemonEvolutions } from "#balance/pokemon-evolutions";
 import { tmPoolTiers, tmSpecies } from "#balance/tms";
 import { getBerryEffectDescription, getBerryName } from "#data/berry";
 import { getDailyEventSeedLuck } from "#data/daily-run";
-import { allMoves, modifierTypes } from "#data/data-lists";
+import { allAbilities, allMoves, modifierTypes } from "#data/data-lists";
 import { SpeciesFormChangeItemTrigger } from "#data/form-change-triggers";
 import { getNatureName, getNatureStatMultiplier } from "#data/nature";
 import { getPokeballCatchMultiplier, getPokeballName } from "#data/pokeball";
 import { pokemonFormChanges, SpeciesFormChangeCondition } from "#data/pokemon-forms";
 import { getStatusEffectDescriptor } from "#data/status-effect";
+import { AbilityId } from "#enums/ability-id";
 import { BattlerTagType } from "#enums/battler-tag-type";
 import { BerryType } from "#enums/berry-type";
 import { ChallengeType } from "#enums/challenge-type";
@@ -30,6 +31,7 @@ import { getStatKey, Stat, TEMP_BATTLE_STATS } from "#enums/stat";
 import { StatusEffect } from "#enums/status-effect";
 import type { EnemyPokemon, PlayerPokemon, Pokemon } from "#field/pokemon";
 import {
+  AbilityLearnerModifier,
   AddPokeballModifier,
   AddVoucherModifier,
   AttackTypeBoosterModifier,
@@ -95,6 +97,7 @@ import {
   PokemonPpUpModifier,
   PokemonStatusHealModifier,
   PreserveBerryModifier,
+  RememberAbilityModifier,
   RememberMoveModifier,
   ResetNegativeStatStageModifier,
   ShinyRateBoosterModifier,
@@ -726,6 +729,69 @@ export class RememberMoveModifierType extends PokemonModifierType {
       (type, args) => new RememberMoveModifier(type, (args[0] as PlayerPokemon).id, args[1] as number),
       (pokemon: PlayerPokemon) => {
         if (pokemon.getLearnableLevelMoves().length === 0) {
+          return PartyUiHandler.NoEffectMessage;
+        }
+        return null;
+      },
+      group,
+    );
+  }
+}
+
+/**
+ * 特性学习器类型 - 类似招式学习器，但用于特性
+ */
+export class AbilityLearnerModifierType extends PokemonModifierType {
+  public abilityId: AbilityId;
+
+  constructor(abilityId: AbilityId) {
+    super(
+      "",
+      "tm_normal", // 复用普通招式学习器图标
+      (type, args) =>
+        new AbilityLearnerModifier(
+          type as AbilityLearnerModifierType,
+          (args[0] as PlayerPokemon).id,
+          args[1] as number,
+        ),
+      (pokemon: PlayerPokemon) => {
+        // 检查宝可梦是否已拥有该特性
+        const currentAbilities = pokemon.getAllAbilities();
+        if (currentAbilities.some(a => a.id === abilityId)) {
+          return PartyUiHandler.NoEffectMessage;
+        }
+        return null;
+      },
+      "ability_learner",
+    );
+
+    this.abilityId = abilityId;
+  }
+
+  get name(): string {
+    return `特性学习器: ${allAbilities[this.abilityId].name}`;
+  }
+
+  getDescription(): string {
+    return `教授宝可梦特性「${allAbilities[this.abilityId].name}」，可替换已有的一个特性或被动。`;
+  }
+}
+
+/**
+ * 回忆咖啡类型 - 类似回忆蘑菇，但用于恢复本局习得过的特性
+ */
+export class RememberAbilityModifierType extends PokemonModifierType {
+  constructor(localeKey: string, iconImage: string, group?: string) {
+    super(
+      localeKey,
+      iconImage,
+      (type, args) => new RememberAbilityModifier(type, (args[0] as PlayerPokemon).id, args[1] as number),
+      (pokemon: PlayerPokemon) => {
+        // 获取本局习得过但现在没有的特性
+        const learnedAbilities = pokemon.customPokemonData.learnedAbilities || [];
+        const currentAbilities = pokemon.getAllAbilities().map(a => a.id);
+        const forgottenAbilities = learnedAbilities.filter(a => !currentAbilities.includes(a));
+        if (forgottenAbilities.length === 0) {
           return PartyUiHandler.NoEffectMessage;
         }
         return null;
@@ -1529,6 +1595,35 @@ class TmModifierTypeGenerator extends ModifierTypeGenerator {
   }
 }
 
+/**
+ * 特性学习器生成器 - 随机生成一个特性学习器
+ */
+class AbilityLearnerModifierTypeGenerator extends ModifierTypeGenerator {
+  constructor() {
+    super((_party: Pokemon[], pregenArgs?: any[]) => {
+      if (pregenArgs && pregenArgs.length === 1 && pregenArgs[0] in AbilityId) {
+        return new AbilityLearnerModifierType(pregenArgs[0] as AbilityId);
+      }
+
+      // 获取所有有效的特性ID（排除 NONE 和未实现的特性）
+      const validAbilityIds = Object.values(AbilityId)
+        .filter((id): id is AbilityId => typeof id === "number" && id !== AbilityId.NONE)
+        .filter(id => {
+          const ability = allAbilities[id];
+          return ability && ability.name && !ability.name.endsWith(" (N)");
+        });
+
+      if (validAbilityIds.length === 0) {
+        return null;
+      }
+
+      // 随机选择一个特性
+      const randIndex = randSeedInt(validAbilityIds.length);
+      return new AbilityLearnerModifierType(validAbilityIds[randIndex]);
+    });
+  }
+}
+
 class EvolutionItemModifierTypeGenerator extends ModifierTypeGenerator {
   constructor(rare: boolean) {
     super((party: Pokemon[], pregenArgs?: any[]) => {
@@ -1995,6 +2090,12 @@ const modifierTypeInitObj = Object.freeze({
   TM_ULTRA: () => new TmModifierTypeGenerator(ModifierTier.ULTRA),
 
   MEMORY_MUSHROOM: () => new RememberMoveModifierType("modifierType:ModifierType.MEMORY_MUSHROOM", "big_mushroom"),
+
+  // 特性学习器 - 从商店掉落中随机获得，可教授宝可梦新特性
+  ABILITY_LEARNER: () => new AbilityLearnerModifierTypeGenerator(),
+
+  // 回忆咖啡 - 商店贩售道具，可恢复本局习得过的特性
+  MEMORY_COFFEE: () => new RememberAbilityModifierType("回忆咖啡", "big_mushroom"),
 
   EXP_SHARE: () =>
     new ModifierType("modifierType:ModifierType.EXP_SHARE", "exp_share", (type, _args) => new ExpShareModifier(type)),
@@ -2650,6 +2751,8 @@ export function getPlayerShopModifierTypeOptionsForWave(waveIndex: number, baseC
       new ModifierTypeOption(modifierTypeInitObj.HYPER_POTION(), 0, baseCost * 0.8),
       new ModifierTypeOption(modifierTypeInitObj.MAX_REVIVE(), 0, baseCost * 2.75),
       new ModifierTypeOption(modifierTypeInitObj.MEMORY_MUSHROOM(), 0, baseCost * 4),
+      // 回忆咖啡 - 售价为关卡数×20
+      new ModifierTypeOption(modifierTypeInitObj.MEMORY_COFFEE(), 0, waveIndex * 20),
     ],
     [
       new ModifierTypeOption(modifierTypeInitObj.MAX_POTION(), 0, baseCost * 1.5),

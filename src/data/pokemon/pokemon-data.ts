@@ -43,6 +43,10 @@ export class CustomPokemonData {
   /** Deprecated but needed for session save migration */
   // TODO: Remove this once pre-session migration is implemented
   public hitsRecCount: number | null = null;
+  /**
+   * 本局习得过的特性列表（含初始特性），用于回忆咖啡
+   */
+  public learnedAbilities: AbilityId[] = [];
 
   constructor(data?: CustomPokemonData | Partial<CustomPokemonData>) {
     this.spriteScale = data?.spriteScale ?? -1;
@@ -51,6 +55,7 @@ export class CustomPokemonData {
     this.nature = data?.nature ?? -1;
     this.types = data?.types ?? [];
     this.hitsRecCount = data?.hitsRecCount ?? null;
+    this.learnedAbilities = data?.learnedAbilities ?? [];
   }
 }
 
