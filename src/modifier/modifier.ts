@@ -2404,6 +2404,9 @@ export class AbilityLearnerModifier extends ConsumablePokemonModifier {
       }
     }
 
+    // 移除商店 phase，使商店在使用后关闭（与 TM 行为一致）
+    globalScene.phaseManager.tryRemovePhase("SelectModifierPhase");
+
     globalScene.playSound("se/item_fanfare");
     globalScene.ui.showText(
       `${getPokemonNameWithAffix(playerPokemon)}习得了特性！`,

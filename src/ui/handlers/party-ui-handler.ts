@@ -1,7 +1,7 @@
 import { globalScene } from "#app/global-scene";
 import { getPokemonNameWithAffix } from "#app/messages";
 import { pokemonEvolutions } from "#balance/pokemon-evolutions";
-import { allMoves } from "#data/data-lists";
+import { allAbilities, allMoves } from "#data/data-lists";
 import { SpeciesFormChangeItemTrigger } from "#data/form-change-triggers";
 import { Gender, getGenderColor, getGenderSymbol } from "#data/gender";
 import { Button } from "#enums/buttons";
@@ -1414,6 +1414,40 @@ export class PartyUiHandler extends MessageUiHandler {
   }
 
   /**
+   * 获取宝可梦特性槽位的标签
+   * @param pokemon 目标宝可梦
+   * @returns 各槽位的特性名称数组
+   */
+  private getAbilitySlotLabels(pokemon: PlayerPokemon): string[] {
+    const labels: string[] = [];
+
+    // 槽位 0: 普通特性
+    const ability = pokemon.getAbility();
+    labels.push(`特性: ${ability.name}`);
+
+    // 槽位 1: 被动特性
+    if (pokemon.hasPassive()) {
+      const passive = pokemon.getPassiveAbility();
+      labels.push(`被动: ${passive.name}`);
+    }
+
+    // 融合宝可梦的额外槽位
+    if (pokemon.isFusion() && pokemon.fusionSpecies) {
+      // 槽位 2: 融合部分的普通特性
+      const fusionAbility = allAbilities[pokemon.getFusionSpeciesForm().getAbility(pokemon.fusionAbilityIndex)];
+      labels.push(`融合特性: ${fusionAbility?.name || "无"}`);
+
+      // 槽位 3: 融合部分的被动特性
+      if (pokemon.hasPassive()) {
+        const fusionPassive = allAbilities[pokemon.fusionSpecies.getPassiveAbility(pokemon.fusionFormIndex)];
+        labels.push(`融合被动: ${fusionPassive?.name || "无"}`);
+      }
+    }
+
+    return labels;
+  }
+
+  /**
    * 更新特性学习器模式的选项列表
    * 显示宝可梦当前的特性和被动列表供选择替换
    */
@@ -1680,6 +1714,8 @@ export class PartyUiHandler extends MessageUiHandler {
         optionName = "↓";
       } else if (
         (this.partyUiMode !== PartyUiMode.REMEMBER_MOVE_MODIFIER
+          && this.partyUiMode !== PartyUiMode.ABILITY_MODIFIER
+          && this.partyUiMode !== PartyUiMode.REMEMBER_ABILITY_MODIFIER
           && (this.partyUiMode !== PartyUiMode.MODIFIER_TRANSFER || this.transferMode)
           && this.partyUiMode !== PartyUiMode.DISCARD)
         || option === PartyOption.CANCEL
@@ -1722,6 +1758,21 @@ export class PartyUiHandler extends MessageUiHandler {
           .getSpeciesForm()
           .getLevelMoves()
           .find(plm => plm[1] === move);
+      } else if (this.partyUiMode === PartyUiMode.ABILITY_MODIFIER) {
+        // 特性学习器模式：显示当前特性和被动的名称
+        const abilityLabels = this.getAbilitySlotLabels(pokemon);
+        optionName = abilityLabels[option] || `槽位 ${option + 1}`;
+      } else if (this.partyUiMode === PartyUiMode.REMEMBER_ABILITY_MODIFIER) {
+        // 回忆咖啡模式：显示可回忆的特性名称
+        const learnedAbilities = pokemon.customPokemonData.learnedAbilities || [];
+        const currentAbilities = pokemon.getAllAbilities().map(a => a.id);
+        const forgottenAbilities = learnedAbilities.filter(a => !currentAbilities.includes(a));
+        if (option < forgottenAbilities.length) {
+          const ability = allAbilities[forgottenAbilities[option]];
+          optionName = ability?.name || `特性 ${option + 1}`;
+        } else {
+          optionName = `特性 ${option + 1}`;
+        }
       } else if (option === PartyOption.ALL) {
         optionName = i18next.t("partyUiHandler:all");
         // add the number of items to the `all` option
