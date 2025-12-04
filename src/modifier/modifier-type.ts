@@ -2742,6 +2742,8 @@ export function getPlayerShopModifierTypeOptionsForWave(waveIndex: number, baseC
     [
       new ModifierTypeOption(modifierTypeInitObj.SUPER_POTION(), 0, baseCost * 0.45),
       new ModifierTypeOption(modifierTypeInitObj.FULL_HEAL(), 0, baseCost),
+      // 回忆咖啡 - 售价为关卡数×20，从第21关开始出现
+      new ModifierTypeOption(modifierTypeInitObj.MEMORY_COFFEE(), 0, waveIndex * 20),
     ],
     [
       new ModifierTypeOption(modifierTypeInitObj.ELIXIR(), 0, baseCost),
@@ -2751,8 +2753,6 @@ export function getPlayerShopModifierTypeOptionsForWave(waveIndex: number, baseC
       new ModifierTypeOption(modifierTypeInitObj.HYPER_POTION(), 0, baseCost * 0.8),
       new ModifierTypeOption(modifierTypeInitObj.MAX_REVIVE(), 0, baseCost * 2.75),
       new ModifierTypeOption(modifierTypeInitObj.MEMORY_MUSHROOM(), 0, baseCost * 4),
-      // 回忆咖啡 - 售价为关卡数×20
-      new ModifierTypeOption(modifierTypeInitObj.MEMORY_COFFEE(), 0, waveIndex * 20),
     ],
     [
       new ModifierTypeOption(modifierTypeInitObj.MAX_POTION(), 0, baseCost * 1.5),
