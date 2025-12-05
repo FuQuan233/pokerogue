@@ -2152,30 +2152,56 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
 
   /**
    * 获取此宝可梦的所有特性（包括普通特性、被动特性，融合宝可梦还包括融合部分的特性）
+   * 按固定顺序返回：[主体特性, 主体被动, 融合特性, 融合被动]
    * @returns 所有特性的 Ability 数组
    */
   public getAllAbilities(): Ability[] {
     const abilities: Ability[] = [];
 
-    // 普通特性
-    abilities.push(this.getAbility());
+    // 槽位0: 主体的普通特性（不使用 getAbility()，因为它对融合宝可梦会返回融合部分的特性）
+    let primaryAbilityId: AbilityId;
+    if (this.customPokemonData.ability != null && this.customPokemonData.ability !== -1) {
+      primaryAbilityId = this.customPokemonData.ability;
+    } else {
+      primaryAbilityId = this.getSpeciesForm().getAbility(this.abilityIndex);
+      if (primaryAbilityId === AbilityId.NONE) {
+        primaryAbilityId = this.species.ability1;
+      }
+    }
+    abilities.push(allAbilities[primaryAbilityId]);
 
-    // 被动特性（如果有）
+    // 槽位1: 主体的被动特性（如果有）
     if (this.hasPassive()) {
-      abilities.push(this.getPassiveAbility());
+      let passiveAbilityId: AbilityId;
+      if (this.customPokemonData.passive != null && this.customPokemonData.passive !== -1) {
+        passiveAbilityId = this.customPokemonData.passive;
+      } else {
+        passiveAbilityId = this.species.getPassiveAbility(this.formIndex);
+      }
+      abilities.push(allAbilities[passiveAbilityId]);
     }
 
     // 融合宝可梦的额外特性
     if (this.isFusion()) {
-      // 融合部分的普通特性
-      const fusionAbilityId = this.getFusionSpeciesForm().getAbility(this.fusionAbilityIndex);
+      // 槽位2: 融合部分的普通特性
+      let fusionAbilityId: AbilityId;
+      if (this.fusionCustomPokemonData?.ability != null && this.fusionCustomPokemonData.ability !== -1) {
+        fusionAbilityId = this.fusionCustomPokemonData.ability;
+      } else {
+        fusionAbilityId = this.getFusionSpeciesForm().getAbility(this.fusionAbilityIndex);
+      }
       if (fusionAbilityId !== AbilityId.NONE) {
         abilities.push(allAbilities[fusionAbilityId]);
       }
 
-      // 融合部分的被动特性
+      // 槽位3: 融合部分的被动特性
       if (this.fusionSpecies && this.hasPassive()) {
-        const fusionPassiveId = this.fusionSpecies.getPassiveAbility(this.fusionFormIndex);
+        let fusionPassiveId: AbilityId;
+        if (this.fusionCustomPokemonData?.passive != null && this.fusionCustomPokemonData.passive !== -1) {
+          fusionPassiveId = this.fusionCustomPokemonData.passive;
+        } else {
+          fusionPassiveId = this.fusionSpecies.getPassiveAbility(this.fusionFormIndex);
+        }
         if (fusionPassiveId !== AbilityId.NONE) {
           abilities.push(allAbilities[fusionPassiveId]);
         }

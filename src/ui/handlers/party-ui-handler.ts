@@ -1416,32 +1416,37 @@ export class PartyUiHandler extends MessageUiHandler {
 
   /**
    * 获取宝可梦特性槽位的标签
+   * 使用 getAllAbilities() 确保与其他功能一致
    * @param pokemon 目标宝可梦
    * @returns 各槽位的特性名称数组
    */
   private getAbilitySlotLabels(pokemon: PlayerPokemon): string[] {
+    const abilities = pokemon.getAllAbilities();
     const labels: string[] = [];
+    const isFusion = pokemon.isFusion() && pokemon.fusionSpecies;
 
-    // 槽位 0: 普通特性
-    const ability = pokemon.getAbility();
-    labels.push(`特性: ${ability.name}`);
+    // 槽位 0: 主体的普通特性
+    if (abilities.length > 0) {
+      labels.push(`特性: ${abilities[0].name}`);
+    }
 
-    // 槽位 1: 被动特性
-    if (pokemon.hasPassive()) {
-      const passive = pokemon.getPassiveAbility();
-      labels.push(`被动: ${passive.name}`);
+    // 槽位 1: 主体的被动特性
+    if (pokemon.hasPassive() && abilities.length > 1) {
+      labels.push(`被动: ${abilities[1].name}`);
     }
 
     // 融合宝可梦的额外槽位
-    if (pokemon.isFusion() && pokemon.fusionSpecies) {
+    if (isFusion) {
+      const fusionStartIndex = pokemon.hasPassive() ? 2 : 1;
+
       // 槽位 2: 融合部分的普通特性
-      const fusionAbility = allAbilities[pokemon.getFusionSpeciesForm().getAbility(pokemon.fusionAbilityIndex)];
-      labels.push(`融合特性: ${fusionAbility?.name || "无"}`);
+      if (abilities.length > fusionStartIndex) {
+        labels.push(`融合特性: ${abilities[fusionStartIndex].name}`);
+      }
 
       // 槽位 3: 融合部分的被动特性
-      if (pokemon.hasPassive()) {
-        const fusionPassive = allAbilities[pokemon.fusionSpecies.getPassiveAbility(pokemon.fusionFormIndex)];
-        labels.push(`融合被动: ${fusionPassive?.name || "无"}`);
+      if (pokemon.hasPassive() && abilities.length > fusionStartIndex + 1) {
+        labels.push(`融合被动: ${abilities[fusionStartIndex + 1].name}`);
       }
     }
 

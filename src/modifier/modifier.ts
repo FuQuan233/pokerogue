@@ -9,6 +9,7 @@ import { allMoves, modifierTypes } from "#data/data-lists";
 import { getLevelTotalExp } from "#data/exp";
 import { SpeciesFormChangeItemTrigger } from "#data/form-change-triggers";
 import { MAX_PER_TYPE_POKEBALLS } from "#data/pokeball";
+import { CustomPokemonData } from "#data/pokemon/pokemon-data";
 import { getStatusEffectHealText } from "#data/status-effect";
 import { AbilityId } from "#enums/ability-id";
 import { BattlerTagType } from "#enums/battler-tag-type";
@@ -2352,20 +2353,10 @@ export class AbilityLearnerModifier extends ConsumablePokemonModifier {
       playerPokemon.customPokemonData.learnedAbilities = [];
     }
 
-    // 获取当前槽位的特性ID并记录（被替换的特性）
-    let currentAbilityId: AbilityId | undefined;
-    if (this.abilitySlotIndex === 0) {
-      currentAbilityId = playerPokemon.getAbility().id;
-    } else if (this.abilitySlotIndex === 1) {
-      currentAbilityId = playerPokemon.getPassiveAbility().id;
-    } else if (playerPokemon.isFusion()) {
-      if (this.abilitySlotIndex === 2) {
-        const fusionAbilityId = playerPokemon.getFusionSpeciesForm().getAbility(playerPokemon.fusionAbilityIndex);
-        currentAbilityId = fusionAbilityId !== AbilityId.NONE ? fusionAbilityId : undefined;
-      } else if (this.abilitySlotIndex === 3 && playerPokemon.fusionSpecies) {
-        currentAbilityId = playerPokemon.fusionSpecies.getPassiveAbility(playerPokemon.fusionFormIndex);
-      }
-    }
+    // 使用 getAllAbilities() 获取当前槽位的特性ID（确保融合宝可梦的特性顺序正确）
+    const allAbilities = playerPokemon.getAllAbilities();
+    const currentAbilityId =
+      this.abilitySlotIndex < allAbilities.length ? allAbilities[this.abilitySlotIndex].id : undefined;
 
     // 记录被替换的特性（如果不在列表中）
     if (currentAbilityId && !playerPokemon.customPokemonData.learnedAbilities.includes(currentAbilityId)) {
@@ -2378,29 +2369,33 @@ export class AbilityLearnerModifier extends ConsumablePokemonModifier {
     }
 
     // 根据选择的槽位替换特性
-    // 槽位: 0 = 普通特性, 1 = 被动特性, 2+ = 融合宝可梦的额外特性/被动
+    // 对于融合宝可梦，需要根据是否有被动来计算实际槽位
+    const hasPassive = playerPokemon.hasPassive();
+    const isFusion = playerPokemon.isFusion();
+
     if (this.abilitySlotIndex === 0) {
-      // 替换普通特性
+      // 槽位0: 主体的普通特性
       playerPokemon.customPokemonData.ability = newAbilityId;
-    } else if (this.abilitySlotIndex === 1) {
-      // 替换被动特性
+    } else if (this.abilitySlotIndex === 1 && hasPassive) {
+      // 槽位1: 主体的被动特性（如果有被动）
       playerPokemon.customPokemonData.passive = newAbilityId;
-    } else if (playerPokemon.isFusion()) {
+    } else if (isFusion) {
       // 融合宝可梦的额外槽位
-      if (this.abilitySlotIndex === 2) {
+      // 计算融合槽位的起始索引
+      const fusionStartIndex = hasPassive ? 2 : 1;
+
+      if (this.abilitySlotIndex === fusionStartIndex) {
         // 融合特性
         if (!playerPokemon.fusionCustomPokemonData) {
-          playerPokemon.fusionCustomPokemonData = { ability: newAbilityId, passive: -1 } as any;
-        } else {
-          playerPokemon.fusionCustomPokemonData.ability = newAbilityId;
+          playerPokemon.fusionCustomPokemonData = new CustomPokemonData();
         }
-      } else if (this.abilitySlotIndex === 3) {
+        playerPokemon.fusionCustomPokemonData.ability = newAbilityId;
+      } else if (this.abilitySlotIndex === fusionStartIndex + 1 && hasPassive) {
         // 融合被动
         if (!playerPokemon.fusionCustomPokemonData) {
-          playerPokemon.fusionCustomPokemonData = { ability: -1, passive: newAbilityId } as any;
-        } else {
-          playerPokemon.fusionCustomPokemonData.passive = newAbilityId;
+          playerPokemon.fusionCustomPokemonData = new CustomPokemonData();
         }
+        playerPokemon.fusionCustomPokemonData.passive = newAbilityId;
       }
     }
 
