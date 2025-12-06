@@ -1423,30 +1423,36 @@ export class PartyUiHandler extends MessageUiHandler {
   private getAbilitySlotLabels(pokemon: PlayerPokemon): string[] {
     const abilities = pokemon.getAllAbilities();
     const labels: string[] = [];
+    const hasPassive = pokemon.hasPassive();
     const isFusion = pokemon.isFusion() && pokemon.fusionSpecies;
 
+    // 根据能力数组的实际顺序生成标签
+    // 顺序: [主体特性, 主体被动(如果有), 融合特性(如果有), 融合被动(如果有)]
+    let index = 0;
+
     // 槽位 0: 主体的普通特性
-    if (abilities.length > 0) {
-      labels.push(`特性: ${abilities[0].name}`);
+    if (abilities.length > index) {
+      labels.push(`特性: ${abilities[index].name}`);
+      index++;
     }
 
-    // 槽位 1: 主体的被动特性
-    if (pokemon.hasPassive() && abilities.length > 1) {
-      labels.push(`被动: ${abilities[1].name}`);
+    // 槽位 1: 主体的被动特性（如果有）
+    if (hasPassive && abilities.length > index) {
+      labels.push(`被动: ${abilities[index].name}`);
+      index++;
     }
 
     // 融合宝可梦的额外槽位
     if (isFusion) {
-      const fusionStartIndex = pokemon.hasPassive() ? 2 : 1;
-
-      // 槽位 2: 融合部分的普通特性
-      if (abilities.length > fusionStartIndex) {
-        labels.push(`融合特性: ${abilities[fusionStartIndex].name}`);
+      // 融合部分的普通特性
+      if (abilities.length > index) {
+        labels.push(`融合特性: ${abilities[index].name}`);
+        index++;
       }
 
-      // 槽位 3: 融合部分的被动特性
-      if (pokemon.hasPassive() && abilities.length > fusionStartIndex + 1) {
-        labels.push(`融合被动: ${abilities[fusionStartIndex + 1].name}`);
+      // 融合部分的被动特性（如果有）
+      if (hasPassive && abilities.length > index) {
+        labels.push(`融合被动: ${abilities[index].name}`);
       }
     }
 
@@ -1456,28 +1462,13 @@ export class PartyUiHandler extends MessageUiHandler {
   /**
    * 更新特性学习器模式的选项列表
    * 显示宝可梦当前的特性和被动列表供选择替换
+   * 槽位索引与 getAllAbilities() 返回的数组索引保持一致
    */
   private updateOptionsWithAbilityModifierMode(pokemon: PlayerPokemon): void {
-    // 普通宝可梦有1-2个特性槽（普通特性 + 可能的被动）
-    // 融合宝可梦有2-4个特性槽（两边各有普通特性 + 可能的被动）
-
-    // 槽位 0: 普通特性
-    this.options.push(0);
-
-    // 槽位 1: 被动特性（如果有）
-    if (pokemon.hasPassive()) {
-      this.options.push(1);
-    }
-
-    // 融合宝可梦的额外槽位
-    if (pokemon.isFusion()) {
-      // 槽位 2: 融合部分的普通特性
-      this.options.push(2);
-
-      // 槽位 3: 融合部分的被动特性（如果有）
-      if (pokemon.hasPassive()) {
-        this.options.push(3);
-      }
+    // 使用 getAllAbilities() 获取特性数量，确保与显示和应用逻辑一致
+    const abilities = pokemon.getAllAbilities();
+    for (let i = 0; i < abilities.length; i++) {
+      this.options.push(i);
     }
   }
 
