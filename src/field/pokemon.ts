@@ -582,7 +582,13 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
       ret |= this.gender !== Gender.FEMALE ? DexAttr.MALE : DexAttr.FEMALE;
     }
     ret |= !this.shiny ? DexAttr.NON_SHINY : DexAttr.SHINY;
-    ret |= this.variant >= 2 ? DexAttr.VARIANT_3 : this.variant === 1 ? DexAttr.VARIANT_2 : DexAttr.DEFAULT_VARIANT;
+    // For species without variants, always use DEFAULT_VARIANT regardless of variant value
+    // This ensures the dexAttr matches what getFullUnlocksData() allows
+    if (this.species.hasVariants()) {
+      ret |= this.variant >= 2 ? DexAttr.VARIANT_3 : this.variant === 1 ? DexAttr.VARIANT_2 : DexAttr.DEFAULT_VARIANT;
+    } else {
+      ret |= DexAttr.DEFAULT_VARIANT;
+    }
     ret |= globalScene.gameData.getFormAttr(this.formIndex);
     return ret;
   }

@@ -218,15 +218,12 @@ export class Egg {
         }
         this._hatchWaves = eggOptions?.hatchWaves ?? this.getEggTierDefaultHatchWaves();
       }
-      // If species has no variant, set variantTier to common. This needs to
+      // If species has no variant, set variantTier to STANDARD. This needs to
       // be done because species with no variants get filtered at rollSpecies but if the
       // species is set via options or the legendary gacha pokemon gets choosen the check never happens
-      // Exception: UNLOCK gacha should always have EPIC variant (red shiny) even for species without variants
-      if (
-        this._species
-        && !getPokemonSpecies(this._species).hasVariants()
-        && this._sourceType !== EggSourceType.GACHA_UNLOCK
-      ) {
+      // Note: UNLOCK gacha also follows this rule - species without variants can only have DEFAULT_VARIANT
+      // in the dex, so we should not set EPIC variant for them (it would be filtered out when saving)
+      if (this._species && !getPokemonSpecies(this._species).hasVariants()) {
         this._variantTier = VariantTier.STANDARD;
       }
       // Needs this._tier so it needs to be generated afer the tier override if bought from same species
