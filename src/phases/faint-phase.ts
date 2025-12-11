@@ -17,6 +17,7 @@ import type { EnemyPokemon, PlayerPokemon, Pokemon } from "#field/pokemon";
 import { PokemonInstantReviveModifier } from "#modifiers/modifier";
 import { PokemonMove } from "#moves/pokemon-move";
 import { PokemonPhase } from "#phases/pokemon-phase";
+import { toDmgValue } from "#utils/common";
 import i18next from "i18next";
 
 export class FaintPhase extends PokemonPhase {
@@ -60,6 +61,12 @@ export class FaintPhase extends PokemonPhase {
       if (instantReviveModifier) {
         faintPokemon.loseHeldItem(instantReviveModifier);
         globalScene.updateModifiers(this.player);
+        return this.end();
+      }
+
+      // Friendship revival: Classic mode only, player Pokemon with max friendship (255)
+      // Can be triggered once per 10 waves (resets at wave 1, 11, 21, ..., 191)
+      if (this.tryFriendshipRevive(faintPokemon)) {
         return this.end();
       }
     }
@@ -242,5 +249,64 @@ export class FaintPhase extends PokemonPhase {
     }
 
     return false;
+  }
+
+  /**
+   * Attempts to revive a Pokemon using the friendship revival mechanic.
+   * Only works in Classic mode for player Pokemon with max friendship (255).
+   * Can only be triggered once per 10 waves (resets at wave 1, 11, 21, ..., 191).
+   *
+   * @param pokemon - The Pokemon to attempt to revive
+   * @returns true if the Pokemon was revived, false otherwise
+   */
+  private tryFriendshipRevive(pokemon: Pokemon): boolean {
+    // Only works for player Pokemon in Classic mode
+    if (!pokemon.isPlayer() || !globalScene.gameMode?.isClassic) {
+      return false;
+    }
+
+    // Check if Pokemon has max friendship
+    if (pokemon.friendship < 255) {
+      return false;
+    }
+
+    // Calculate current wave segment (0 for waves 1-10, 1 for waves 11-20, etc.)
+    const waveIndex = globalScene.currentBattle?.waveIndex ?? 1;
+    const currentSegment = Math.floor((waveIndex - 1) / 10);
+
+    // Check if friendship revival was already used in this segment
+    if (pokemon.battleData.friendshipReviveUsedSegment >= currentSegment) {
+      return false;
+    }
+
+    // Mark friendship revival as used for this segment
+    pokemon.battleData.friendshipReviveUsedSegment = currentSegment;
+
+    // Revive the Pokemon with half HP
+    globalScene.phaseManager.unshiftNew(
+      "PokemonHealPhase",
+      pokemon.getBattlerIndex(),
+      toDmgValue(pokemon.getMaxHp() / 2),
+      i18next.t("battle:friendshipRevive", {
+        pokemonNameWithAffix: getPokemonNameWithAffix(pokemon),
+      }),
+      false,
+      false,
+      true,
+    );
+
+    // Reset status (remove all status conditions)
+    pokemon.resetStatus(true, false, true, false);
+
+    // Reset stat stages to 0
+    pokemon.summonData.statStages = [0, 0, 0, 0, 0, 0, 0];
+
+    // Reapply Commander on the Pokemon's side of the field, if applicable
+    const field = pokemon.isPlayer() ? globalScene.getPlayerField() : globalScene.getEnemyField();
+    for (const p of field) {
+      applyAbAttrs("CommanderAbAttr", { pokemon: p });
+    }
+
+    return true;
   }
 }

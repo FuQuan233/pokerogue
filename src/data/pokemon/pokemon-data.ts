@@ -280,12 +280,20 @@ export class PokemonBattleData {
   public hasEatenBerry = false;
   /** Array containing all berries eaten and not yet recovered during this current battle; used by {@linkcode AbilityId.HARVEST} */
   public berriesEaten: BerryType[] = [];
+  /**
+   * The wave segment (0-19) during which this Pokemon last used the friendship revival.
+   * Segment is calculated as Math.floor((waveIndex - 1) / 10).
+   * -1 means friendship revival has never been used.
+   * Used to track the 10-wave cooldown for friendship revival in Classic mode.
+   */
+  public friendshipReviveUsedSegment = -1;
 
   constructor(source?: PokemonBattleData | Partial<PokemonBattleData>) {
     if (source != null) {
       this.hitCount = source.hitCount ?? 0;
       this.hasEatenBerry = source.hasEatenBerry ?? false;
       this.berriesEaten = source.berriesEaten ?? [];
+      this.friendshipReviveUsedSegment = source.friendshipReviveUsedSegment ?? -1;
     }
   }
 }
