@@ -1591,6 +1591,12 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
       if (s === Stat.HP) {
         statHolder.value = statHolder.value + this.level + 10;
         globalScene.applyModifier(PokemonIncrementingStatModifier, this.isPlayer(), this, s, statHolder);
+        // Classic mode: Double HP for all Pokemon (both player and enemy)
+        // This is to balance against increased damage output
+        if (globalScene.gameMode?.isClassic) {
+          statHolder.value = Math.floor(statHolder.value * 2);
+        }
+        // WONDER_GUARD (Shedinja) always has 1 HP, applied after doubling
         if (this.hasAbility(AbilityId.WONDER_GUARD, false, true)) {
           statHolder.value = 1;
         }
