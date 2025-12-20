@@ -635,10 +635,13 @@ export class TrainerConfig {
     if (!getIsInitialized()) {
       initI18n();
     }
+    // 使用强化版邪恶老大模板
     if (rematch) {
-      this.setPartyTemplates(trainerPartyTemplates.ELITE_FOUR);
+      // 165关：2 STRONG + 4 STRONGER
+      this.setPartyTemplates(trainerPartyTemplates.EVIL_BOSS_2);
     } else {
-      this.setPartyTemplates(trainerPartyTemplates.RIVAL_5);
+      // 115关：全员STRONG
+      this.setPartyTemplates(trainerPartyTemplates.EVIL_BOSS_1);
     }
     signatureSpecies.forEach((speciesPool, s) => {
       this.setPartyMemberFunc(-(s + 1), getRandomPartyMemberFunc(coerceArray(speciesPool)));
@@ -4765,7 +4768,7 @@ export const trainerConfigs: TrainerConfigs = {
     .setEncounterBgm(TrainerType.RIVAL)
     .setBattleBgm("battle_rival_2")
     .setMixedBattleBgm("battle_rival_2")
-    .setPartyTemplates(trainerPartyTemplates.RIVAL_4)
+    .setPartyTemplates(trainerPartyTemplates.RIVAL_4_ENHANCED)
     .setModifierRewardFuncs(() => modifierTypes.TERA_ORB)
     .setPartyMemberFunc(
       0,
@@ -4807,32 +4810,63 @@ export const trainerConfigs: TrainerConfigs = {
         },
       ),
     )
+    // 1号位：强力宝可梦（不再限制鸟类）
     .setPartyMemberFunc(
       1,
-      getRandomPartyMemberFunc(
-        [
-          SpeciesId.PIDGEOT,
-          SpeciesId.NOCTOWL,
-          SpeciesId.SWELLOW,
-          SpeciesId.STARAPTOR,
-          SpeciesId.UNFEZANT,
-          SpeciesId.TALONFLAME,
-          SpeciesId.TOUCANNON,
-          SpeciesId.CORVIKNIGHT,
-          SpeciesId.KILOWATTREL,
-        ],
+      getSpeciesFilterRandomPartyMemberFunc(
+        (species: PokemonSpecies) =>
+          !pokemonEvolutions.hasOwnProperty(species.speciesId)
+          && !pokemonPrevolutions.hasOwnProperty(species.speciesId)
+          && species.baseTotal >= 540,
         TrainerSlot.TRAINER,
         true,
       ),
     )
+    // 2号位：种族值≥600的宝可梦
     .setPartyMemberFunc(
       2,
       getSpeciesFilterRandomPartyMemberFunc(
         (species: PokemonSpecies) =>
           !pokemonEvolutions.hasOwnProperty(species.speciesId)
           && !pokemonPrevolutions.hasOwnProperty(species.speciesId)
-          && species.baseTotal >= 450,
+          && species.baseTotal >= 600,
+        TrainerSlot.TRAINER,
+        true,
       ),
+    )
+    // 3号位：种族值≥600的宝可梦
+    .setPartyMemberFunc(
+      3,
+      getSpeciesFilterRandomPartyMemberFunc(
+        (species: PokemonSpecies) =>
+          !pokemonEvolutions.hasOwnProperty(species.speciesId)
+          && !pokemonPrevolutions.hasOwnProperty(species.speciesId)
+          && species.baseTotal >= 600,
+        TrainerSlot.TRAINER,
+        true,
+      ),
+    )
+    // 4号位：种族值≥600的宝可梦
+    .setPartyMemberFunc(
+      4,
+      getSpeciesFilterRandomPartyMemberFunc(
+        (species: PokemonSpecies) =>
+          !pokemonEvolutions.hasOwnProperty(species.speciesId)
+          && !pokemonPrevolutions.hasOwnProperty(species.speciesId)
+          && species.baseTotal >= 600,
+        TrainerSlot.TRAINER,
+        true,
+      ),
+    )
+    // 5号位：烈空坐（护盾段数+1 = 4段）
+    .setPartyMemberFunc(
+      5,
+      getRandomPartyMemberFunc([SpeciesId.RAYQUAZA], TrainerSlot.TRAINER, true, p => {
+        p.setBoss(true, 4);
+        p.pokeball = PokeballType.MASTER_BALL;
+        p.shiny = timedEventManager.getClassicTrainerShinyChance() === 0;
+        p.variant = 1;
+      }),
     )
     .setSpeciesFilter(species => species.baseTotal >= 540)
     .setInstantTera(0), // Tera starter to primary type
@@ -4847,7 +4881,7 @@ export const trainerConfigs: TrainerConfigs = {
     .setEncounterBgm(TrainerType.RIVAL)
     .setBattleBgm("battle_rival_3")
     .setMixedBattleBgm("battle_rival_3")
-    .setPartyTemplates(trainerPartyTemplates.RIVAL_5)
+    .setPartyTemplates(trainerPartyTemplates.RIVAL_5_ENHANCED)
     .setPartyMemberFunc(
       0,
       getRandomPartyMemberFunc(
@@ -4889,38 +4923,60 @@ export const trainerConfigs: TrainerConfigs = {
         },
       ),
     )
+    // 1号位：强力宝可梦（不再限制鸟类）
     .setPartyMemberFunc(
       1,
-      getRandomPartyMemberFunc(
-        [
-          SpeciesId.PIDGEOT,
-          SpeciesId.NOCTOWL,
-          SpeciesId.SWELLOW,
-          SpeciesId.STARAPTOR,
-          SpeciesId.UNFEZANT,
-          SpeciesId.TALONFLAME,
-          SpeciesId.TOUCANNON,
-          SpeciesId.CORVIKNIGHT,
-          SpeciesId.KILOWATTREL,
-        ],
+      getSpeciesFilterRandomPartyMemberFunc(
+        (species: PokemonSpecies) =>
+          !pokemonEvolutions.hasOwnProperty(species.speciesId)
+          && !pokemonPrevolutions.hasOwnProperty(species.speciesId)
+          && species.baseTotal >= 540,
         TrainerSlot.TRAINER,
         true,
       ),
     )
+    // 2号位：种族值≥600的宝可梦
     .setPartyMemberFunc(
       2,
       getSpeciesFilterRandomPartyMemberFunc(
         (species: PokemonSpecies) =>
           !pokemonEvolutions.hasOwnProperty(species.speciesId)
           && !pokemonPrevolutions.hasOwnProperty(species.speciesId)
-          && species.baseTotal >= 450,
+          && species.baseTotal >= 600,
+        TrainerSlot.TRAINER,
+        true,
+      ),
+    )
+    // 3号位：种族值≥600的宝可梦
+    .setPartyMemberFunc(
+      3,
+      getSpeciesFilterRandomPartyMemberFunc(
+        (species: PokemonSpecies) =>
+          !pokemonEvolutions.hasOwnProperty(species.speciesId)
+          && !pokemonPrevolutions.hasOwnProperty(species.speciesId)
+          && species.baseTotal >= 600,
+        TrainerSlot.TRAINER,
+        true,
+      ),
+    )
+    // 4号位：种族值≥600的宝可梦
+    .setPartyMemberFunc(
+      4,
+      getSpeciesFilterRandomPartyMemberFunc(
+        (species: PokemonSpecies) =>
+          !pokemonEvolutions.hasOwnProperty(species.speciesId)
+          && !pokemonPrevolutions.hasOwnProperty(species.speciesId)
+          && species.baseTotal >= 600,
+        TrainerSlot.TRAINER,
+        true,
       ),
     )
     .setSpeciesFilter(species => species.baseTotal >= 540)
+    // 5号位：烈空坐（护盾段数+1 = 4段）
     .setPartyMemberFunc(
       5,
       getRandomPartyMemberFunc([SpeciesId.RAYQUAZA], TrainerSlot.TRAINER, true, p => {
-        p.setBoss(true, 3);
+        p.setBoss(true, 4);
         p.pokeball = PokeballType.MASTER_BALL;
         p.shiny = timedEventManager.getClassicTrainerShinyChance() === 0;
         p.variant = 1;
@@ -4938,7 +4994,7 @@ export const trainerConfigs: TrainerConfigs = {
     .setEncounterBgm("final")
     .setBattleBgm("battle_rival_3")
     .setMixedBattleBgm("battle_rival_3")
-    .setPartyTemplates(trainerPartyTemplates.RIVAL_6)
+    .setPartyTemplates(trainerPartyTemplates.RIVAL_6_ENHANCED)
     .setPartyMemberFunc(
       0,
       getRandomPartyMemberFunc(
@@ -4974,27 +5030,21 @@ export const trainerConfigs: TrainerConfigs = {
         TrainerSlot.TRAINER,
         true,
         p => {
-          p.setBoss(true, 3);
+          p.setBoss(true, 4); // 护盾段数+1
           p.abilityIndex = 0;
           p.teraType = p.species.type1;
           p.generateAndPopulateMoveset();
         },
       ),
     )
+    // 1号位：强力宝可梦（不再限制鸟类）
     .setPartyMemberFunc(
       1,
-      getRandomPartyMemberFunc(
-        [
-          SpeciesId.PIDGEOT,
-          SpeciesId.NOCTOWL,
-          SpeciesId.SWELLOW,
-          SpeciesId.STARAPTOR,
-          SpeciesId.UNFEZANT,
-          SpeciesId.TALONFLAME,
-          SpeciesId.TOUCANNON,
-          SpeciesId.CORVIKNIGHT,
-          SpeciesId.KILOWATTREL,
-        ],
+      getSpeciesFilterRandomPartyMemberFunc(
+        (species: PokemonSpecies) =>
+          !pokemonEvolutions.hasOwnProperty(species.speciesId)
+          && !pokemonPrevolutions.hasOwnProperty(species.speciesId)
+          && species.baseTotal >= 540,
         TrainerSlot.TRAINER,
         true,
         p => {
@@ -5003,20 +5053,57 @@ export const trainerConfigs: TrainerConfigs = {
         },
       ),
     )
+    // 2号位：种族值≥600的宝可梦
     .setPartyMemberFunc(
       2,
       getSpeciesFilterRandomPartyMemberFunc(
         (species: PokemonSpecies) =>
           !pokemonEvolutions.hasOwnProperty(species.speciesId)
           && !pokemonPrevolutions.hasOwnProperty(species.speciesId)
-          && species.baseTotal >= 450,
+          && species.baseTotal >= 600,
+        TrainerSlot.TRAINER,
+        true,
+        p => {
+          p.generateAndPopulateMoveset();
+        },
+      ),
+    )
+    // 3号位：种族值≥600的宝可梦
+    .setPartyMemberFunc(
+      3,
+      getSpeciesFilterRandomPartyMemberFunc(
+        (species: PokemonSpecies) =>
+          !pokemonEvolutions.hasOwnProperty(species.speciesId)
+          && !pokemonPrevolutions.hasOwnProperty(species.speciesId)
+          && species.baseTotal >= 600,
+        TrainerSlot.TRAINER,
+        true,
+        p => {
+          p.generateAndPopulateMoveset();
+        },
+      ),
+    )
+    // 4号位：种族值≥600的宝可梦
+    .setPartyMemberFunc(
+      4,
+      getSpeciesFilterRandomPartyMemberFunc(
+        (species: PokemonSpecies) =>
+          !pokemonEvolutions.hasOwnProperty(species.speciesId)
+          && !pokemonPrevolutions.hasOwnProperty(species.speciesId)
+          && species.baseTotal >= 600,
+        TrainerSlot.TRAINER,
+        true,
+        p => {
+          p.generateAndPopulateMoveset();
+        },
       ),
     )
     .setSpeciesFilter(species => species.baseTotal >= 540)
+    // 5号位：Mega烈空坐（护盾段数+1）
     .setPartyMemberFunc(
       5,
       getRandomPartyMemberFunc([SpeciesId.RAYQUAZA], TrainerSlot.TRAINER, true, p => {
-        p.setBoss();
+        p.setBoss(true, 5); // 护盾段数+1（原4段变5段）
         p.generateAndPopulateMoveset();
         p.pokeball = PokeballType.MASTER_BALL;
         p.shiny = timedEventManager.getClassicTrainerShinyChance() === 0;

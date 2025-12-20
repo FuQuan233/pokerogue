@@ -45,9 +45,11 @@ import { BiomeId } from "#enums/biome-id";
 import { EaseType } from "#enums/ease-type";
 import { ExpGainsSpeed } from "#enums/exp-gains-speed";
 import { ExpNotification } from "#enums/exp-notification";
+import { ClassicFixedBossWaves } from "#enums/fixed-boss-waves";
 import { FormChangeItem } from "#enums/form-change-item";
 import { GameModes } from "#enums/game-modes";
 import { ModifierPoolType } from "#enums/modifier-pool-type";
+import { ModifierTier } from "#enums/modifier-tier";
 import { MoneyFormat } from "#enums/money-format";
 import { MoveId } from "#enums/move-id";
 import { MysteryEncounterMode } from "#enums/mystery-encounter-mode";
@@ -2904,6 +2906,15 @@ export class BattleScene extends SceneBase {
         }
       }
 
+      // 检查是否是需要强化道具的训练家（邪恶老大或劲敌5/6）
+      const waveIndex = this.currentBattle.waveIndex;
+      const trainerType = this.currentBattle.trainer?.config.trainerType;
+      const isEnhancedTrainer =
+        waveIndex === ClassicFixedBossWaves.EVIL_BOSS_1
+        || waveIndex === ClassicFixedBossWaves.EVIL_BOSS_2
+        || trainerType === TrainerType.RIVAL_5
+        || trainerType === TrainerType.RIVAL_6;
+
       party.forEach((enemyPokemon: EnemyPokemon, i: number) => {
         if (heldModifiersConfigs && i < heldModifiersConfigs.length && heldModifiersConfigs[i]) {
           for (const mt of heldModifiersConfigs[i]) {
@@ -2946,6 +2957,34 @@ export class BattleScene extends SceneBase {
             upgradeChance,
           ).map(mt => mt.newModifier(enemyPokemon).add(this.enemyModifiers, false));
         }
+
+        // 为邪恶老大和劲敌5/6的每只宝可梦添加固定道具
+        // 1个MASTER、1个ROGUE、2个ULTRA、3个GREAT、5个COMMON
+        if (isEnhancedTrainer) {
+          const fixedModifierTiers = [
+            { tier: ModifierTier.MASTER, count: 1 },
+            { tier: ModifierTier.ROGUE, count: 1 },
+            { tier: ModifierTier.ULTRA, count: 2 },
+            { tier: ModifierTier.GREAT, count: 3 },
+            { tier: ModifierTier.COMMON, count: 5 },
+          ];
+
+          for (const tierConfig of fixedModifierTiers) {
+            for (let c = 0; c < tierConfig.count; c++) {
+              const modifierType = getDefaultModifierTypeForTier(tierConfig.tier);
+              if (modifierType) {
+                const heldModifierType = modifierType as PokemonHeldItemModifierType;
+                if (heldModifierType.newModifier) {
+                  const modifier = heldModifierType.newModifier(enemyPokemon);
+                  if (modifier) {
+                    modifier.add(this.enemyModifiers, false);
+                  }
+                }
+              }
+            }
+          }
+        }
+
         return true;
       });
       this.updateModifiers(false);
