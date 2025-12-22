@@ -2119,14 +2119,16 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     if (Overrides.ENEMY_ABILITY_OVERRIDE && this.isEnemy()) {
       return allAbilities[Overrides.ENEMY_ABILITY_OVERRIDE];
     }
+    // 优先检查主体的自定义特性（特性学习器修改的）
+    if (this.customPokemonData.ability != null && this.customPokemonData.ability !== -1) {
+      return allAbilities[this.customPokemonData.ability];
+    }
+    // 对于融合宝可梦，如果主体没有自定义特性，返回融合部分的特性
     if (this.isFusion()) {
       if (this.fusionCustomPokemonData?.ability != null && this.fusionCustomPokemonData.ability !== -1) {
         return allAbilities[this.fusionCustomPokemonData.ability];
       }
       return allAbilities[this.getFusionSpeciesForm(ignoreOverride).getAbility(this.fusionAbilityIndex)];
-    }
-    if (this.customPokemonData.ability != null && this.customPokemonData.ability !== -1) {
-      return allAbilities[this.customPokemonData.ability];
     }
     let abilityId = this.getSpeciesForm(ignoreOverride).getAbility(this.abilityIndex);
     if (abilityId === AbilityId.NONE) {
@@ -2240,26 +2242,46 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
 
     // For fusions, also include abilities from both base (A) and fusion (B) Pokemon
     if (this.isFusion(ignoreOverride)) {
-      // Get base Pokemon's (A) ability
-      const baseAbilityId = this.getSpeciesForm(ignoreOverride).getAbility(this.abilityIndex);
+      // Get base Pokemon's (A) ability - 优先使用 customPokemonData 中的自定义特性
+      let baseAbilityId: AbilityId;
+      if (this.customPokemonData.ability != null && this.customPokemonData.ability !== -1) {
+        baseAbilityId = this.customPokemonData.ability;
+      } else {
+        baseAbilityId = this.getSpeciesForm(ignoreOverride).getAbility(this.abilityIndex);
+      }
       if (baseAbilityId !== AbilityId.NONE && (!canApply || this.canApplyAbility())) {
         abilityAttrs.push(...allAbilities[baseAbilityId].getAttrs(attrType));
       }
 
-      // Get base Pokemon's (A) passive ability
-      const basePassiveId = this.species.getPassiveAbility(this.formIndex);
+      // Get base Pokemon's (A) passive ability - 优先使用 customPokemonData 中的自定义被动特性
+      let basePassiveId: AbilityId;
+      if (this.customPokemonData.passive != null && this.customPokemonData.passive !== -1) {
+        basePassiveId = this.customPokemonData.passive;
+      } else {
+        basePassiveId = this.species.getPassiveAbility(this.formIndex);
+      }
       if (basePassiveId !== AbilityId.NONE && this.hasPassive() && (!canApply || this.canApplyAbility(true))) {
         abilityAttrs.push(...allAbilities[basePassiveId].getAttrs(attrType));
       }
 
-      // Get fusion Pokemon's (B) ability
-      const fusionAbilityId = this.getFusionSpeciesForm(ignoreOverride).getAbility(this.fusionAbilityIndex);
+      // Get fusion Pokemon's (B) ability - 优先使用 fusionCustomPokemonData 中的自定义特性
+      let fusionAbilityId: AbilityId;
+      if (this.fusionCustomPokemonData?.ability != null && this.fusionCustomPokemonData.ability !== -1) {
+        fusionAbilityId = this.fusionCustomPokemonData.ability;
+      } else {
+        fusionAbilityId = this.getFusionSpeciesForm(ignoreOverride).getAbility(this.fusionAbilityIndex);
+      }
       if (fusionAbilityId !== AbilityId.NONE && (!canApply || this.canApplyAbility())) {
         abilityAttrs.push(...allAbilities[fusionAbilityId].getAttrs(attrType));
       }
 
-      // Get fusion Pokemon's (B) passive ability
-      const fusionPassiveId = this.fusionSpecies!.getPassiveAbility(this.fusionFormIndex);
+      // Get fusion Pokemon's (B) passive ability - 优先使用 fusionCustomPokemonData 中的自定义被动特性
+      let fusionPassiveId: AbilityId;
+      if (this.fusionCustomPokemonData?.passive != null && this.fusionCustomPokemonData.passive !== -1) {
+        fusionPassiveId = this.fusionCustomPokemonData.passive;
+      } else {
+        fusionPassiveId = this.fusionSpecies!.getPassiveAbility(this.fusionFormIndex);
+      }
       if (fusionPassiveId !== AbilityId.NONE && this.hasPassive() && (!canApply || this.canApplyAbility(true))) {
         abilityAttrs.push(...allAbilities[fusionPassiveId].getAttrs(attrType));
       }
@@ -2394,24 +2416,46 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
 
     // For fusions, also check abilities from both base (A) and fusion (B) Pokemon
     if (this.isFusion(ignoreOverride)) {
-      const baseAbilityId = this.getSpeciesForm(ignoreOverride).getAbility(this.abilityIndex);
+      // Check base Pokemon's (A) ability - 优先检查 customPokemonData 中的自定义特性
+      let baseAbilityId: AbilityId;
+      if (this.customPokemonData.ability != null && this.customPokemonData.ability !== -1) {
+        baseAbilityId = this.customPokemonData.ability;
+      } else {
+        baseAbilityId = this.getSpeciesForm(ignoreOverride).getAbility(this.abilityIndex);
+      }
       if (baseAbilityId === ability && (!canApply || this.canApplyAbility())) {
         return true;
       }
 
-      const basePassiveId = this.species.getPassiveAbility(this.formIndex);
+      // Check base Pokemon's (A) passive ability - 优先检查 customPokemonData 中的自定义被动特性
+      let basePassiveId: AbilityId;
+      if (this.customPokemonData.passive != null && this.customPokemonData.passive !== -1) {
+        basePassiveId = this.customPokemonData.passive;
+      } else {
+        basePassiveId = this.species.getPassiveAbility(this.formIndex);
+      }
       if (basePassiveId === ability && this.hasPassive() && (!canApply || this.canApplyAbility(true))) {
         return true;
       }
 
-      // Check fusion Pokemon's (B) ability
-      const fusionAbilityId = this.getFusionSpeciesForm(ignoreOverride).getAbility(this.fusionAbilityIndex);
+      // Check fusion Pokemon's (B) ability - 优先检查 fusionCustomPokemonData 中的自定义特性
+      let fusionAbilityId: AbilityId;
+      if (this.fusionCustomPokemonData?.ability != null && this.fusionCustomPokemonData.ability !== -1) {
+        fusionAbilityId = this.fusionCustomPokemonData.ability;
+      } else {
+        fusionAbilityId = this.getFusionSpeciesForm(ignoreOverride).getAbility(this.fusionAbilityIndex);
+      }
       if (fusionAbilityId === ability && (!canApply || this.canApplyAbility())) {
         return true;
       }
 
-      // Check fusion Pokemon's (B) passive ability
-      const fusionPassiveId = this.fusionSpecies!.getPassiveAbility(this.fusionFormIndex);
+      // Check fusion Pokemon's (B) passive ability - 优先检查 fusionCustomPokemonData 中的自定义被动特性
+      let fusionPassiveId: AbilityId;
+      if (this.fusionCustomPokemonData?.passive != null && this.fusionCustomPokemonData.passive !== -1) {
+        fusionPassiveId = this.fusionCustomPokemonData.passive;
+      } else {
+        fusionPassiveId = this.fusionSpecies!.getPassiveAbility(this.fusionFormIndex);
+      }
       if (fusionPassiveId === ability && this.hasPassive() && (!canApply || this.canApplyAbility(true))) {
         return true;
       }
