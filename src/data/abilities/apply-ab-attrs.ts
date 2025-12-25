@@ -20,6 +20,11 @@ function applySingleAbAttrs<T extends AbAttrString>(
     return;
   }
 
+  // Check Ability-level conditions first
+  if (ability.conditions.length > 0 && !ability.conditions.every(condition => condition(pokemon))) {
+    return;
+  }
+
   for (const attr of attrs) {
     const condition = attr.getCondition();
     // We require an `as any` cast to suppress an error about the `params` type not being assignable to
@@ -91,36 +96,39 @@ function applyAbAttrsInternal<T extends CallableAbAttrString>(
     const baseAbilityId = params.pokemon.getSpeciesForm().getAbility(params.pokemon.abilityIndex);
     if (baseAbilityId !== AbilityId.NONE && params.pokemon.canApplyAbility()) {
       const baseAbility = allAbilities[baseAbilityId];
-      const attrs = baseAbility.getAttrs(attrType);
-      if (!(gainedMidTurn && attrs.some(attr => attr.is("PostSummonAbAttr") && !attr.shouldActivateOnGain()))) {
-        for (const attr of attrs) {
-          const condition = attr.getCondition();
-          if ((condition && !condition(params.pokemon)) || !attr.canApply(params as any)) {
-            continue;
-          }
-
-          let abShown = false;
-          if (attr.showAbility && !simulated) {
-            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, false, true, baseAbility.name);
-            abShown = true;
-          }
-
-          const message = attr.getTriggerMessage(params as any, baseAbility.name);
-          if (message) {
-            if (!simulated) {
-              globalScene.phaseManager.queueMessage(message);
+      // Check Ability-level conditions first
+      if (baseAbility.conditions.length === 0 || baseAbility.conditions.every(condition => condition(params.pokemon))) {
+        const attrs = baseAbility.getAttrs(attrType);
+        if (!(gainedMidTurn && attrs.some(attr => attr.is("PostSummonAbAttr") && !attr.shouldActivateOnGain()))) {
+          for (const attr of attrs) {
+            const condition = attr.getCondition();
+            if ((condition && !condition(params.pokemon)) || !attr.canApply(params as any)) {
+              continue;
             }
-            messages.push(message);
-          }
 
-          attr.apply(params as any);
+            let abShown = false;
+            if (attr.showAbility && !simulated) {
+              globalScene.phaseManager.queueAbilityDisplay(params.pokemon, false, true, baseAbility.name);
+              abShown = true;
+            }
 
-          if (abShown) {
-            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, false, false);
-          }
+            const message = attr.getTriggerMessage(params as any, baseAbility.name);
+            if (message) {
+              if (!simulated) {
+                globalScene.phaseManager.queueMessage(message);
+              }
+              messages.push(message);
+            }
 
-          if (!simulated) {
-            params.pokemon.waveData.abilitiesApplied.add(baseAbility.id);
+            attr.apply(params as any);
+
+            if (abShown) {
+              globalScene.phaseManager.queueAbilityDisplay(params.pokemon, false, false);
+            }
+
+            if (!simulated) {
+              params.pokemon.waveData.abilitiesApplied.add(baseAbility.id);
+            }
           }
         }
       }
@@ -130,36 +138,39 @@ function applyAbAttrsInternal<T extends CallableAbAttrString>(
     const basePassiveId = params.pokemon.species.getPassiveAbility(params.pokemon.formIndex);
     if (basePassiveId !== AbilityId.NONE && params.pokemon.hasPassive() && params.pokemon.canApplyAbility(true)) {
       const basePassive = allAbilities[basePassiveId];
-      const attrs = basePassive.getAttrs(attrType);
-      if (!(gainedMidTurn && attrs.some(attr => attr.is("PostSummonAbAttr") && !attr.shouldActivateOnGain()))) {
-        for (const attr of attrs) {
-          const condition = attr.getCondition();
-          if ((condition && !condition(params.pokemon)) || !attr.canApply(params as any)) {
-            continue;
-          }
-
-          let abShown = false;
-          if (attr.showAbility && !simulated) {
-            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, true, true, basePassive.name);
-            abShown = true;
-          }
-
-          const message = attr.getTriggerMessage(params as any, basePassive.name);
-          if (message) {
-            if (!simulated) {
-              globalScene.phaseManager.queueMessage(message);
+      // Check Ability-level conditions first
+      if (basePassive.conditions.length === 0 || basePassive.conditions.every(condition => condition(params.pokemon))) {
+        const attrs = basePassive.getAttrs(attrType);
+        if (!(gainedMidTurn && attrs.some(attr => attr.is("PostSummonAbAttr") && !attr.shouldActivateOnGain()))) {
+          for (const attr of attrs) {
+            const condition = attr.getCondition();
+            if ((condition && !condition(params.pokemon)) || !attr.canApply(params as any)) {
+              continue;
             }
-            messages.push(message);
-          }
 
-          attr.apply(params as any);
+            let abShown = false;
+            if (attr.showAbility && !simulated) {
+              globalScene.phaseManager.queueAbilityDisplay(params.pokemon, true, true, basePassive.name);
+              abShown = true;
+            }
 
-          if (abShown) {
-            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, true, false);
-          }
+            const message = attr.getTriggerMessage(params as any, basePassive.name);
+            if (message) {
+              if (!simulated) {
+                globalScene.phaseManager.queueMessage(message);
+              }
+              messages.push(message);
+            }
 
-          if (!simulated) {
-            params.pokemon.waveData.abilitiesApplied.add(basePassive.id);
+            attr.apply(params as any);
+
+            if (abShown) {
+              globalScene.phaseManager.queueAbilityDisplay(params.pokemon, true, false);
+            }
+
+            if (!simulated) {
+              params.pokemon.waveData.abilitiesApplied.add(basePassive.id);
+            }
           }
         }
       }
@@ -169,36 +180,42 @@ function applyAbAttrsInternal<T extends CallableAbAttrString>(
     const fusionAbilityId = params.pokemon.getFusionSpeciesForm().getAbility(params.pokemon.fusionAbilityIndex);
     if (fusionAbilityId !== AbilityId.NONE && params.pokemon.canApplyAbility()) {
       const fusionAbility = allAbilities[fusionAbilityId];
-      const attrs = fusionAbility.getAttrs(attrType);
-      if (!(gainedMidTurn && attrs.some(attr => attr.is("PostSummonAbAttr") && !attr.shouldActivateOnGain()))) {
-        for (const attr of attrs) {
-          const condition = attr.getCondition();
-          if ((condition && !condition(params.pokemon)) || !attr.canApply(params as any)) {
-            continue;
-          }
-
-          let abShown = false;
-          if (attr.showAbility && !simulated) {
-            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, false, true, fusionAbility.name);
-            abShown = true;
-          }
-
-          const message = attr.getTriggerMessage(params as any, fusionAbility.name);
-          if (message) {
-            if (!simulated) {
-              globalScene.phaseManager.queueMessage(message);
+      // Check Ability-level conditions first
+      if (
+        fusionAbility.conditions.length === 0
+        || fusionAbility.conditions.every(condition => condition(params.pokemon))
+      ) {
+        const attrs = fusionAbility.getAttrs(attrType);
+        if (!(gainedMidTurn && attrs.some(attr => attr.is("PostSummonAbAttr") && !attr.shouldActivateOnGain()))) {
+          for (const attr of attrs) {
+            const condition = attr.getCondition();
+            if ((condition && !condition(params.pokemon)) || !attr.canApply(params as any)) {
+              continue;
             }
-            messages.push(message);
-          }
 
-          attr.apply(params as any);
+            let abShown = false;
+            if (attr.showAbility && !simulated) {
+              globalScene.phaseManager.queueAbilityDisplay(params.pokemon, false, true, fusionAbility.name);
+              abShown = true;
+            }
 
-          if (abShown) {
-            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, false, false);
-          }
+            const message = attr.getTriggerMessage(params as any, fusionAbility.name);
+            if (message) {
+              if (!simulated) {
+                globalScene.phaseManager.queueMessage(message);
+              }
+              messages.push(message);
+            }
 
-          if (!simulated) {
-            params.pokemon.waveData.abilitiesApplied.add(fusionAbility.id);
+            attr.apply(params as any);
+
+            if (abShown) {
+              globalScene.phaseManager.queueAbilityDisplay(params.pokemon, false, false);
+            }
+
+            if (!simulated) {
+              params.pokemon.waveData.abilitiesApplied.add(fusionAbility.id);
+            }
           }
         }
       }
@@ -208,36 +225,42 @@ function applyAbAttrsInternal<T extends CallableAbAttrString>(
     const fusionPassiveId = params.pokemon.fusionSpecies!.getPassiveAbility(params.pokemon.fusionFormIndex);
     if (fusionPassiveId !== AbilityId.NONE && params.pokemon.hasPassive() && params.pokemon.canApplyAbility(true)) {
       const fusionPassive = allAbilities[fusionPassiveId];
-      const attrs = fusionPassive.getAttrs(attrType);
-      if (!(gainedMidTurn && attrs.some(attr => attr.is("PostSummonAbAttr") && !attr.shouldActivateOnGain()))) {
-        for (const attr of attrs) {
-          const condition = attr.getCondition();
-          if ((condition && !condition(params.pokemon)) || !attr.canApply(params as any)) {
-            continue;
-          }
-
-          let abShown = false;
-          if (attr.showAbility && !simulated) {
-            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, true, true, fusionPassive.name);
-            abShown = true;
-          }
-
-          const message = attr.getTriggerMessage(params as any, fusionPassive.name);
-          if (message) {
-            if (!simulated) {
-              globalScene.phaseManager.queueMessage(message);
+      // Check Ability-level conditions first
+      if (
+        fusionPassive.conditions.length === 0
+        || fusionPassive.conditions.every(condition => condition(params.pokemon))
+      ) {
+        const attrs = fusionPassive.getAttrs(attrType);
+        if (!(gainedMidTurn && attrs.some(attr => attr.is("PostSummonAbAttr") && !attr.shouldActivateOnGain()))) {
+          for (const attr of attrs) {
+            const condition = attr.getCondition();
+            if ((condition && !condition(params.pokemon)) || !attr.canApply(params as any)) {
+              continue;
             }
-            messages.push(message);
-          }
 
-          attr.apply(params as any);
+            let abShown = false;
+            if (attr.showAbility && !simulated) {
+              globalScene.phaseManager.queueAbilityDisplay(params.pokemon, true, true, fusionPassive.name);
+              abShown = true;
+            }
 
-          if (abShown) {
-            globalScene.phaseManager.queueAbilityDisplay(params.pokemon, true, false);
-          }
+            const message = attr.getTriggerMessage(params as any, fusionPassive.name);
+            if (message) {
+              if (!simulated) {
+                globalScene.phaseManager.queueMessage(message);
+              }
+              messages.push(message);
+            }
 
-          if (!simulated) {
-            params.pokemon.waveData.abilitiesApplied.add(fusionPassive.id);
+            attr.apply(params as any);
+
+            if (abShown) {
+              globalScene.phaseManager.queueAbilityDisplay(params.pokemon, true, false);
+            }
+
+            if (!simulated) {
+              params.pokemon.waveData.abilitiesApplied.add(fusionPassive.id);
+            }
           }
         }
       }
