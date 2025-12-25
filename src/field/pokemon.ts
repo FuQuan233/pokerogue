@@ -380,7 +380,9 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
       this.fusionVariant = dataSource.fusionVariant || 0;
       this.fusionGender = dataSource.fusionGender;
       this.fusionLuck = dataSource.fusionLuck;
-      this.fusionCustomPokemonData = dataSource.fusionCustomPokemonData;
+      this.fusionCustomPokemonData = dataSource.fusionCustomPokemonData
+        ? new CustomPokemonData(dataSource.fusionCustomPokemonData)
+        : null;
       this.fusionTeraType = dataSource.fusionTeraType;
       this.usedTMs = dataSource.usedTMs ?? [];
       this.customPokemonData = new CustomPokemonData(dataSource.customPokemonData);
@@ -6400,7 +6402,7 @@ export class PlayerPokemon extends Pokemon {
     this.fusionVariant = pokemon.variant;
     this.fusionGender = pokemon.gender;
     this.fusionLuck = pokemon.luck;
-    this.fusionCustomPokemonData = pokemon.customPokemonData;
+    this.fusionCustomPokemonData = new CustomPokemonData(pokemon.customPokemonData);
     if (pokemon.pauseEvolutions || this.pauseEvolutions) {
       this.pauseEvolutions = true;
     }

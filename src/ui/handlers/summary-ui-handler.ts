@@ -10,6 +10,7 @@ import { getGenderColor, getGenderSymbol } from "#data/gender";
 import { getNatureName, getNatureStatMultiplier } from "#data/nature";
 import { getPokeballAtlasKey } from "#data/pokeball";
 import { getTypeRgb } from "#data/type";
+import { AbilityId } from "#enums/ability-id";
 import { Button } from "#enums/buttons";
 import { MoveCategory } from "#enums/move-category";
 import { Nature } from "#enums/nature";
@@ -1010,9 +1011,14 @@ export class SummaryUiHandler extends UiHandler {
             fusionPassive: null,
           };
 
-          // Get base Pokemon (A) ability
-          const baseAbilityId = this.pokemon?.getSpeciesForm(true).getAbility(this.pokemon.abilityIndex);
-          if (baseAbilityId) {
+          // Get base Pokemon (A) ability - 优先使用 customPokemonData 中的自定义特性
+          let baseAbilityId: AbilityId;
+          if (this.pokemon?.customPokemonData.ability != null && this.pokemon.customPokemonData.ability !== -1) {
+            baseAbilityId = this.pokemon.customPokemonData.ability;
+          } else {
+            baseAbilityId = this.pokemon?.getSpeciesForm(true).getAbility(this.pokemon.abilityIndex) ?? AbilityId.NONE;
+          }
+          if (baseAbilityId && baseAbilityId !== AbilityId.NONE) {
             this.fusionAbilityContainers.baseAbility = {
               labelImage: globalScene.add.image(0, 0, getLocalizedSpriteKey("summary_profile_ability")),
               ability: allAbilities[baseAbilityId],
@@ -1021,10 +1027,15 @@ export class SummaryUiHandler extends UiHandler {
             };
           }
 
-          // Get base Pokemon (A) passive
+          // Get base Pokemon (A) passive - 优先使用 customPokemonData 中的自定义被动特性
           if (this.pokemon?.hasPassive()) {
-            const basePassiveId = this.pokemon.species.getPassiveAbility(this.pokemon.formIndex);
-            if (basePassiveId) {
+            let basePassiveId: AbilityId;
+            if (this.pokemon.customPokemonData.passive != null && this.pokemon.customPokemonData.passive !== -1) {
+              basePassiveId = this.pokemon.customPokemonData.passive;
+            } else {
+              basePassiveId = this.pokemon.species.getPassiveAbility(this.pokemon.formIndex);
+            }
+            if (basePassiveId && basePassiveId !== AbilityId.NONE) {
               this.fusionAbilityContainers.basePassive = {
                 labelImage: globalScene.add.image(0, 0, getLocalizedSpriteKey("summary_profile_passive")),
                 ability: allAbilities[basePassiveId],
@@ -1034,9 +1045,18 @@ export class SummaryUiHandler extends UiHandler {
             }
           }
 
-          // Get fusion Pokemon (B) ability
-          const fusionAbilityId = this.pokemon?.getFusionSpeciesForm(true).getAbility(this.pokemon.fusionAbilityIndex);
-          if (fusionAbilityId) {
+          // Get fusion Pokemon (B) ability - 优先使用 fusionCustomPokemonData 中的自定义特性
+          let fusionAbilityId: AbilityId;
+          if (
+            this.pokemon?.fusionCustomPokemonData?.ability != null
+            && this.pokemon.fusionCustomPokemonData.ability !== -1
+          ) {
+            fusionAbilityId = this.pokemon.fusionCustomPokemonData.ability;
+          } else {
+            fusionAbilityId =
+              this.pokemon?.getFusionSpeciesForm(true).getAbility(this.pokemon.fusionAbilityIndex) ?? AbilityId.NONE;
+          }
+          if (fusionAbilityId && fusionAbilityId !== AbilityId.NONE) {
             this.fusionAbilityContainers.fusionAbility = {
               labelImage: globalScene.add.image(0, 0, getLocalizedSpriteKey("summary_profile_ability")),
               ability: allAbilities[fusionAbilityId],
@@ -1045,10 +1065,18 @@ export class SummaryUiHandler extends UiHandler {
             };
           }
 
-          // Get fusion Pokemon (B) passive
+          // Get fusion Pokemon (B) passive - 优先使用 fusionCustomPokemonData 中的自定义被动特性
           if (this.pokemon?.fusionSpecies && this.pokemon.hasPassive()) {
-            const fusionPassiveId = this.pokemon.fusionSpecies.getPassiveAbility(this.pokemon.fusionFormIndex);
-            if (fusionPassiveId) {
+            let fusionPassiveId: AbilityId;
+            if (
+              this.pokemon.fusionCustomPokemonData?.passive != null
+              && this.pokemon.fusionCustomPokemonData.passive !== -1
+            ) {
+              fusionPassiveId = this.pokemon.fusionCustomPokemonData.passive;
+            } else {
+              fusionPassiveId = this.pokemon.fusionSpecies.getPassiveAbility(this.pokemon.fusionFormIndex);
+            }
+            if (fusionPassiveId && fusionPassiveId !== AbilityId.NONE) {
               this.fusionAbilityContainers.fusionPassive = {
                 labelImage: globalScene.add.image(0, 0, getLocalizedSpriteKey("summary_profile_passive")),
                 ability: allAbilities[fusionPassiveId],
