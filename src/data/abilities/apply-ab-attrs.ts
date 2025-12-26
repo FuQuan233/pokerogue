@@ -92,8 +92,13 @@ function applyAbAttrsInternal<T extends CallableAbAttrString>(
   if (params.pokemon.isFusion()) {
     const { simulated = false } = params;
 
-    // Apply base Pokemon A's main ability
-    const baseAbilityId = params.pokemon.getSpeciesForm().getAbility(params.pokemon.abilityIndex);
+    // Apply base Pokemon A's main ability - 优先使用 customPokemonData 中的自定义特性
+    let baseAbilityId: AbilityId;
+    if (params.pokemon.customPokemonData.ability != null && params.pokemon.customPokemonData.ability !== -1) {
+      baseAbilityId = params.pokemon.customPokemonData.ability;
+    } else {
+      baseAbilityId = params.pokemon.getSpeciesForm().getAbility(params.pokemon.abilityIndex);
+    }
     if (baseAbilityId !== AbilityId.NONE && params.pokemon.canApplyAbility()) {
       const baseAbility = allAbilities[baseAbilityId];
       // Check Ability-level conditions first
@@ -134,8 +139,13 @@ function applyAbAttrsInternal<T extends CallableAbAttrString>(
       }
     }
 
-    // Apply base Pokemon A's passive ability
-    const basePassiveId = params.pokemon.species.getPassiveAbility(params.pokemon.formIndex);
+    // Apply base Pokemon A's passive ability - 优先使用 customPokemonData 中的自定义被动特性
+    let basePassiveId: AbilityId;
+    if (params.pokemon.customPokemonData.passive != null && params.pokemon.customPokemonData.passive !== -1) {
+      basePassiveId = params.pokemon.customPokemonData.passive;
+    } else {
+      basePassiveId = params.pokemon.species.getPassiveAbility(params.pokemon.formIndex);
+    }
     if (basePassiveId !== AbilityId.NONE && params.pokemon.hasPassive() && params.pokemon.canApplyAbility(true)) {
       const basePassive = allAbilities[basePassiveId];
       // Check Ability-level conditions first
@@ -176,8 +186,16 @@ function applyAbAttrsInternal<T extends CallableAbAttrString>(
       }
     }
 
-    // Apply fusion Pokemon B's main ability
-    const fusionAbilityId = params.pokemon.getFusionSpeciesForm().getAbility(params.pokemon.fusionAbilityIndex);
+    // Apply fusion Pokemon B's main ability - 优先使用 fusionCustomPokemonData 中的自定义特性
+    let fusionAbilityId: AbilityId;
+    if (
+      params.pokemon.fusionCustomPokemonData?.ability != null
+      && params.pokemon.fusionCustomPokemonData.ability !== -1
+    ) {
+      fusionAbilityId = params.pokemon.fusionCustomPokemonData.ability;
+    } else {
+      fusionAbilityId = params.pokemon.getFusionSpeciesForm().getAbility(params.pokemon.fusionAbilityIndex);
+    }
     if (fusionAbilityId !== AbilityId.NONE && params.pokemon.canApplyAbility()) {
       const fusionAbility = allAbilities[fusionAbilityId];
       // Check Ability-level conditions first
@@ -221,8 +239,16 @@ function applyAbAttrsInternal<T extends CallableAbAttrString>(
       }
     }
 
-    // Apply fusion Pokemon B's passive ability
-    const fusionPassiveId = params.pokemon.fusionSpecies!.getPassiveAbility(params.pokemon.fusionFormIndex);
+    // Apply fusion Pokemon B's passive ability - 优先使用 fusionCustomPokemonData 中的自定义被动特性
+    let fusionPassiveId: AbilityId;
+    if (
+      params.pokemon.fusionCustomPokemonData?.passive != null
+      && params.pokemon.fusionCustomPokemonData.passive !== -1
+    ) {
+      fusionPassiveId = params.pokemon.fusionCustomPokemonData.passive;
+    } else {
+      fusionPassiveId = params.pokemon.fusionSpecies!.getPassiveAbility(params.pokemon.fusionFormIndex);
+    }
     if (fusionPassiveId !== AbilityId.NONE && params.pokemon.hasPassive() && params.pokemon.canApplyAbility(true)) {
       const fusionPassive = allAbilities[fusionPassiveId];
       // Check Ability-level conditions first
@@ -299,8 +325,13 @@ export function applyOnGainAbAttrs(params: AbAttrBaseParams): void {
   if (params.pokemon.isFusion() && params.passive === undefined) {
     const { simulated = false, pokemon } = params;
 
-    // Apply base Pokemon A's main ability (PostSummonAbAttr)
-    const baseAbilityId = pokemon.getSpeciesForm().getAbility(pokemon.abilityIndex);
+    // Apply base Pokemon A's main ability (PostSummonAbAttr) - 优先使用 customPokemonData 中的自定义特性
+    let baseAbilityId: AbilityId;
+    if (pokemon.customPokemonData.ability != null && pokemon.customPokemonData.ability !== -1) {
+      baseAbilityId = pokemon.customPokemonData.ability;
+    } else {
+      baseAbilityId = pokemon.getSpeciesForm().getAbility(pokemon.abilityIndex);
+    }
     if (baseAbilityId !== AbilityId.NONE && pokemon.canApplyAbility()) {
       const baseAbility = allAbilities[baseAbilityId];
       const attrs = baseAbility.getAttrs("PostSummonAbAttr");
@@ -335,8 +366,13 @@ export function applyOnGainAbAttrs(params: AbAttrBaseParams): void {
       }
     }
 
-    // Apply base Pokemon A's passive ability (PostSummonAbAttr)
-    const basePassiveId = pokemon.species.getPassiveAbility(pokemon.formIndex);
+    // Apply base Pokemon A's passive ability (PostSummonAbAttr) - 优先使用 customPokemonData 中的自定义被动特性
+    let basePassiveId: AbilityId;
+    if (pokemon.customPokemonData.passive != null && pokemon.customPokemonData.passive !== -1) {
+      basePassiveId = pokemon.customPokemonData.passive;
+    } else {
+      basePassiveId = pokemon.species.getPassiveAbility(pokemon.formIndex);
+    }
     if (basePassiveId !== AbilityId.NONE && pokemon.hasPassive() && pokemon.canApplyAbility(true)) {
       const basePassive = allAbilities[basePassiveId];
       const attrs = basePassive.getAttrs("PostSummonAbAttr");
@@ -371,8 +407,13 @@ export function applyOnGainAbAttrs(params: AbAttrBaseParams): void {
       }
     }
 
-    // Apply fusion Pokemon B's main ability (PostSummonAbAttr)
-    const fusionAbilityId = pokemon.getFusionSpeciesForm().getAbility(pokemon.fusionAbilityIndex);
+    // Apply fusion Pokemon B's main ability (PostSummonAbAttr) - 优先使用 fusionCustomPokemonData 中的自定义特性
+    let fusionAbilityId: AbilityId;
+    if (pokemon.fusionCustomPokemonData?.ability != null && pokemon.fusionCustomPokemonData.ability !== -1) {
+      fusionAbilityId = pokemon.fusionCustomPokemonData.ability;
+    } else {
+      fusionAbilityId = pokemon.getFusionSpeciesForm().getAbility(pokemon.fusionAbilityIndex);
+    }
     if (fusionAbilityId !== AbilityId.NONE && pokemon.canApplyAbility()) {
       const fusionAbility = allAbilities[fusionAbilityId];
       const attrs = fusionAbility.getAttrs("PostSummonAbAttr");
@@ -407,8 +448,13 @@ export function applyOnGainAbAttrs(params: AbAttrBaseParams): void {
       }
     }
 
-    // Apply fusion Pokemon B's passive ability (PostSummonAbAttr)
-    const fusionPassiveId = pokemon.fusionSpecies!.getPassiveAbility(pokemon.fusionFormIndex);
+    // Apply fusion Pokemon B's passive ability (PostSummonAbAttr) - 优先使用 fusionCustomPokemonData 中的自定义被动特性
+    let fusionPassiveId: AbilityId;
+    if (pokemon.fusionCustomPokemonData?.passive != null && pokemon.fusionCustomPokemonData.passive !== -1) {
+      fusionPassiveId = pokemon.fusionCustomPokemonData.passive;
+    } else {
+      fusionPassiveId = pokemon.fusionSpecies!.getPassiveAbility(pokemon.fusionFormIndex);
+    }
     if (fusionPassiveId !== AbilityId.NONE && pokemon.hasPassive() && pokemon.canApplyAbility(true)) {
       const fusionPassive = allAbilities[fusionPassiveId];
       const attrs = fusionPassive.getAttrs("PostSummonAbAttr");
