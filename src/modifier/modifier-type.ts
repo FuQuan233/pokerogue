@@ -802,6 +802,7 @@ export class RememberAbilityModifierType extends PokemonModifierType {
   /**
    * 获取宝可梦可回忆的特性列表
    * 包括：本局习得过但现在没有的特性 + 图鉴已解锁但现在没有的特性
+   * 对于融合宝可梦，还包括副将的可回忆特性
    * @param pokemon 目标宝可梦
    * @returns 可回忆的特性ID数组
    */
@@ -809,7 +810,7 @@ export class RememberAbilityModifierType extends PokemonModifierType {
     const currentAbilities = pokemon.getAllAbilities().map(a => a.id);
     const recallableSet = new Set<AbilityId>();
 
-    // 1. 本局习得过但现在没有的特性
+    // 1. 主将本局习得过但现在没有的特性
     const learnedAbilities = pokemon.customPokemonData.learnedAbilities || [];
     for (const abilityId of learnedAbilities) {
       if (!currentAbilities.includes(abilityId)) {
@@ -817,7 +818,7 @@ export class RememberAbilityModifierType extends PokemonModifierType {
       }
     }
 
-    // 2. 图鉴已解锁但现在没有的特性（基于宝可梦的根形态）
+    // 2. 主将图鉴已解锁但现在没有的特性（基于宝可梦的根形态）
     const rootSpeciesId = pokemon.species.getRootSpeciesId();
     const starterData = globalScene.gameData.starterData[rootSpeciesId];
     if (starterData) {
@@ -845,6 +846,49 @@ export class RememberAbilityModifierType extends PokemonModifierType {
         const abilityHidden = speciesForm.abilityHidden;
         if (abilityHidden !== AbilityId.NONE && !currentAbilities.includes(abilityHidden)) {
           recallableSet.add(abilityHidden);
+        }
+      }
+    }
+
+    // 3. 对于融合宝可梦，还需要检查副将的可回忆特性
+    if (pokemon.isFusion() && pokemon.fusionSpecies) {
+      // 3.1 副将本局习得过但现在没有的特性
+      const fusionLearnedAbilities = pokemon.fusionCustomPokemonData?.learnedAbilities || [];
+      for (const abilityId of fusionLearnedAbilities) {
+        if (!currentAbilities.includes(abilityId)) {
+          recallableSet.add(abilityId);
+        }
+      }
+
+      // 3.2 副将图鉴已解锁但现在没有的特性
+      const fusionRootSpeciesId = pokemon.fusionSpecies.getRootSpeciesId();
+      const fusionStarterData = globalScene.gameData.starterData[fusionRootSpeciesId];
+      if (fusionStarterData) {
+        const fusionAbilityAttr = fusionStarterData.abilityAttr || 0;
+        const fusionSpeciesForm = pokemon.getFusionSpeciesForm();
+
+        // 检查 ability1 是否已解锁
+        if (fusionAbilityAttr & AbilityAttr.ABILITY_1) {
+          const ability1 = fusionSpeciesForm.ability1;
+          if (ability1 !== AbilityId.NONE && !currentAbilities.includes(ability1)) {
+            recallableSet.add(ability1);
+          }
+        }
+
+        // 检查 ability2 是否已解锁
+        if (fusionAbilityAttr & AbilityAttr.ABILITY_2) {
+          const ability2 = fusionSpeciesForm.ability2;
+          if (ability2 !== AbilityId.NONE && !currentAbilities.includes(ability2)) {
+            recallableSet.add(ability2);
+          }
+        }
+
+        // 检查隐藏特性是否已解锁
+        if (fusionAbilityAttr & AbilityAttr.ABILITY_HIDDEN) {
+          const abilityHidden = fusionSpeciesForm.abilityHidden;
+          if (abilityHidden !== AbilityId.NONE && !currentAbilities.includes(abilityHidden)) {
+            recallableSet.add(abilityHidden);
+          }
         }
       }
     }
