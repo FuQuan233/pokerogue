@@ -1917,10 +1917,13 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
    * Check which egg moves have been unlocked for this {@linkcode Pokemon}.
    * Looks at either the species it was met at or the first {@linkcode Species} in its evolution
    * line that can act as a starter and provides those egg moves.
+   * For fusion Pokemon, also includes egg moves from the fusion species.
    * @returns An array of all {@linkcode MoveId}s that are egg moves and unlocked for this Pokemon.
    */
   getUnlockedEggMoves(): MoveId[] {
     const moves: MoveId[] = [];
+
+    // Get egg moves from the main species
     const species =
       this.metSpecies in speciesEggMoves ? this.metSpecies : this.getSpeciesForm(true).getRootSpeciesId(true);
     if (species in speciesEggMoves) {
@@ -1930,6 +1933,23 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
         }
       }
     }
+
+    // For fusion Pokemon, also get egg moves from the fusion species
+    if (this.fusionSpecies) {
+      const fusionRootSpecies = this.fusionSpecies.getRootSpeciesId(true);
+      if (fusionRootSpecies in speciesEggMoves) {
+        for (let i = 0; i < 4; i++) {
+          if (globalScene.gameData.starterData[fusionRootSpecies]?.eggMoves & (1 << i)) {
+            const fusionEggMove = speciesEggMoves[fusionRootSpecies][i];
+            // Avoid duplicates
+            if (!moves.includes(fusionEggMove)) {
+              moves.push(fusionEggMove);
+            }
+          }
+        }
+      }
+    }
+
     return moves;
   }
 
