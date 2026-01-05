@@ -138,15 +138,6 @@ function initCommonModifierPool() {
       () => (globalScene.gameMode.isClassic ? 4 : 0), // 仅经典模式，权重4
       4,
     ),
-    // TODO: 限时活动 - 高级扭蛋券从MASTER移到COMMON，活动结束后需还原
-    new WeightedModifierType(
-      modifierTypes.VOUCHER_PREMIUM,
-      (_party: Pokemon[], rerollCount: number) =>
-        !globalScene.gameMode.isDaily && !globalScene.gameMode.isEndless && !globalScene.gameMode.isSplicedOnly
-          ? Math.max(4 - rerollCount * 1, 0)
-          : 0,
-      4, // 约为COMMON池总权重的10%
-    ),
   ].map(m => {
     m.setTier(ModifierTier.COMMON);
     return m;
@@ -665,16 +656,14 @@ function initMasterModifierPool() {
     new WeightedModifierType(modifierTypes.SHINY_CHARM, 14),
     new WeightedModifierType(modifierTypes.HEALING_CHARM, 18),
     new WeightedModifierType(modifierTypes.MULTI_LENS, 18),
-    // TODO: 限时活动 - 高级扭蛋券已移到COMMON池，活动结束后需还原
-    // 原始代码:
-    // new WeightedModifierType(
-    //   modifierTypes.VOUCHER_PREMIUM,
-    //   (_party: Pokemon[], rerollCount: number) =>
-    //     !globalScene.gameMode.isDaily && !globalScene.gameMode.isEndless && !globalScene.gameMode.isSplicedOnly
-    //       ? Math.max(5 - rerollCount * 2, 0)
-    //       : 0,
-    //   5,
-    // ),
+    new WeightedModifierType(
+      modifierTypes.VOUCHER_PREMIUM,
+      (_party: Pokemon[], rerollCount: number) =>
+        !globalScene.gameMode.isDaily && !globalScene.gameMode.isEndless && !globalScene.gameMode.isSplicedOnly
+          ? Math.max(5 - rerollCount * 2, 0)
+          : 0,
+      5,
+    ),
     /*new WeightedModifierType(
       modifierTypes.DNA_SPLICERS,
       (party: Pokemon[]) =>
