@@ -21,7 +21,6 @@ import { MoveResult } from "#enums/move-result";
 import { MoveTarget } from "#enums/move-target";
 import { isReflected, MoveUseMode } from "#enums/move-use-mode";
 import { PokemonType } from "#enums/pokemon-type";
-import { StatusEffect } from "#enums/status-effect";
 import type { Pokemon } from "#field/pokemon";
 import {
   ContactHeldItemTransferChanceModifier,
@@ -1000,22 +999,6 @@ export class MoveEffectPhase extends PokemonPhase {
     // Apply Grip Claw's chance to steal an item from the target
     if (this.move.is("AttackMove")) {
       globalScene.applyModifiers(ContactHeldItemTransferChanceModifier, this.player, user, target);
-    }
-
-    // Classic mode: All damaging moves have an additional chance to freeze the target
-    // Contact moves have 20% chance, other damaging moves have 10% chance
-    if (
-      globalScene.gameMode.isClassic
-      && dealsDamage
-      && this.move.category !== MoveCategory.STATUS
-      && !target.isFainted()
-    ) {
-      const isContact = this.move.doesFlagEffectApply({ flag: MoveFlags.MAKES_CONTACT, user, target });
-      const freezeChance = isContact ? 20 : 10;
-
-      if (user.randBattleSeedInt(100) < freezeChance) {
-        target.trySetStatus(StatusEffect.FREEZE, user, undefined, null, false, true);
-      }
     }
   }
 }
