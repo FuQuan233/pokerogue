@@ -2828,7 +2828,13 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     }
 
     // Winter event: Ice-type Pokemon in Classic mode take at most 1x damage from super effective moves
-    if (globalScene.gameMode.isClassic && this.isOfType(PokemonType.ICE) && multiplier > 1) {
+    // Does not apply to Pokemon with Wonder Guard ability
+    if (
+      globalScene.gameMode.isClassic
+      && this.isOfType(PokemonType.ICE)
+      && multiplier > 1
+      && !this.hasAbility(AbilityId.WONDER_GUARD, false, true)
+    ) {
       multiplier = 1 as TypeDamageMultiplier;
     }
 
