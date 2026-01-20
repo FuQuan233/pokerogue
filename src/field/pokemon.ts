@@ -42,6 +42,11 @@ import {
   TypeImmuneTag,
 } from "#data/battler-tags";
 import { getDailyEventSeedBoss } from "#data/daily-run";
+import {
+  type DamageCalculationEntry,
+  type DamageCalculationParams,
+  damageCalculationLog,
+} from "#data/damage-calculation-log";
 import { allAbilities, allMoves } from "#data/data-lists";
 import { getLevelTotalExp } from "#data/exp";
 import {
@@ -4078,6 +4083,49 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     // debug message for when damage is applied (i.e. not simulated)
     if (!simulated) {
       console.log("damage", damage.value, move.name);
+
+      // 记录伤害计算过程
+      const damageParams: DamageCalculationParams = {
+        levelMultiplier: (2 * source.level) / 5 + 2,
+        attackerLevel: source.level,
+        movePower: move.calculateBattlePower(source, this, true),
+        attackStat: source.getEffectiveStat(isPhysical ? Stat.ATK : Stat.SPATK, this),
+        defenseStat: this.getEffectiveStat(isPhysical ? Stat.DEF : Stat.SPDEF, source),
+        baseDamage,
+        targetMultiplier,
+        multiStrikeMultiplier: multiStrikeEnhancementMultiplier.value,
+        arenaMultiplier: arenaAttackTypeMultiplier.value,
+        glaiveRushMultiplier: glaiveRushMultiplier.value,
+        criticalMultiplier: criticalMultiplier.value,
+        randomMultiplier,
+        stabMultiplier,
+        typeMultiplier,
+        burnMultiplier,
+        screenMultiplier: screenMultiplier.value,
+        hitsTagMultiplier: hitsTagMultiplier.value,
+        mistyTerrainMultiplier,
+        abilityDamageMultiplier: 1, // 特性修正已经包含在damage.value中
+        enemyModifier: 1, // 敌方修正已经包含在damage.value中
+        lifeOrbMultiplier: 1, // 生命宝珠修正在其他地方处理
+      };
+
+      const entry: DamageCalculationEntry = {
+        attackerName: source.getNameToRender(),
+        attackerSpecies: source.species.speciesId,
+        attackerIsPlayer: source.isPlayer(),
+        defenderName: this.getNameToRender(),
+        defenderSpecies: this.species.speciesId,
+        moveId: move.id,
+        moveName: move.name,
+        moveType,
+        moveCategory: isPhysical ? "物理" : "特殊",
+        isCritical,
+        finalDamage: damage.value,
+        params: damageParams,
+        timestamp: Date.now(),
+      };
+
+      damageCalculationLog.addEntry(entry);
     }
 
     let hitResult: HitResult;

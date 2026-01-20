@@ -1,5 +1,6 @@
 import { globalScene } from "#app/global-scene";
 import { getPokemonNameWithAffix } from "#app/messages";
+import { damageCalculationLog } from "#data/damage-calculation-log";
 import { getTypeRgb } from "#data/type";
 import { Button } from "#enums/buttons";
 import { Command } from "#enums/command";
@@ -19,6 +20,9 @@ export class CommandUiHandler extends UiHandler {
   private cursorObj: Phaser.GameObjects.Image | null;
 
   private teraButton: Phaser.GameObjects.Sprite;
+  private damageLogKey: Phaser.Input.Keyboard.Key | null = null;
+  private showingDamageLog = false;
+  private damageLogCurrentIndex = 0;
 
   protected fieldIndex = 0;
   protected cursor2 = 0;
@@ -40,6 +44,11 @@ export class CommandUiHandler extends UiHandler {
     this.commandsContainer.setName("commands");
     this.commandsContainer.setVisible(false);
     ui.add(this.commandsContainer);
+
+    // 设置 E 键监听用于显示伤害日志
+    if (globalScene.input.keyboard) {
+      this.damageLogKey = globalScene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+    }
 
     this.teraButton = globalScene.add.sprite(-32, 15, "button_tera");
     this.teraButton.setName("terastallize-button");
@@ -96,10 +105,15 @@ export class CommandUiHandler extends UiHandler {
     messageHandler.commandWindow.setVisible(true);
     messageHandler.movesWindowContainer.setVisible(false);
     messageHandler.message.setWordWrapWidth(this.canTera() ? 910 : 1110);
+
+    // 添加 E 键提示（如果有上一回合的伤害记录）
+    const hasLastTurnDamage = damageCalculationLog.getLastTurnEntries().length > 0;
+    const damageLogHint = hasLastTurnDamage ? " [E:伤害日志]" : "";
+
     messageHandler.showText(
       i18next.t("commandUiHandler:actionMessage", {
         pokemonName: getPokemonNameWithAffix(commandPhase.getPokemon()),
-      }),
+      }) + damageLogHint,
       0,
     );
     if (this.getCursor() === Command.POKEMON) {
@@ -108,7 +122,70 @@ export class CommandUiHandler extends UiHandler {
       this.setCursor(this.getCursor());
     }
 
+    // 重置伤害日志显示状态
+    this.showingDamageLog = false;
+    this.damageLogCurrentIndex = 0;
+
     return true;
+  }
+
+  /**
+   * 显示伤害日志
+   */
+  private showDamageLog(): void {
+    const entries = damageCalculationLog.getLastTurnEntries();
+    if (entries.length === 0) {
+      return;
+    }
+
+    this.showingDamageLog = true;
+    this.showDamageLogEntry(this.damageLogCurrentIndex);
+  }
+
+  /**
+   * 显示指定索引的伤害日志条目
+   */
+  private showDamageLogEntry(index: number): void {
+    const entries = damageCalculationLog.getLastTurnEntries();
+    if (index < 0 || index >= entries.length) {
+      return;
+    }
+
+    const entry = entries[index];
+    const logText = damageCalculationLog.formatEntry(entry);
+    const navigationHint =
+      entries.length > 1 ? `\n\n【${index + 1}/${entries.length}】按左右方向键切换，按取消键返回` : "\n\n按任意键返回";
+
+    const messageHandler = this.getUi().getMessageHandler();
+    messageHandler.showText(logText + navigationHint, 0, undefined, undefined, true);
+  }
+
+  /**
+   * 关闭伤害日志显示
+   */
+  private closeDamageLog(): void {
+    this.showingDamageLog = false;
+    this.damageLogCurrentIndex = 0;
+
+    // 恢复正常的命令提示
+    let commandPhase: CommandPhase;
+    const currentPhase = globalScene.phaseManager.getCurrentPhase();
+    if (currentPhase?.is("CommandPhase")) {
+      commandPhase = currentPhase;
+    } else {
+      commandPhase = globalScene.phaseManager.getStandbyPhase() as CommandPhase;
+    }
+
+    const hasLastTurnDamage = damageCalculationLog.getLastTurnEntries().length > 0;
+    const damageLogHint = hasLastTurnDamage ? " [E:伤害日志]" : "";
+
+    const messageHandler = this.getUi().getMessageHandler();
+    messageHandler.showText(
+      i18next.t("commandUiHandler:actionMessage", {
+        pokemonName: getPokemonNameWithAffix(commandPhase.getPokemon()),
+      }) + damageLogHint,
+      0,
+    );
   }
 
   processInput(button: Button): boolean {
@@ -117,6 +194,34 @@ export class CommandUiHandler extends UiHandler {
     let success = false;
 
     const cursor = this.getCursor();
+
+    // 如果正在显示伤害日志，处理日志导航
+    if (this.showingDamageLog) {
+      const entries = damageCalculationLog.getLastTurnEntries();
+      if (button === Button.LEFT && this.damageLogCurrentIndex > 0) {
+        this.damageLogCurrentIndex--;
+        this.showDamageLogEntry(this.damageLogCurrentIndex);
+        success = true;
+      } else if (button === Button.RIGHT && this.damageLogCurrentIndex < entries.length - 1) {
+        this.damageLogCurrentIndex++;
+        this.showDamageLogEntry(this.damageLogCurrentIndex);
+        success = true;
+      } else if (button === Button.CANCEL || button === Button.ACTION) {
+        this.closeDamageLog();
+        success = true;
+      }
+      if (success) {
+        ui.playSelect();
+      }
+      return success;
+    }
+
+    // 检测 E 键显示伤害日志
+    if (this.damageLogKey?.isDown && damageCalculationLog.getLastTurnEntries().length > 0) {
+      this.showDamageLog();
+      ui.playSelect();
+      return true;
+    }
 
     if (button === Button.CANCEL || button === Button.ACTION) {
       if (button === Button.ACTION) {

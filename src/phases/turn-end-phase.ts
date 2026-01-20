@@ -1,6 +1,7 @@
 import { applyAbAttrs } from "#abilities/apply-ab-attrs";
 import { globalScene } from "#app/global-scene";
 import { getPokemonNameWithAffix } from "#app/messages";
+import { damageCalculationLog } from "#data/damage-calculation-log";
 import { TerrainType } from "#data/terrain";
 import { BattlerTagLapseType } from "#enums/battler-tag-lapse-type";
 import { WeatherType } from "#enums/weather-type";
@@ -22,6 +23,9 @@ export class TurnEndPhase extends FieldPhase {
 
   start() {
     super.start();
+
+    // 保存当前回合的伤害计算记录到上一回合
+    damageCalculationLog.endTurn();
 
     globalScene.currentBattle.incrementTurn();
     globalScene.eventTarget.dispatchEvent(new TurnEndEvent(globalScene.currentBattle.turn));
