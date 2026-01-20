@@ -86,6 +86,16 @@ export interface DamageCalculationParams {
   lifeOrbMultiplier: number;
 }
 
+const clampText = (value: string, maxLength: number): string => {
+  if (value.length <= maxLength) {
+    return value;
+  }
+  if (maxLength <= 3) {
+    return value.slice(0, maxLength);
+  }
+  return `${value.slice(0, maxLength - 3)}...`;
+};
+
 /**
  * 伤害计算日志管理器
  * 存储每个回合的伤害计算记录
@@ -141,14 +151,17 @@ export class DamageCalculationLog {
     const lines: string[] = [];
 
     // 标题行（极简）
-    lines.push(`${entry.attackerName}→${entry.defenderName}`);
-    lines.push(`${entry.moveName} ${entry.moveCategory}${entry.isCritical ? " 暴击" : ""}`);
+    const attacker = clampText(entry.attackerName, 6);
+    const defender = clampText(entry.defenderName, 6);
+    const moveName = clampText(entry.moveName, 6);
+    lines.push(`${attacker}→${defender}`);
+    lines.push(`${moveName} ${entry.moveCategory}${entry.isCritical ? " 暴击" : ""}`);
     // 基础参数（分两行显示）
     lines.push(`Lv${p.attackerLevel} 威力${p.movePower}`);
     lines.push(`攻${p.attackStat} 防${p.defenseStat}`);
     lines.push(`基伤${p.baseDamage.toFixed(0)}`);
 
-    // 伤害修正（只显示非1的修正，每行3个）
+    // 伤害修正（只显示非1的修正，每行2个）
     const modifiers: string[] = [];
     if (p.targetMultiplier !== 1) {
       modifiers.push(`多目标${p.targetMultiplier.toFixed(2)}`);

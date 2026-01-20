@@ -131,10 +131,8 @@ export class CommandUiHandler extends UiHandler {
     this.damageLogBg.setStrokeStyle(2, 0x4a90d9);
     this.damageLogOverlay.add(this.damageLogBg);
 
-    // 日志文本 - 按行显示，通过截取数组实现滚动
-    this.damageLogText = addTextObject(DAMAGE_LOG_CONFIG.PADDING, DAMAGE_LOG_CONFIG.PADDING, "", TextStyle.WINDOW, {
-      wordWrap: { width: width - DAMAGE_LOG_CONFIG.PADDING * 2 - 8 },
-    });
+    // 日志文本 - 禁用自动换行，避免与滚动行数不一致
+    this.damageLogText = addTextObject(DAMAGE_LOG_CONFIG.PADDING, DAMAGE_LOG_CONFIG.PADDING, "", TextStyle.WINDOW);
     this.damageLogText.setOrigin(0, 0);
     this.damageLogText.setLineSpacing(1);
     this.damageLogOverlay.add(this.damageLogText);
