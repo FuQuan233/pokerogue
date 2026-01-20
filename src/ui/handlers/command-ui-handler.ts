@@ -18,9 +18,9 @@ import i18next from "i18next";
 // 伤害日志显示配置
 const DAMAGE_LOG_CONFIG = {
   PADDING: 8,
-  LINE_HEIGHT: 12,
-  VISIBLE_LINES: 12, // 一屏可见行数
-  SCROLL_STEP: 2, // 每次滚动行数
+  LINE_HEIGHT: 10, // 每行高度（像素）
+  NAV_HEIGHT: 16, // 导航栏高度
+  SCROLL_PIXELS: 20, // 每次滚动像素数
 };
 
 export class CommandUiHandler extends UiHandler {
@@ -132,15 +132,30 @@ export class CommandUiHandler extends UiHandler {
     this.damageLogBg.setStrokeStyle(2, 0x4a90d9);
     this.damageLogOverlay.add(this.damageLogBg);
 
-    // 日志文本
-    this.damageLogText = addTextObject(DAMAGE_LOG_CONFIG.PADDING, DAMAGE_LOG_CONFIG.PADDING, "", TextStyle.WINDOW, {
+    // 计算文本区域高度（排除导航栏）
+    const textAreaHeight = height - DAMAGE_LOG_CONFIG.PADDING * 2 - DAMAGE_LOG_CONFIG.NAV_HEIGHT;
+
+    // 创建文本容器（用于裁剪）
+    const textContainer = globalScene.add.container(DAMAGE_LOG_CONFIG.PADDING, DAMAGE_LOG_CONFIG.PADDING);
+
+    // 日志文本 - 显示完整内容，通过调整 Y 位置来滚动
+    this.damageLogText = addTextObject(0, 0, "", TextStyle.WINDOW, {
       wordWrap: { width: width - DAMAGE_LOG_CONFIG.PADDING * 2 - 8 },
     });
     this.damageLogText.setOrigin(0, 0);
     this.damageLogText.setLineSpacing(1);
-    this.damageLogOverlay.add(this.damageLogText);
+    textContainer.add(this.damageLogText);
 
-    // 导航提示文本
+    // 创建遮罩来裁剪超出区域的文本
+    const maskGraphics = globalScene.make.graphics({});
+    maskGraphics.fillStyle(0xffffff);
+    maskGraphics.fillRect(0, 0, width - DAMAGE_LOG_CONFIG.PADDING, textAreaHeight);
+    const mask = maskGraphics.createGeometryMask();
+    textContainer.setMask(mask);
+
+    this.damageLogOverlay.add(textContainer);
+
+    // 导航提示文本（在底部）
     this.damageLogNavText = addTextObject(width / 2, height - DAMAGE_LOG_CONFIG.PADDING, "", TextStyle.WINDOW);
     this.damageLogNavText.setOrigin(0.5, 1);
     this.damageLogOverlay.add(this.damageLogNavText);
@@ -240,6 +255,7 @@ export class CommandUiHandler extends UiHandler {
     if (entries.length === 0) {
       if (this.damageLogText) {
         this.damageLogText.setText("上一回合没有造成伤害的攻击记录。");
+        this.damageLogText.setY(0);
       }
       if (this.damageLogNavText) {
         this.damageLogNavText.setText("按任意键返回");
@@ -252,26 +268,25 @@ export class CommandUiHandler extends UiHandler {
     const logText = damageCalculationLog.formatEntry(entry);
     this.damageLogLines = logText.split("\n");
 
-    // 计算可显示的行数并根据滚动偏移截取
-    const visibleLines = this.damageLogLines.slice(
-      this.damageLogScrollOffset,
-      this.damageLogScrollOffset + DAMAGE_LOG_CONFIG.VISIBLE_LINES,
-    );
-
+    // 显示完整文本内容
     if (this.damageLogText) {
-      this.damageLogText.setText(visibleLines.join("\n"));
+      this.damageLogText.setText(logText);
+      // 通过调整 Y 位置来实现滚动效果
+      this.damageLogText.setY(-this.damageLogScrollOffset);
     }
+
+    // 计算文本总高度和可视区域高度
+    const height = globalScene.scaledCanvas.height;
+    const textAreaHeight = height - DAMAGE_LOG_CONFIG.PADDING * 2 - DAMAGE_LOG_CONFIG.NAV_HEIGHT;
+    const textHeight = this.damageLogText ? this.damageLogText.height : 0;
+    const canScroll = textHeight > textAreaHeight;
 
     // 构建导航提示
     const navParts: string[] = [];
 
     // 上下滚动提示
-    if (this.damageLogLines.length > DAMAGE_LOG_CONFIG.VISIBLE_LINES) {
-      const canScrollUp = this.damageLogScrollOffset > 0;
-      const canScrollDown = this.damageLogScrollOffset + DAMAGE_LOG_CONFIG.VISIBLE_LINES < this.damageLogLines.length;
-      if (canScrollUp || canScrollDown) {
-        navParts.push("↑↓滚动");
-      }
+    if (canScroll) {
+      navParts.push("↑↓滚动");
     }
 
     // 左右切换提示
@@ -312,20 +327,26 @@ export class CommandUiHandler extends UiHandler {
     if (this.showingDamageLog) {
       const entries = damageCalculationLog.getLastTurnEntries();
 
+      // 计算最大滚动距离
+      const height = globalScene.scaledCanvas.height;
+      const textAreaHeight = height - DAMAGE_LOG_CONFIG.PADDING * 2 - DAMAGE_LOG_CONFIG.NAV_HEIGHT;
+      const textHeight = this.damageLogText ? this.damageLogText.height : 0;
+      const maxScroll = Math.max(0, textHeight - textAreaHeight);
+
       switch (button) {
-        // 上下滚动
+        // 上下滚动（像素滚动）
         case Button.UP:
           if (this.damageLogScrollOffset > 0) {
-            this.damageLogScrollOffset = Math.max(0, this.damageLogScrollOffset - DAMAGE_LOG_CONFIG.SCROLL_STEP);
+            this.damageLogScrollOffset = Math.max(0, this.damageLogScrollOffset - DAMAGE_LOG_CONFIG.SCROLL_PIXELS);
             this.updateDamageLogDisplay();
             success = true;
           }
           break;
         case Button.DOWN:
-          if (this.damageLogScrollOffset + DAMAGE_LOG_CONFIG.VISIBLE_LINES < this.damageLogLines.length) {
+          if (this.damageLogScrollOffset < maxScroll) {
             this.damageLogScrollOffset = Math.min(
-              this.damageLogLines.length - DAMAGE_LOG_CONFIG.VISIBLE_LINES,
-              this.damageLogScrollOffset + DAMAGE_LOG_CONFIG.SCROLL_STEP,
+              maxScroll,
+              this.damageLogScrollOffset + DAMAGE_LOG_CONFIG.SCROLL_PIXELS,
             );
             this.updateDamageLogDisplay();
             success = true;
