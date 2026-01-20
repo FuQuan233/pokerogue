@@ -199,8 +199,56 @@ export class DamageCalculationLog {
       lines.push(line);
     }
 
+    // 构建完整计算公式
+    const formulaParts: string[] = [p.baseDamage.toFixed(0)];
+    if (p.targetMultiplier !== 1) {
+      formulaParts.push(p.targetMultiplier.toFixed(2));
+    }
+    if (p.multiStrikeMultiplier !== 1) {
+      formulaParts.push(p.multiStrikeMultiplier.toFixed(2));
+    }
+    if (p.arenaMultiplier !== 1) {
+      formulaParts.push(p.arenaMultiplier.toFixed(2));
+    }
+    if (p.glaiveRushMultiplier !== 1) {
+      formulaParts.push(p.glaiveRushMultiplier.toFixed(2));
+    }
+    if (p.criticalMultiplier !== 1) {
+      formulaParts.push(p.criticalMultiplier.toFixed(2));
+    }
+    formulaParts.push(p.randomMultiplier.toFixed(2));
+    if (p.stabMultiplier !== 1) {
+      formulaParts.push(p.stabMultiplier.toFixed(2));
+    }
+    if (p.typeMultiplier !== 1) {
+      formulaParts.push(p.typeMultiplier.toFixed(2));
+    }
+    if (p.burnMultiplier !== 1) {
+      formulaParts.push(p.burnMultiplier.toFixed(2));
+    }
+    if (p.screenMultiplier !== 1) {
+      formulaParts.push(p.screenMultiplier.toFixed(2));
+    }
+    if (p.hitsTagMultiplier !== 1) {
+      formulaParts.push(p.hitsTagMultiplier.toFixed(2));
+    }
+    if (p.mistyTerrainMultiplier !== 1) {
+      formulaParts.push(p.mistyTerrainMultiplier.toFixed(2));
+    }
+    if (p.abilityDamageMultiplier !== 1) {
+      formulaParts.push(p.abilityDamageMultiplier.toFixed(2));
+    }
+    if (p.enemyModifier !== 1) {
+      formulaParts.push(p.enemyModifier.toFixed(2));
+    }
+    if (p.lifeOrbMultiplier !== 1) {
+      formulaParts.push(p.lifeOrbMultiplier.toFixed(2));
+    }
+
+    const formula = formulaParts.join("×");
+
     lines.push("────────────────────────");
-    lines.push(`★ 最终伤害: ${entry.finalDamage}`);
+    lines.push(`★ ${formula}=${entry.finalDamage}`);
 
     return lines.join("\n");
   }
