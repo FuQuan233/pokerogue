@@ -16,5 +16,4 @@ export enum Button {
   CYCLE_TERA,
   SPEED_UP,
   SLOW_DOWN,
-  DAMAGE_LOG,
 }

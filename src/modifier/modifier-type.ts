@@ -426,6 +426,36 @@ export class PokemonHeldItemModifierType extends PokemonModifierType {
   }
 }
 
+/**
+ * 支持硬编码中文名称和描述的持有物道具类型
+ * 用于不依赖本地化系统的自定义道具
+ */
+export class HardcodedPokemonHeldItemModifierType extends PokemonHeldItemModifierType {
+  private _name: string;
+  private _description: string;
+
+  constructor(
+    name: string,
+    description: string,
+    iconImage: string,
+    newModifierFunc: NewModifierFunc,
+    group?: string,
+    soundName?: string,
+  ) {
+    super("", iconImage, newModifierFunc, group, soundName);
+    this._name = name;
+    this._description = description;
+  }
+
+  override get name(): string {
+    return this._name;
+  }
+
+  override getDescription(): string {
+    return this._description;
+  }
+}
+
 export class TerastallizeModifierType extends PokemonModifierType {
   private teraType: PokemonType;
 
@@ -2384,28 +2414,32 @@ const modifierTypeInitObj = Object.freeze({
       (type, args) => new TurnStatusEffectModifier(type, (args[0] as Pokemon).id),
     ),
 
-  // Classic mode only items - Life Orb and Choice items
+  // Classic mode only items - Life Orb and Choice items (硬编码中文)
   LIFE_ORB: () =>
-    new PokemonHeldItemModifierType(
-      "modifierType:ModifierType.LIFE_ORB",
+    new HardcodedPokemonHeldItemModifierType(
+      "生命宝珠",
+      "携带后，每次使用伤害类招式时HP减少最大HP的10%，\n但招式威力提高30%。（仅限经典模式）",
       "toxic_orb", // 使用剧毒宝珠图片
       (type, args) => new LifeOrbModifier(type, (args[0] as Pokemon).id),
     ),
   CHOICE_BAND: () =>
-    new PokemonHeldItemModifierType(
-      "modifierType:ModifierType.CHOICE_BAND",
+    new HardcodedPokemonHeldItemModifierType(
+      "讲究头带",
+      "携带后，攻击提高50%，但只能连续使用相同的招式。\n替换宝可梦下场后重置。（仅限经典模式）",
       "focus_band", // 使用气势头带图片
       (type, args) => new ChoiceBandModifier(type, (args[0] as Pokemon).id),
     ),
   CHOICE_SPECS: () =>
-    new PokemonHeldItemModifierType(
-      "modifierType:ModifierType.CHOICE_SPECS",
+    new HardcodedPokemonHeldItemModifierType(
+      "讲究眼镜",
+      "携带后，特攻提高50%，但只能连续使用相同的招式。\n替换宝可梦下场后重置。（仅限经典模式）",
       "choice_specs",
       (type, args) => new ChoiceSpecsModifier(type, (args[0] as Pokemon).id),
     ),
   CHOICE_SCARF: () =>
-    new PokemonHeldItemModifierType(
-      "modifierType:ModifierType.CHOICE_SCARF",
+    new HardcodedPokemonHeldItemModifierType(
+      "讲究围巾",
+      "携带后，速度提高50%，但只能连续使用相同的招式。\n替换宝可梦下场后重置。（仅限经典模式）",
       "choice_scarf",
       (type, args) => new ChoiceScarfModifier(type, (args[0] as Pokemon).id),
     ),

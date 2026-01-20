@@ -20,7 +20,6 @@ export class CommandUiHandler extends UiHandler {
   private cursorObj: Phaser.GameObjects.Image | null;
 
   private teraButton: Phaser.GameObjects.Sprite;
-  private damageLogKey: Phaser.Input.Keyboard.Key | null = null;
   private showingDamageLog = false;
   private damageLogCurrentIndex = 0;
 
@@ -44,11 +43,6 @@ export class CommandUiHandler extends UiHandler {
     this.commandsContainer.setName("commands");
     this.commandsContainer.setVisible(false);
     ui.add(this.commandsContainer);
-
-    // 设置 E 键监听用于显示伤害日志
-    if (globalScene.input.keyboard) {
-      this.damageLogKey = globalScene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
-    }
 
     this.teraButton = globalScene.add.sprite(-32, 15, "button_tera");
     this.teraButton.setName("terastallize-button");
@@ -106,9 +100,9 @@ export class CommandUiHandler extends UiHandler {
     messageHandler.movesWindowContainer.setVisible(false);
     messageHandler.message.setWordWrapWidth(this.canTera() ? 910 : 1110);
 
-    // 添加 E 键提示（如果有上一回合的伤害记录）
+    // 添加 C 键提示（如果有上一回合的伤害记录）- C键对应 Button.STATS，移动端有虚拟按键
     const hasLastTurnDamage = damageCalculationLog.getLastTurnEntries().length > 0;
-    const damageLogHint = hasLastTurnDamage ? " [E:伤害日志]" : "";
+    const damageLogHint = hasLastTurnDamage ? " [C:伤害日志]" : "";
 
     messageHandler.showText(
       i18next.t("commandUiHandler:actionMessage", {
@@ -177,7 +171,7 @@ export class CommandUiHandler extends UiHandler {
     }
 
     const hasLastTurnDamage = damageCalculationLog.getLastTurnEntries().length > 0;
-    const damageLogHint = hasLastTurnDamage ? " [E:伤害日志]" : "";
+    const damageLogHint = hasLastTurnDamage ? " [C:伤害日志]" : "";
 
     const messageHandler = this.getUi().getMessageHandler();
     messageHandler.showText(
@@ -216,8 +210,8 @@ export class CommandUiHandler extends UiHandler {
       return success;
     }
 
-    // 检测 E 键显示伤害日志
-    if (this.damageLogKey?.isDown && damageCalculationLog.getLastTurnEntries().length > 0) {
+    // 使用 Button.STATS (C键) 显示伤害日志 - 移动端有虚拟按键支持
+    if (button === Button.STATS && damageCalculationLog.getLastTurnEntries().length > 0) {
       this.showDamageLog();
       ui.playSelect();
       return true;
