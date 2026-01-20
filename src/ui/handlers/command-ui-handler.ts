@@ -15,6 +15,14 @@ import { addTextObject } from "#ui/text";
 import { UiHandler } from "#ui/ui-handler";
 import i18next from "i18next";
 
+// 伤害日志显示配置
+const DAMAGE_LOG_CONFIG = {
+  PADDING: 8,
+  LINE_HEIGHT: 12,
+  VISIBLE_LINES: 12, // 一屏可见行数
+  SCROLL_STEP: 2, // 每次滚动行数
+};
+
 export class CommandUiHandler extends UiHandler {
   private commandsContainer: Phaser.GameObjects.Container;
   private cursorObj: Phaser.GameObjects.Image | null;
@@ -23,6 +31,14 @@ export class CommandUiHandler extends UiHandler {
   private damageLogButton: Phaser.GameObjects.Container | null = null;
   private showingDamageLog = false;
   private damageLogCurrentIndex = 0;
+  private damageLogScrollOffset = 0;
+  private damageLogLines: string[] = [];
+
+  // 伤害日志全屏覆盖层
+  private damageLogOverlay: Phaser.GameObjects.Container | null = null;
+  private damageLogBg: Phaser.GameObjects.Rectangle | null = null;
+  private damageLogText: Phaser.GameObjects.Text | null = null;
+  private damageLogNavText: Phaser.GameObjects.Text | null = null;
 
   protected fieldIndex = 0;
   protected cursor2 = 0;
@@ -93,6 +109,48 @@ export class CommandUiHandler extends UiHandler {
     });
 
     this.commandsContainer.add(this.damageLogButton);
+
+    // 创建伤害日志全屏覆盖层（初始隐藏）
+    this.createDamageLogOverlay();
+  }
+
+  /**
+   * 创建伤害日志全屏覆盖层
+   */
+  private createDamageLogOverlay(): void {
+    const width = globalScene.game.canvas.width / 6;
+    const height = globalScene.game.canvas.height / 6;
+
+    this.damageLogOverlay = globalScene.add.container(0, 0);
+    this.damageLogOverlay.setName("damage-log-overlay");
+    this.damageLogOverlay.setVisible(false);
+    this.damageLogOverlay.setDepth(1000); // 确保在最上层
+
+    // 半透明黑色背景
+    this.damageLogBg = globalScene.add.rectangle(width / 2, height / 2, width - 16, height - 16, 0x000000, 0.9);
+    this.damageLogBg.setStrokeStyle(2, 0x4a90d9);
+    this.damageLogOverlay.add(this.damageLogBg);
+
+    // 日志文本
+    this.damageLogText = addTextObject(
+      DAMAGE_LOG_CONFIG.PADDING + 8,
+      DAMAGE_LOG_CONFIG.PADDING + 8,
+      "",
+      TextStyle.WINDOW,
+      { fontSize: "72px", wordWrap: { width: width - 40 } },
+    );
+    this.damageLogText.setOrigin(0, 0);
+    this.damageLogText.setLineSpacing(2);
+    this.damageLogOverlay.add(this.damageLogText);
+
+    // 导航提示文本
+    this.damageLogNavText = addTextObject(width / 2, height - DAMAGE_LOG_CONFIG.PADDING - 12, "", TextStyle.WINDOW, {
+      fontSize: "72px",
+    });
+    this.damageLogNavText.setOrigin(0.5, 1);
+    this.damageLogOverlay.add(this.damageLogNavText);
+
+    this.getUi().add(this.damageLogOverlay);
   }
 
   show(args: any[]): boolean {
@@ -162,25 +220,69 @@ export class CommandUiHandler extends UiHandler {
     }
 
     this.showingDamageLog = true;
-    this.showDamageLogEntry(this.damageLogCurrentIndex);
+    this.damageLogCurrentIndex = 0;
+    this.damageLogScrollOffset = 0;
+    this.updateDamageLogDisplay();
+
+    // 显示覆盖层
+    if (this.damageLogOverlay) {
+      this.damageLogOverlay.setVisible(true);
+    }
   }
 
   /**
-   * 显示指定索引的伤害日志条目
+   * 更新伤害日志显示内容
    */
-  private showDamageLogEntry(index: number): void {
+  private updateDamageLogDisplay(): void {
     const entries = damageCalculationLog.getLastTurnEntries();
-    if (index < 0 || index >= entries.length) {
+
+    if (entries.length === 0) {
+      if (this.damageLogText) {
+        this.damageLogText.setText("上一回合没有造成伤害的攻击记录。");
+      }
+      if (this.damageLogNavText) {
+        this.damageLogNavText.setText("按任意键返回");
+      }
+      this.damageLogLines = [];
       return;
     }
 
-    const entry = entries[index];
+    const entry = entries[this.damageLogCurrentIndex];
     const logText = damageCalculationLog.formatEntry(entry);
-    const navigationHint =
-      entries.length > 1 ? `\n\n【${index + 1}/${entries.length}】按左右方向键切换，按取消键返回` : "\n\n按任意键返回";
+    this.damageLogLines = logText.split("\n");
 
-    const messageHandler = this.getUi().getMessageHandler();
-    messageHandler.showText(logText + navigationHint, 0, undefined, undefined, true);
+    // 计算可显示的行数并根据滚动偏移截取
+    const visibleLines = this.damageLogLines.slice(
+      this.damageLogScrollOffset,
+      this.damageLogScrollOffset + DAMAGE_LOG_CONFIG.VISIBLE_LINES,
+    );
+
+    if (this.damageLogText) {
+      this.damageLogText.setText(visibleLines.join("\n"));
+    }
+
+    // 构建导航提示
+    const navParts: string[] = [];
+
+    // 上下滚动提示
+    if (this.damageLogLines.length > DAMAGE_LOG_CONFIG.VISIBLE_LINES) {
+      const canScrollUp = this.damageLogScrollOffset > 0;
+      const canScrollDown = this.damageLogScrollOffset + DAMAGE_LOG_CONFIG.VISIBLE_LINES < this.damageLogLines.length;
+      if (canScrollUp || canScrollDown) {
+        navParts.push("↑↓滚动");
+      }
+    }
+
+    // 左右切换提示
+    if (entries.length > 1) {
+      navParts.push(`←→切换(${this.damageLogCurrentIndex + 1}/${entries.length})`);
+    }
+
+    navParts.push("取消键返回");
+
+    if (this.damageLogNavText) {
+      this.damageLogNavText.setText(navParts.join(" | "));
+    }
   }
 
   /**
@@ -189,23 +291,13 @@ export class CommandUiHandler extends UiHandler {
   private closeDamageLog(): void {
     this.showingDamageLog = false;
     this.damageLogCurrentIndex = 0;
+    this.damageLogScrollOffset = 0;
+    this.damageLogLines = [];
 
-    // 恢复正常的命令提示
-    let commandPhase: CommandPhase;
-    const currentPhase = globalScene.phaseManager.getCurrentPhase();
-    if (currentPhase?.is("CommandPhase")) {
-      commandPhase = currentPhase;
-    } else {
-      commandPhase = globalScene.phaseManager.getStandbyPhase() as CommandPhase;
+    // 隐藏覆盖层
+    if (this.damageLogOverlay) {
+      this.damageLogOverlay.setVisible(false);
     }
-
-    const messageHandler = this.getUi().getMessageHandler();
-    messageHandler.showText(
-      i18next.t("commandUiHandler:actionMessage", {
-        pokemonName: getPokemonNameWithAffix(commandPhase.getPokemon()),
-      }),
-      0,
-    );
   }
 
   processInput(button: Button): boolean {
@@ -218,18 +310,51 @@ export class CommandUiHandler extends UiHandler {
     // 如果正在显示伤害日志，处理日志导航
     if (this.showingDamageLog) {
       const entries = damageCalculationLog.getLastTurnEntries();
-      if (button === Button.LEFT && this.damageLogCurrentIndex > 0) {
-        this.damageLogCurrentIndex--;
-        this.showDamageLogEntry(this.damageLogCurrentIndex);
-        success = true;
-      } else if (button === Button.RIGHT && this.damageLogCurrentIndex < entries.length - 1) {
-        this.damageLogCurrentIndex++;
-        this.showDamageLogEntry(this.damageLogCurrentIndex);
-        success = true;
-      } else if (button === Button.CANCEL || button === Button.ACTION) {
-        this.closeDamageLog();
-        success = true;
+
+      switch (button) {
+        // 上下滚动
+        case Button.UP:
+          if (this.damageLogScrollOffset > 0) {
+            this.damageLogScrollOffset = Math.max(0, this.damageLogScrollOffset - DAMAGE_LOG_CONFIG.SCROLL_STEP);
+            this.updateDamageLogDisplay();
+            success = true;
+          }
+          break;
+        case Button.DOWN:
+          if (this.damageLogScrollOffset + DAMAGE_LOG_CONFIG.VISIBLE_LINES < this.damageLogLines.length) {
+            this.damageLogScrollOffset = Math.min(
+              this.damageLogLines.length - DAMAGE_LOG_CONFIG.VISIBLE_LINES,
+              this.damageLogScrollOffset + DAMAGE_LOG_CONFIG.SCROLL_STEP,
+            );
+            this.updateDamageLogDisplay();
+            success = true;
+          }
+          break;
+        // 左右切换伤害记录
+        case Button.LEFT:
+          if (this.damageLogCurrentIndex > 0) {
+            this.damageLogCurrentIndex--;
+            this.damageLogScrollOffset = 0;
+            this.updateDamageLogDisplay();
+            success = true;
+          }
+          break;
+        case Button.RIGHT:
+          if (this.damageLogCurrentIndex < entries.length - 1) {
+            this.damageLogCurrentIndex++;
+            this.damageLogScrollOffset = 0;
+            this.updateDamageLogDisplay();
+            success = true;
+          }
+          break;
+        // 关闭日志
+        case Button.CANCEL:
+        case Button.ACTION:
+          this.closeDamageLog();
+          success = true;
+          break;
       }
+
       if (success) {
         ui.playSelect();
       }
@@ -377,6 +502,11 @@ export class CommandUiHandler extends UiHandler {
     this.commandsContainer.setVisible(false);
     this.getUi().getMessageHandler().clearText();
     this.eraseCursor();
+
+    // 关闭伤害日志覆盖层
+    if (this.showingDamageLog) {
+      this.closeDamageLog();
+    }
   }
 
   eraseCursor(): void {
