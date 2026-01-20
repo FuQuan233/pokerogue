@@ -72,6 +72,7 @@ import type { EnemyPokemon, Pokemon } from "#field/pokemon";
 import {
   AttackTypeBoosterModifier,
   BerryModifier,
+  LifeOrbModifier,
   PokemonHeldItemModifier,
   PokemonMoveAccuracyBoosterModifier,
   PokemonMultiHitModifier,
@@ -873,6 +874,11 @@ export abstract class Move implements Localizable {
     if (!this.hasAttr("TypelessAttr")) {
       globalScene.arena.applyTags(WeakenMoveTypeTag, simulated, typeChangeHolder.value, power);
       globalScene.applyModifiers(AttackTypeBoosterModifier, source.isPlayer(), source, typeChangeHolder.value, power);
+    }
+
+    // Life Orb power boost (Classic mode only)
+    if (globalScene.gameMode.isClassic) {
+      globalScene.applyModifiers(LifeOrbModifier, source.isPlayer(), source, power);
     }
 
     if (source.getTag(HelpingHandTag)) {

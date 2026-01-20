@@ -40,6 +40,9 @@ import {
   BerryModifier,
   BoostBugSpawnModifier,
   BypassSpeedChanceModifier,
+  ChoiceBandModifier,
+  ChoiceScarfModifier,
+  ChoiceSpecsModifier,
   ContactHeldItemTransferChanceModifier,
   CritBoosterModifier,
   CriticalCatchChanceBoosterModifier,
@@ -70,6 +73,7 @@ import {
   HitHealModifier,
   IvScannerModifier,
   LevelIncrementBoosterModifier,
+  LifeOrbModifier,
   LockModifierTiersModifier,
   MapModifier,
   MegaEvolutionAccessModifier,
@@ -2378,6 +2382,32 @@ const modifierTypeInitObj = Object.freeze({
       "modifierType:ModifierType.FLAME_ORB",
       "flame_orb",
       (type, args) => new TurnStatusEffectModifier(type, (args[0] as Pokemon).id),
+    ),
+
+  // Classic mode only items - Life Orb and Choice items
+  LIFE_ORB: () =>
+    new PokemonHeldItemModifierType(
+      "modifierType:ModifierType.LIFE_ORB",
+      "toxic_orb", // 使用剧毒宝珠图片
+      (type, args) => new LifeOrbModifier(type, (args[0] as Pokemon).id),
+    ),
+  CHOICE_BAND: () =>
+    new PokemonHeldItemModifierType(
+      "modifierType:ModifierType.CHOICE_BAND",
+      "focus_band", // 使用气势头带图片
+      (type, args) => new ChoiceBandModifier(type, (args[0] as Pokemon).id),
+    ),
+  CHOICE_SPECS: () =>
+    new PokemonHeldItemModifierType(
+      "modifierType:ModifierType.CHOICE_SPECS",
+      "choice_specs",
+      (type, args) => new ChoiceSpecsModifier(type, (args[0] as Pokemon).id),
+    ),
+  CHOICE_SCARF: () =>
+    new PokemonHeldItemModifierType(
+      "modifierType:ModifierType.CHOICE_SCARF",
+      "choice_scarf",
+      (type, args) => new ChoiceScarfModifier(type, (args[0] as Pokemon).id),
     ),
 
   BATON: () =>

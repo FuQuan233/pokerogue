@@ -105,6 +105,7 @@ interface SerializedPokemonSummonData {
   illusionBroken: boolean;
   berriesEatenLast: BerryType[];
   moveHistory: TurnMove[];
+  choiceLockedMoveId?: MoveId;
 }
 
 /**
@@ -153,6 +154,12 @@ export class PokemonSummonData {
    * Used for most moves and abilities that check prior move usage or copy already-used moves.
    */
   public moveHistory: TurnMove[] = [];
+
+  /**
+   * The move ID that this Pokemon is locked into using due to Choice items.
+   * Null if not locked. Resets on switch.
+   */
+  public choiceLockedMoveId: MoveId | null = null;
 
   constructor(source?: PokemonSummonData | SerializedPokemonSummonData) {
     if (source == null) {

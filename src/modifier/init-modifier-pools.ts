@@ -356,6 +356,11 @@ function initGreatModifierPool() {
       (_party: Pokemon[], rerollCount: number) => (!globalScene.gameMode.isDaily ? Math.max(1 - rerollCount, 0) : 0),
       1,
     ),
+    // Classic mode only - Life Orb and Choice items
+    new WeightedModifierType(modifierTypes.LIFE_ORB, () => (globalScene.gameMode.isClassic ? 3 : 0), 3),
+    new WeightedModifierType(modifierTypes.CHOICE_BAND, () => (globalScene.gameMode.isClassic ? 3 : 0), 3),
+    new WeightedModifierType(modifierTypes.CHOICE_SPECS, () => (globalScene.gameMode.isClassic ? 3 : 0), 3),
+    new WeightedModifierType(modifierTypes.CHOICE_SCARF, () => (globalScene.gameMode.isClassic ? 3 : 0), 3),
   ].map(m => {
     m.setTier(ModifierTier.GREAT);
     return m;

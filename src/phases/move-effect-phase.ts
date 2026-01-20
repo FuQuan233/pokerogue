@@ -29,6 +29,7 @@ import {
   EnemyEndureChanceModifier,
   FlinchChanceModifier,
   HitHealModifier,
+  LifeOrbModifier,
   PokemonMultiHitModifier,
 } from "#modifiers/modifier";
 import { applyFilteredMoveAttrs, applyMoveAttrs } from "#moves/apply-attrs";
@@ -325,6 +326,18 @@ export class MoveEffectPhase extends PokemonPhase {
     if (this.firstHit && this.useMode !== MoveUseMode.DELAYED_ATTACK) {
       user.pushMoveHistory(this.moveHistoryEntry);
       applyAbAttrs("ExecutedMoveAbAttr", { pokemon: user });
+
+      // Set Choice item lock (Classic mode only)
+      if (globalScene.gameMode.isClassic && this.moveHistoryEntry.result === MoveResult.SUCCESS) {
+        const choiceItemIds = ["CHOICE_BAND", "CHOICE_SPECS", "CHOICE_SCARF"];
+        const hasChoiceItem = globalScene.findModifier(
+          m => choiceItemIds.includes(m.type.id) && "pokemonId" in m && m.pokemonId === user.id,
+          user.isPlayer(),
+        );
+        if (hasChoiceItem && user.summonData.choiceLockedMoveId === null) {
+          user.summonData.choiceLockedMoveId = this.move.id;
+        }
+      }
     }
 
     try {
@@ -999,6 +1012,18 @@ export class MoveEffectPhase extends PokemonPhase {
     // Apply Grip Claw's chance to steal an item from the target
     if (this.move.is("AttackMove")) {
       globalScene.applyModifiers(ContactHeldItemTransferChanceModifier, this.player, user, target);
+    }
+
+    // Life Orb HP cost: user loses 10% max HP when using damaging moves (Classic mode only)
+    if (globalScene.gameMode.isClassic && dealsDamage && firstTarget && !user.isFainted()) {
+      const hasLifeOrb = globalScene.findModifier(
+        m => m instanceof LifeOrbModifier && m.pokemonId === user.id,
+        user.isPlayer(),
+      );
+      if (hasLifeOrb) {
+        const hpLoss = Math.max(1, Math.floor(user.getMaxHp() * 0.1));
+        user.damageAndUpdate(hpLoss, { result: HitResult.INDIRECT });
+      }
     }
   }
 }

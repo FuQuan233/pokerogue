@@ -1181,6 +1181,101 @@ export class StatBoosterModifier extends PokemonHeldItemModifier {
 }
 
 /**
+ * Life Orb - Boosts move power by 30% but user loses 10% max HP when using damaging moves
+ * Only works in Classic mode
+ */
+export class LifeOrbModifier extends PokemonHeldItemModifier {
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof LifeOrbModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new LifeOrbModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  /**
+   * Boosts move power by 30%
+   * @param _pokemon The Pokemon holding the item
+   * @param movePower NumberHolder containing the move's power
+   * @returns true if the boost was applied
+   */
+  override apply(_pokemon: Pokemon, movePower: NumberHolder): boolean {
+    movePower.value = Math.floor(movePower.value * 1.3);
+    return true;
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 1;
+  }
+}
+
+/**
+ * Choice Band - Boosts Attack by 50% but locks the Pokemon into one move
+ * Only works in Classic mode
+ */
+export class ChoiceBandModifier extends StatBoosterModifier {
+  constructor(type: ModifierType, pokemonId: number, stackCount?: number) {
+    super(type, pokemonId, [Stat.ATK], 1.5, stackCount);
+  }
+
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof ChoiceBandModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new ChoiceBandModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 1;
+  }
+}
+
+/**
+ * Choice Specs - Boosts Special Attack by 50% but locks the Pokemon into one move
+ * Only works in Classic mode
+ */
+export class ChoiceSpecsModifier extends StatBoosterModifier {
+  constructor(type: ModifierType, pokemonId: number, stackCount?: number) {
+    super(type, pokemonId, [Stat.SPATK], 1.5, stackCount);
+  }
+
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof ChoiceSpecsModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new ChoiceSpecsModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 1;
+  }
+}
+
+/**
+ * Choice Scarf - Boosts Speed by 50% but locks the Pokemon into one move
+ * Only works in Classic mode
+ */
+export class ChoiceScarfModifier extends StatBoosterModifier {
+  constructor(type: ModifierType, pokemonId: number, stackCount?: number) {
+    super(type, pokemonId, [Stat.SPD], 1.5, stackCount);
+  }
+
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof ChoiceScarfModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new ChoiceScarfModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 1;
+  }
+}
+
+/**
  * Modifier used for held items, specifically Eviolite, that apply
  * {@linkcode Stat} boost(s) using a multiplier if the holder can evolve.
  */
@@ -4042,6 +4137,10 @@ const ModifierClassMap = Object.freeze({
   PokemonBaseStatFlatModifier,
   PokemonIncrementingStatModifier,
   StatBoosterModifier,
+  LifeOrbModifier,
+  ChoiceBandModifier,
+  ChoiceSpecsModifier,
+  ChoiceScarfModifier,
   SpeciesStatBoosterModifier,
   CritBoosterModifier,
   SpeciesCritBoosterModifier,
