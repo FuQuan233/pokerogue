@@ -140,62 +140,64 @@ export class DamageCalculationLog {
     const p = entry.params;
     const lines: string[] = [];
 
-    lines.push(`【${entry.attackerName}】→【${entry.defenderName}】`);
-    lines.push(`招式:${entry.moveName} | ${entry.moveCategory} | 暴击:${entry.isCritical ? "是" : "否"}`);
-    lines.push("────────────────────────");
-    lines.push(`Lv.${p.attackerLevel} | 威力:${p.movePower} | 攻:${p.attackStat} | 防:${p.defenseStat}`);
-    lines.push(`等级修正:${p.levelMultiplier.toFixed(2)} | 基础伤害:${p.baseDamage.toFixed(0)}`);
-    lines.push("────────────────────────");
+    // 标题行（简短）
+    lines.push(`${entry.attackerName} → ${entry.defenderName}`);
+    lines.push(`${entry.moveName}(${entry.moveCategory})${entry.isCritical ? " 暴击!" : ""}`);
+    lines.push("---");
+    // 基础参数（每行一个，简短）
+    lines.push(`Lv${p.attackerLevel} 威力${p.movePower} 攻${p.attackStat} 防${p.defenseStat}`);
+    lines.push(`基础伤害: ${p.baseDamage.toFixed(0)}`);
+    lines.push("---");
 
-    // 伤害修正（只显示非1的修正）
+    // 伤害修正（只显示非1的修正，每行3个）
     const modifiers: string[] = [];
     if (p.targetMultiplier !== 1) {
-      modifiers.push(`多目标×${p.targetMultiplier.toFixed(2)}`);
+      modifiers.push(`多目标${p.targetMultiplier.toFixed(2)}`);
     }
     if (p.multiStrikeMultiplier !== 1) {
-      modifiers.push(`连续技×${p.multiStrikeMultiplier.toFixed(2)}`);
+      modifiers.push(`连续${p.multiStrikeMultiplier.toFixed(2)}`);
     }
     if (p.arenaMultiplier !== 1) {
-      modifiers.push(`场地×${p.arenaMultiplier.toFixed(2)}`);
+      modifiers.push(`场地${p.arenaMultiplier.toFixed(2)}`);
     }
     if (p.glaiveRushMultiplier !== 1) {
-      modifiers.push(`冲锋×${p.glaiveRushMultiplier.toFixed(2)}`);
+      modifiers.push(`冲锋${p.glaiveRushMultiplier.toFixed(2)}`);
     }
     if (p.criticalMultiplier !== 1) {
-      modifiers.push(`暴击×${p.criticalMultiplier.toFixed(2)}`);
+      modifiers.push(`暴击${p.criticalMultiplier.toFixed(2)}`);
     }
-    modifiers.push(`随机×${p.randomMultiplier.toFixed(2)}`);
+    modifiers.push(`随机${p.randomMultiplier.toFixed(2)}`);
     if (p.stabMultiplier !== 1) {
-      modifiers.push(`本系×${p.stabMultiplier.toFixed(2)}`);
+      modifiers.push(`本系${p.stabMultiplier.toFixed(2)}`);
     }
     if (p.typeMultiplier !== 1) {
-      modifiers.push(`克制×${p.typeMultiplier.toFixed(2)}`);
+      modifiers.push(`克制${p.typeMultiplier.toFixed(2)}`);
     }
     if (p.burnMultiplier !== 1) {
-      modifiers.push(`灼伤×${p.burnMultiplier.toFixed(2)}`);
+      modifiers.push(`灼伤${p.burnMultiplier.toFixed(2)}`);
     }
     if (p.screenMultiplier !== 1) {
-      modifiers.push(`屏障×${p.screenMultiplier.toFixed(2)}`);
+      modifiers.push(`屏障${p.screenMultiplier.toFixed(2)}`);
     }
     if (p.hitsTagMultiplier !== 1) {
-      modifiers.push(`状态×${p.hitsTagMultiplier.toFixed(2)}`);
+      modifiers.push(`状态${p.hitsTagMultiplier.toFixed(2)}`);
     }
     if (p.mistyTerrainMultiplier !== 1) {
-      modifiers.push(`薄雾×${p.mistyTerrainMultiplier.toFixed(2)}`);
+      modifiers.push(`薄雾${p.mistyTerrainMultiplier.toFixed(2)}`);
     }
     if (p.abilityDamageMultiplier !== 1) {
-      modifiers.push(`特性×${p.abilityDamageMultiplier.toFixed(2)}`);
+      modifiers.push(`特性${p.abilityDamageMultiplier.toFixed(2)}`);
     }
     if (p.enemyModifier !== 1) {
-      modifiers.push(`敌方×${p.enemyModifier.toFixed(2)}`);
+      modifiers.push(`敌方${p.enemyModifier.toFixed(2)}`);
     }
     if (p.lifeOrbMultiplier !== 1) {
-      modifiers.push(`宝珠×${p.lifeOrbMultiplier.toFixed(2)}`);
+      modifiers.push(`宝珠${p.lifeOrbMultiplier.toFixed(2)}`);
     }
 
-    // 每行显示2-3个修正
-    for (let i = 0; i < modifiers.length; i += 2) {
-      const line = modifiers.slice(i, i + 2).join(" | ");
+    // 每行显示3个修正
+    for (let i = 0; i < modifiers.length; i += 3) {
+      const line = modifiers.slice(i, i + 3).join(" ");
       lines.push(line);
     }
 
@@ -247,8 +249,10 @@ export class DamageCalculationLog {
 
     const formula = formulaParts.join("×");
 
-    lines.push("────────────────────────");
-    lines.push(`★ ${formula}=${entry.finalDamage}`);
+    lines.push("---");
+    // 公式可能很长，分行显示
+    lines.push(`计算: ${formula}`);
+    lines.push(`= ${entry.finalDamage}`);
 
     return lines.join("\n");
   }
