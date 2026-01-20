@@ -140,14 +140,13 @@ export class DamageCalculationLog {
     const p = entry.params;
     const lines: string[] = [];
 
-    // 标题行（简短）
-    lines.push(`${entry.attackerName} → ${entry.defenderName}`);
-    lines.push(`${entry.moveName}(${entry.moveCategory})${entry.isCritical ? " 暴击!" : ""}`);
-    lines.push("---");
-    // 基础参数（每行一个，简短）
-    lines.push(`Lv${p.attackerLevel} 威力${p.movePower} 攻${p.attackStat} 防${p.defenseStat}`);
-    lines.push(`基础伤害: ${p.baseDamage.toFixed(0)}`);
-    lines.push("---");
+    // 标题行（极简）
+    lines.push(`${entry.attackerName}→${entry.defenderName}`);
+    lines.push(`${entry.moveName} ${entry.moveCategory}${entry.isCritical ? " 暴击" : ""}`);
+    // 基础参数（分两行显示）
+    lines.push(`Lv${p.attackerLevel} 威力${p.movePower}`);
+    lines.push(`攻${p.attackStat} 防${p.defenseStat}`);
+    lines.push(`基伤${p.baseDamage.toFixed(0)}`);
 
     // 伤害修正（只显示非1的修正，每行3个）
     const modifiers: string[] = [];
@@ -195,9 +194,9 @@ export class DamageCalculationLog {
       modifiers.push(`宝珠${p.lifeOrbMultiplier.toFixed(2)}`);
     }
 
-    // 每行显示3个修正
-    for (let i = 0; i < modifiers.length; i += 3) {
-      const line = modifiers.slice(i, i + 3).join(" ");
+    // 每行显示2个修正（保证不换行）
+    for (let i = 0; i < modifiers.length; i += 2) {
+      const line = modifiers.slice(i, i + 2).join(" ");
       lines.push(line);
     }
 
@@ -247,12 +246,17 @@ export class DamageCalculationLog {
       formulaParts.push(p.lifeOrbMultiplier.toFixed(2));
     }
 
-    const formula = formulaParts.join("×");
-
-    lines.push("---");
-    // 公式可能很长，分行显示
-    lines.push(`计算: ${formula}`);
-    lines.push(`= ${entry.finalDamage}`);
+    // 公式分行显示，每行4个数
+    lines.push("--公式--");
+    for (let i = 0; i < formulaParts.length; i += 4) {
+      const part = formulaParts.slice(i, i + 4).join("×");
+      if (i === 0) {
+        lines.push(part);
+      } else {
+        lines.push(`×${part}`);
+      }
+    }
+    lines.push(`=${entry.finalDamage}`);
 
     return lines.join("\n");
   }
