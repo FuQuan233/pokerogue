@@ -109,44 +109,39 @@ export class CommandUiHandler extends UiHandler {
     });
 
     this.commandsContainer.add(this.damageLogButton);
-
-    // 创建伤害日志全屏覆盖层（初始隐藏）
-    this.createDamageLogOverlay();
   }
 
   /**
-   * 创建伤害日志全屏覆盖层
+   * 创建或获取伤害日志全屏覆盖层（延迟创建）
    */
-  private createDamageLogOverlay(): void {
-    const width = globalScene.game.canvas.width / 6;
-    const height = globalScene.game.canvas.height / 6;
+  private ensureDamageLogOverlay(): void {
+    if (this.damageLogOverlay) {
+      return; // 已创建
+    }
 
-    this.damageLogOverlay = globalScene.add.container(0, 0);
+    const width = globalScene.scaledCanvas.width;
+    const height = globalScene.scaledCanvas.height;
+
+    // 使用负Y坐标，因为UI坐标系从底部开始
+    this.damageLogOverlay = globalScene.add.container(0, -height);
     this.damageLogOverlay.setName("damage-log-overlay");
     this.damageLogOverlay.setVisible(false);
-    this.damageLogOverlay.setDepth(1000); // 确保在最上层
 
-    // 半透明黑色背景
-    this.damageLogBg = globalScene.add.rectangle(width / 2, height / 2, width - 16, height - 16, 0x000000, 0.9);
+    // 半透明黑色背景 - 几乎全屏
+    this.damageLogBg = globalScene.add.rectangle(width / 2, height / 2, width - 8, height - 8, 0x000000, 0.92);
     this.damageLogBg.setStrokeStyle(2, 0x4a90d9);
     this.damageLogOverlay.add(this.damageLogBg);
 
     // 日志文本
-    this.damageLogText = addTextObject(
-      DAMAGE_LOG_CONFIG.PADDING + 8,
-      DAMAGE_LOG_CONFIG.PADDING + 8,
-      "",
-      TextStyle.WINDOW,
-      { fontSize: "72px", wordWrap: { width: width - 40 } },
-    );
+    this.damageLogText = addTextObject(DAMAGE_LOG_CONFIG.PADDING, DAMAGE_LOG_CONFIG.PADDING, "", TextStyle.WINDOW, {
+      wordWrap: { width: width - DAMAGE_LOG_CONFIG.PADDING * 2 - 8 },
+    });
     this.damageLogText.setOrigin(0, 0);
-    this.damageLogText.setLineSpacing(2);
+    this.damageLogText.setLineSpacing(1);
     this.damageLogOverlay.add(this.damageLogText);
 
     // 导航提示文本
-    this.damageLogNavText = addTextObject(width / 2, height - DAMAGE_LOG_CONFIG.PADDING - 12, "", TextStyle.WINDOW, {
-      fontSize: "72px",
-    });
+    this.damageLogNavText = addTextObject(width / 2, height - DAMAGE_LOG_CONFIG.PADDING, "", TextStyle.WINDOW);
     this.damageLogNavText.setOrigin(0.5, 1);
     this.damageLogOverlay.add(this.damageLogNavText);
 
@@ -219,14 +214,20 @@ export class CommandUiHandler extends UiHandler {
       return;
     }
 
+    // 确保覆盖层已创建（延迟创建）
+    this.ensureDamageLogOverlay();
+
     this.showingDamageLog = true;
     this.damageLogCurrentIndex = 0;
     this.damageLogScrollOffset = 0;
     this.updateDamageLogDisplay();
 
-    // 显示覆盖层
+    // 显示覆盖层并移到最顶层
     if (this.damageLogOverlay) {
       this.damageLogOverlay.setVisible(true);
+      // 将覆盖层移到UI容器的最上层
+      const ui = this.getUi();
+      ui.bringToTop(this.damageLogOverlay);
     }
   }
 
