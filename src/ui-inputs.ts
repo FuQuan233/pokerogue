@@ -3,6 +3,7 @@ import type { InputsController } from "#app/inputs-controller";
 import { Button } from "#enums/buttons";
 import { UiMode } from "#enums/ui-mode";
 import { Setting, SettingKeys, settingIndex } from "#system/settings";
+import { CommandUiHandler } from "#ui/command-ui-handler";
 import type { MessageUiHandler } from "#ui/message-ui-handler";
 import { PokedexPageUiHandler } from "#ui/pokedex-page-ui-handler";
 import { PokedexUiHandler } from "#ui/pokedex-ui-handler";
@@ -213,6 +214,7 @@ export class UiInputs {
       SettingsAudioUiHandler,
       SettingsGamepadUiHandler,
       SettingsKeyboardUiHandler,
+      CommandUiHandler, // 战斗命令界面 - 用于显示伤害日志
     ];
     const uiHandler = globalScene.ui?.getHandler();
     if (whitelist.some(handler => uiHandler instanceof handler)) {
