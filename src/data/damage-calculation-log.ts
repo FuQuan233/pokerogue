@@ -140,65 +140,67 @@ export class DamageCalculationLog {
     const p = entry.params;
     const lines: string[] = [];
 
-    lines.push(`【${entry.attackerName}】对【${entry.defenderName}】使用【${entry.moveName}】`);
-    lines.push("━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    lines.push(`招式类别: ${entry.moveCategory} | 暴击: ${entry.isCritical ? "是" : "否"}`);
-    lines.push("");
-    lines.push("▸ 基础参数:");
-    lines.push(`  等级修正(levelMult): ${p.levelMultiplier.toFixed(2)} [Lv.${p.attackerLevel}]`);
-    lines.push(`  招式威力(power): ${p.movePower}`);
-    lines.push(`  攻击能力值(atk): ${p.attackStat}`);
-    lines.push(`  防御能力值(def): ${p.defenseStat}`);
-    lines.push(`  基础伤害(baseDmg): ${p.baseDamage.toFixed(2)}`);
-    lines.push("");
-    lines.push("▸ 伤害修正:");
+    lines.push(`【${entry.attackerName}】→【${entry.defenderName}】`);
+    lines.push(`招式:${entry.moveName} | ${entry.moveCategory} | 暴击:${entry.isCritical ? "是" : "否"}`);
+    lines.push("────────────────────────");
+    lines.push(`Lv.${p.attackerLevel} | 威力:${p.movePower} | 攻:${p.attackStat} | 防:${p.defenseStat}`);
+    lines.push(`等级修正:${p.levelMultiplier.toFixed(2)} | 基础伤害:${p.baseDamage.toFixed(0)}`);
+    lines.push("────────────────────────");
 
+    // 伤害修正（只显示非1的修正）
+    const modifiers: string[] = [];
     if (p.targetMultiplier !== 1) {
-      lines.push(`  多目标修正(target): ×${p.targetMultiplier.toFixed(2)}`);
+      modifiers.push(`多目标×${p.targetMultiplier.toFixed(2)}`);
     }
     if (p.multiStrikeMultiplier !== 1) {
-      lines.push(`  连续技修正(multi): ×${p.multiStrikeMultiplier.toFixed(2)}`);
+      modifiers.push(`连续技×${p.multiStrikeMultiplier.toFixed(2)}`);
     }
     if (p.arenaMultiplier !== 1) {
-      lines.push(`  场地/天气(arena): ×${p.arenaMultiplier.toFixed(2)}`);
+      modifiers.push(`场地×${p.arenaMultiplier.toFixed(2)}`);
     }
     if (p.glaiveRushMultiplier !== 1) {
-      lines.push(`  暴击冲锋(glaive): ×${p.glaiveRushMultiplier.toFixed(2)}`);
+      modifiers.push(`冲锋×${p.glaiveRushMultiplier.toFixed(2)}`);
     }
     if (p.criticalMultiplier !== 1) {
-      lines.push(`  暴击修正(crit): ×${p.criticalMultiplier.toFixed(2)}`);
+      modifiers.push(`暴击×${p.criticalMultiplier.toFixed(2)}`);
     }
-    lines.push(`  随机修正(random): ×${p.randomMultiplier.toFixed(2)}`);
+    modifiers.push(`随机×${p.randomMultiplier.toFixed(2)}`);
     if (p.stabMultiplier !== 1) {
-      lines.push(`  本系加成(STAB): ×${p.stabMultiplier.toFixed(2)}`);
+      modifiers.push(`本系×${p.stabMultiplier.toFixed(2)}`);
     }
     if (p.typeMultiplier !== 1) {
-      lines.push(`  属性克制(type): ×${p.typeMultiplier.toFixed(2)}`);
+      modifiers.push(`克制×${p.typeMultiplier.toFixed(2)}`);
     }
     if (p.burnMultiplier !== 1) {
-      lines.push(`  灼伤减免(burn): ×${p.burnMultiplier.toFixed(2)}`);
+      modifiers.push(`灼伤×${p.burnMultiplier.toFixed(2)}`);
     }
     if (p.screenMultiplier !== 1) {
-      lines.push(`  屏障减免(screen): ×${p.screenMultiplier.toFixed(2)}`);
+      modifiers.push(`屏障×${p.screenMultiplier.toFixed(2)}`);
     }
     if (p.hitsTagMultiplier !== 1) {
-      lines.push(`  状态克制(tag): ×${p.hitsTagMultiplier.toFixed(2)}`);
+      modifiers.push(`状态×${p.hitsTagMultiplier.toFixed(2)}`);
     }
     if (p.mistyTerrainMultiplier !== 1) {
-      lines.push(`  薄雾场地(misty): ×${p.mistyTerrainMultiplier.toFixed(2)}`);
+      modifiers.push(`薄雾×${p.mistyTerrainMultiplier.toFixed(2)}`);
     }
     if (p.abilityDamageMultiplier !== 1) {
-      lines.push(`  特性修正(ability): ×${p.abilityDamageMultiplier.toFixed(2)}`);
+      modifiers.push(`特性×${p.abilityDamageMultiplier.toFixed(2)}`);
     }
     if (p.enemyModifier !== 1) {
-      lines.push(`  敌方修正(enemy): ×${p.enemyModifier.toFixed(2)}`);
+      modifiers.push(`敌方×${p.enemyModifier.toFixed(2)}`);
     }
     if (p.lifeOrbMultiplier !== 1) {
-      lines.push(`  生命宝珠(lifeOrb): ×${p.lifeOrbMultiplier.toFixed(2)}`);
+      modifiers.push(`宝珠×${p.lifeOrbMultiplier.toFixed(2)}`);
     }
 
-    lines.push("");
-    lines.push(`▸ 最终伤害: ${entry.finalDamage}`);
+    // 每行显示2-3个修正
+    for (let i = 0; i < modifiers.length; i += 2) {
+      const line = modifiers.slice(i, i + 2).join(" | ");
+      lines.push(line);
+    }
+
+    lines.push("────────────────────────");
+    lines.push(`★ 最终伤害: ${entry.finalDamage}`);
 
     return lines.join("\n");
   }

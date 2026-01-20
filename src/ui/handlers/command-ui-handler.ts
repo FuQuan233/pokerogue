@@ -17,8 +17,8 @@ import i18next from "i18next";
 
 // 伤害日志显示配置
 const DAMAGE_LOG_CONFIG = {
-  PADDING: 6,
-  VISIBLE_LINES: 14, // 一屏可见行数
+  PADDING: 4,
+  VISIBLE_LINES: 11, // 一屏可见行数（屏幕高度约180px，每行约14px）
   SCROLL_STEP: 1, // 每次滚动行数
 };
 
