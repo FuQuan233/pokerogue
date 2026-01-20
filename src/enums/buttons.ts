@@ -16,4 +16,5 @@ export enum Button {
   CYCLE_TERA,
   SPEED_UP,
   SLOW_DOWN,
+  DAMAGE_LOG, // 伤害日志查看（E键）
 }

@@ -20,6 +20,7 @@ export class CommandUiHandler extends UiHandler {
   private cursorObj: Phaser.GameObjects.Image | null;
 
   private teraButton: Phaser.GameObjects.Sprite;
+  private damageLogButton: Phaser.GameObjects.Container | null = null;
   private showingDamageLog = false;
   private damageLogCurrentIndex = 0;
 
@@ -66,6 +67,32 @@ export class CommandUiHandler extends UiHandler {
       commandText.setName(commands[c]);
       this.commandsContainer.add(commandText);
     }
+
+    // 创建伤害日志按钮容器（移动端虚拟按键）
+    this.damageLogButton = globalScene.add.container(-60, -8);
+    this.damageLogButton.setName("damage-log-button");
+    this.damageLogButton.setVisible(false);
+
+    // 按钮背景
+    const buttonBg = globalScene.add.rectangle(0, 0, 24, 12, 0x333333, 0.8);
+    buttonBg.setStrokeStyle(1, 0x666666);
+    this.damageLogButton.add(buttonBg);
+
+    // 按钮图标（E键）
+    const buttonIcon = globalScene.add.sprite(0, 0, "keyboard", "E.png");
+    buttonIcon.setScale(0.5);
+    this.damageLogButton.add(buttonIcon);
+
+    // 设置可交互
+    buttonBg.setInteractive({ useHandCursor: true });
+    buttonBg.on("pointerdown", () => {
+      if (damageCalculationLog.getLastTurnEntries().length > 0) {
+        this.showDamageLog();
+        this.getUi().playSelect();
+      }
+    });
+
+    this.commandsContainer.add(this.damageLogButton);
   }
 
   show(args: any[]): boolean {
@@ -100,14 +127,16 @@ export class CommandUiHandler extends UiHandler {
     messageHandler.movesWindowContainer.setVisible(false);
     messageHandler.message.setWordWrapWidth(this.canTera() ? 910 : 1110);
 
-    // 添加 C 键提示（如果有上一回合的伤害记录）- C键对应 Button.STATS，移动端有虚拟按键
+    // 显示伤害日志按钮（如果有上一回合的伤害记录）
     const hasLastTurnDamage = damageCalculationLog.getLastTurnEntries().length > 0;
-    const damageLogHint = hasLastTurnDamage ? " [C:伤害日志]" : "";
+    if (this.damageLogButton) {
+      this.damageLogButton.setVisible(hasLastTurnDamage);
+    }
 
     messageHandler.showText(
       i18next.t("commandUiHandler:actionMessage", {
         pokemonName: getPokemonNameWithAffix(commandPhase.getPokemon()),
-      }) + damageLogHint,
+      }),
       0,
     );
     if (this.getCursor() === Command.POKEMON) {
@@ -170,14 +199,11 @@ export class CommandUiHandler extends UiHandler {
       commandPhase = globalScene.phaseManager.getStandbyPhase() as CommandPhase;
     }
 
-    const hasLastTurnDamage = damageCalculationLog.getLastTurnEntries().length > 0;
-    const damageLogHint = hasLastTurnDamage ? " [C:伤害日志]" : "";
-
     const messageHandler = this.getUi().getMessageHandler();
     messageHandler.showText(
       i18next.t("commandUiHandler:actionMessage", {
         pokemonName: getPokemonNameWithAffix(commandPhase.getPokemon()),
-      }) + damageLogHint,
+      }),
       0,
     );
   }
@@ -210,8 +236,8 @@ export class CommandUiHandler extends UiHandler {
       return success;
     }
 
-    // 使用 Button.STATS (C键) 显示伤害日志 - 移动端有虚拟按键支持
-    if (button === Button.STATS && damageCalculationLog.getLastTurnEntries().length > 0) {
+    // 使用 Button.CYCLE_ABILITY (E键) 显示伤害日志
+    if (button === Button.CYCLE_ABILITY && damageCalculationLog.getLastTurnEntries().length > 0) {
       this.showDamageLog();
       ui.playSelect();
       return true;
