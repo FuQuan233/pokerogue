@@ -1622,6 +1622,8 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
       if (s === Stat.HP) {
         statHolder.value = statHolder.value + this.level + 10;
         globalScene.applyModifier(PokemonIncrementingStatModifier, this.isPlayer(), this, s, statHolder);
+        // 强壮卷轴 - HP上限增加等级*0.6
+        globalScene.applyModifiers(VitalityScrollModifier, this.isPlayer(), this, s, statHolder);
         if (this.hasAbility(AbilityId.WONDER_GUARD, false, true)) {
           statHolder.value = 1;
         }
@@ -1690,9 +1692,6 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     }
     // Vitamins
     globalScene.applyModifiers(BaseStatModifier, this.isPlayer(), this, baseStats);
-
-    // 强壮卷轴 - HP上限增加等级*0.6
-    globalScene.applyModifiers(VitalityScrollModifier, this.isPlayer(), this, baseStats);
 
     return baseStats;
   }

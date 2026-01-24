@@ -1325,16 +1325,18 @@ export class VitalityScrollModifier extends PokemonHeldItemModifier {
   /**
    * 应用HP加成
    * @param pokemon 宝可梦
-   * @param baseStats 基础能力值数组
+   * @param stat 能力值类型
+   * @param statValue 能力值holder
    * @returns true
    */
-  override shouldApply(pokemon?: Pokemon, baseStats?: number[]): boolean {
-    return super.shouldApply(pokemon, baseStats) && Array.isArray(baseStats);
+  override shouldApply(pokemon?: Pokemon, stat?: Stat, statValue?: NumberHolder): boolean {
+    return super.shouldApply(pokemon, stat, statValue) && stat === Stat.HP && !!statValue;
   }
 
-  override apply(pokemon: Pokemon, baseStats: number[]): boolean {
+  override apply(pokemon: Pokemon, _stat: Stat, statValue: NumberHolder): boolean {
+    // 直接增加最终HP值，而不是基础能力值
     const hpBonus = Math.floor(pokemon.level * 0.6 * this.getStackCount());
-    baseStats[Stat.HP] += hpBonus;
+    statValue.value += hpBonus;
     return true;
   }
 
