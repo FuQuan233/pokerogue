@@ -361,6 +361,25 @@ function initGreatModifierPool() {
     new WeightedModifierType(modifierTypes.CHOICE_BAND, () => (globalScene.gameMode.isClassic ? 3 : 0), 3),
     new WeightedModifierType(modifierTypes.CHOICE_SPECS, () => (globalScene.gameMode.isClassic ? 3 : 0), 3),
     new WeightedModifierType(modifierTypes.CHOICE_SCARF, () => (globalScene.gameMode.isClassic ? 3 : 0), 3),
+    // 卷轴道具系列
+    new WeightedModifierType(modifierTypes.COMBO_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.PHYSICAL_CRIT_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.SPECIAL_CRIT_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.SUPER_CRIT_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.ENDURANCE_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.VITALITY_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.AGILITY_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.RETALIATORY_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.STRENGTH_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.INTELLECT_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.COUNTER_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.SLOW_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.TENACITY_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.PRECISION_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.LUCKY_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.INVIGORATE_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.SELF_HEAL_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.QUICK_STRIKE_SCROLL, 3),
   ].map(m => {
     m.setTier(ModifierTier.GREAT);
     return m;

@@ -116,13 +116,20 @@ import { UiMode } from "#enums/ui-mode";
 import { WeatherType } from "#enums/weather-type";
 import { doShinySparkleAnim } from "#field/anims";
 import {
+  AgilityScrollModifier,
   BaseStatModifier,
+  CounterScrollModifier,
   CritBoosterModifier,
+  EnduranceScrollModifier,
   EnemyDamageBoosterModifier,
   EnemyDamageReducerModifier,
   EnemyFusionChanceModifier,
   EvoTrackerModifier,
   HiddenAbilityRateBoosterModifier,
+  IntellectScrollModifier,
+  InvigorateScrollModifier,
+  LuckyScrollModifier,
+  PhysicalCritScrollModifier,
   PokemonBaseStatFlatModifier,
   PokemonBaseStatTotalModifier,
   PokemonFriendshipBoosterModifier,
@@ -130,11 +137,17 @@ import {
   PokemonIncrementingStatModifier,
   PokemonMultiHitModifier,
   PokemonNatureWeightModifier,
+  PrecisionScrollModifier,
   ShinyRateBoosterModifier,
+  SlowScrollModifier,
+  SpecialCritScrollModifier,
   StatBoosterModifier,
+  StrengthScrollModifier,
+  SuperCritScrollModifier,
   SurviveDamageModifier,
   TempCritBoosterModifier,
   TempStatStageBoosterModifier,
+  VitalityScrollModifier,
 } from "#modifiers/modifier";
 import { getPartyLuckValue } from "#modifiers/modifier-type";
 import { applyMoveAttrs } from "#moves/apply-attrs";
@@ -1488,6 +1501,13 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     const statVal = new NumberHolder(this.getStat(stat, false));
     if (!ignoreHeldItems) {
       globalScene.applyModifiers(StatBoosterModifier, this.isPlayer(), this, stat, statVal);
+
+      // 卷轴道具能力值加成
+      globalScene.applyModifiers(EnduranceScrollModifier, this.isPlayer(), this, stat, statVal); // 防御
+      globalScene.applyModifiers(StrengthScrollModifier, this.isPlayer(), this, stat, statVal); // 物攻
+      globalScene.applyModifiers(IntellectScrollModifier, this.isPlayer(), this, stat, statVal); // 特攻
+      globalScene.applyModifiers(AgilityScrollModifier, this.isPlayer(), this, stat, statVal); // 速度
+      globalScene.applyModifiers(SlowScrollModifier, this.isPlayer(), this, stat, statVal); // 速度减少
     }
 
     // The Ruin abilities here are never ignored, but they reveal themselves on summon anyway
@@ -1670,6 +1690,9 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     }
     // Vitamins
     globalScene.applyModifiers(BaseStatModifier, this.isPlayer(), this, baseStats);
+
+    // 强壮卷轴 - HP上限增加等级*0.6
+    globalScene.applyModifiers(VitalityScrollModifier, this.isPlayer(), this, baseStats);
 
     return baseStats;
   }
@@ -3717,6 +3740,11 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     );
     applyMoveAttrs("VariableAtkAttr", source, this, move, sourceAtk);
 
+    // 精准卷轴 - 无视目标的防御和特防能力等级提高
+    const ignoreDefBoost = new BooleanHolder(isCritical); // 会心一击本身就忽略防御提升
+    globalScene.applyModifiers(PrecisionScrollModifier, source.isPlayer(), source, ignoreDefBoost);
+    const ignoreDefStageBoost = ignoreDefBoost.value;
+
     /**
      * This Pokemon's defensive stat for the given move's category.
      * Critical hits cause positive stat stages to be ignored.
@@ -3729,7 +3757,7 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
         ignoreAbility,
         ignoreSourceAbility,
         ignoreSourceAllyAbility,
-        isCritical,
+        ignoreDefStageBoost, // 使用精准卷轴检查结果
         simulated,
       ),
     );
@@ -4050,6 +4078,19 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     if (!this.isPlayer()) {
       globalScene.applyModifiers(EnemyDamageReducerModifier, false, damage);
     }
+
+    // 卷轴道具伤害加成
+    // 物暴卷轴 - 物理伤害25%概率*2
+    globalScene.applyModifiers(PhysicalCritScrollModifier, source.isPlayer(), source, isPhysical, damage);
+    // 法暴卷轴 - 特殊伤害25%概率*2
+    globalScene.applyModifiers(SpecialCritScrollModifier, source.isPlayer(), source, isPhysical, damage);
+    // 超暴卷轴 - 会心一击时伤害*1.2
+    globalScene.applyModifiers(SuperCritScrollModifier, source.isPlayer(), source, isCritical, damage);
+    // 逆击卷轴 - 对能力值上升的目标伤害*1.2
+    globalScene.applyModifiers(CounterScrollModifier, source.isPlayer(), source, this, damage);
+
+    // 幸运卷轴 - 受到会心一击时伤害*0.7 (防御方)
+    globalScene.applyModifiers(LuckyScrollModifier, this.isPlayer(), this, isCritical, damage);
 
     const abAttrParams: PreAttackModifyDamageAbAttrParams = {
       pokemon: this,
@@ -5097,6 +5138,12 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     // Check for cancellations from self/ally abilities
     const cancelled = new BooleanHolder(false);
     applyAbAttrs("StatusEffectImmunityAbAttr", { pokemon: this, effect, cancelled, simulated: quiet });
+    if (cancelled.value) {
+      return false;
+    }
+
+    // 振奋卷轴 - 防止冰冻、麻痹、睡眠状态
+    globalScene.applyModifiers(InvigorateScrollModifier, this.isPlayer(), this, effect, cancelled);
     if (cancelled.value) {
       return false;
     }

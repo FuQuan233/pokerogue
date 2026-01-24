@@ -21,16 +21,21 @@ import { MoveResult } from "#enums/move-result";
 import { MoveTarget } from "#enums/move-target";
 import { isReflected, MoveUseMode } from "#enums/move-use-mode";
 import { PokemonType } from "#enums/pokemon-type";
+import { Stat } from "#enums/stat";
 import type { Pokemon } from "#field/pokemon";
 import {
+  ComboScrollModifier,
   ContactHeldItemTransferChanceModifier,
   DamageMoneyRewardModifier,
   EnemyAttackStatusEffectChanceModifier,
   EnemyEndureChanceModifier,
   FlinchChanceModifier,
   HitHealModifier,
+  InvigorateScrollModifier,
   LifeOrbModifier,
   PokemonMultiHitModifier,
+  RetaliatoryScrollModifier,
+  TenacityScrollModifier,
 } from "#modifiers/modifier";
 import { applyFilteredMoveAttrs, applyMoveAttrs } from "#moves/apply-attrs";
 import type { Move, MoveAttr } from "#moves/move";
@@ -439,7 +444,12 @@ export class MoveEffectPhase extends PokemonPhase {
       const flinched = new BooleanHolder(false);
       globalScene.applyModifiers(FlinchChanceModifier, user.isPlayer(), user, flinched);
       if (flinched.value) {
-        target.addTag(BattlerTagType.FLINCHED, undefined, this.move.id, user.id);
+        // 振奋卷轴 - 检查是否免疫畏缩
+        const flinchPrevented = new BooleanHolder(false);
+        globalScene.applyModifiers(InvigorateScrollModifier, target.isPlayer(), target, null, flinchPrevented);
+        if (!flinchPrevented.value) {
+          target.addTag(BattlerTagType.FLINCHED, undefined, this.move.id, user.id);
+        }
       }
     }
   }
@@ -1023,6 +1033,55 @@ export class MoveEffectPhase extends PokemonPhase {
       if (hasLifeOrb) {
         const hpLoss = Math.max(1, Math.floor(user.getMaxHp() * 0.1));
         user.damageAndUpdate(hpLoss, { result: HitResult.INDIRECT });
+      }
+    }
+
+    // 坚韧卷轴 - 受到物理/特殊伤害时，防御/特防能力等级+1
+    if (dealsDamage && damage > 0 && !target.isFainted()) {
+      const isPhysical = user.getMoveCategory(target, this.move) === MoveCategory.PHYSICAL;
+      globalScene.applyModifiers(TenacityScrollModifier, target.isPlayer(), target, isPhysical);
+    }
+
+    // 反击卷轴 - 受到接触类招式伤害时60%概率反击
+    if (dealsDamage && damage > 0 && !target.isFainted() && this.move.hasFlag(MoveFlags.MAKES_CONTACT)) {
+      const triggered = new BooleanHolder(false);
+      globalScene.applyModifiers(RetaliatoryScrollModifier, target.isPlayer(), target, triggered);
+      if (triggered.value) {
+        // 计算反击伤害，比较物攻和特攻
+        const atk = target.getEffectiveStat(Stat.ATK, user);
+        const spatk = target.getEffectiveStat(Stat.SPATK, user);
+        const isPhysicalRetaliate = atk >= spatk;
+        const attackStat = isPhysicalRetaliate ? atk : spatk;
+        // 固定80威力的反击
+        const baseDamage = Math.floor((attackStat * 80) / 50) + 2;
+        const retaliateDamage = Math.max(1, Math.floor(baseDamage * 0.5)); // 简化伤害计算
+        user.damageAndUpdate(retaliateDamage, { result: HitResult.INDIRECT });
+        globalScene.phaseManager.queueMessage(
+          i18next.t("battle:scrollRetaliate", {
+            pokemonName: getPokemonNameWithAffix(target),
+            targetName: getPokemonNameWithAffix(user),
+          }),
+        );
+      }
+    }
+
+    // 连击卷轴 - 使用伤害类招式时30%概率再释放1次，造成70%伤害
+    // 检查是否已经是连击触发的额外攻击（防止递归）
+    if (dealsDamage && damage > 0 && !target.isFainted() && !user.turnData.comboScrollTriggered) {
+      const comboTriggered = new BooleanHolder(false);
+      const comboDamageMultiplier = new NumberHolder(1);
+      globalScene.applyModifiers(ComboScrollModifier, user.isPlayer(), user, comboTriggered, comboDamageMultiplier);
+      if (comboTriggered.value) {
+        // 标记已触发，防止递归
+        user.turnData.comboScrollTriggered = true;
+        // 造成原伤害70%的额外伤害
+        const comboDamage = Math.max(1, Math.floor(damage * comboDamageMultiplier.value));
+        target.damageAndUpdate(comboDamage, { result: HitResult.INDIRECT });
+        globalScene.phaseManager.queueMessage(
+          i18next.t("battle:scrollCombo", {
+            pokemonName: getPokemonNameWithAffix(user),
+          }),
+        );
       }
     }
   }

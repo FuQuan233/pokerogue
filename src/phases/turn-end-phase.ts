@@ -10,6 +10,7 @@ import type { Pokemon } from "#field/pokemon";
 import {
   EnemyStatusEffectHealChanceModifier,
   EnemyTurnHealModifier,
+  SelfHealScrollModifier,
   TurnHealModifier,
   TurnHeldItemTransferModifier,
   TurnStatusEffectModifier,
@@ -57,6 +58,9 @@ export class TurnEndPhase extends FieldPhase {
         }
 
         applyAbAttrs("PostTurnAbAttr", { pokemon });
+
+        // 自愈卷轴 - 50%概率解除中毒、剧毒、灼烧状态
+        globalScene.applyModifiers(SelfHealScrollModifier, pokemon.isPlayer(), pokemon);
       }
 
       globalScene.applyModifiers(TurnStatusEffectModifier, pokemon.isPlayer(), pokemon);

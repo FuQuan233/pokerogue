@@ -22,7 +22,14 @@ import type { Nature } from "#enums/nature";
 import type { PokeballType } from "#enums/pokeball";
 import type { PokemonType } from "#enums/pokemon-type";
 import { SpeciesId } from "#enums/species-id";
-import { BATTLE_STATS, type PermanentStat, Stat, TEMP_BATTLE_STATS, type TempBattleStat } from "#enums/stat";
+import {
+  BATTLE_STATS,
+  EFFECTIVE_STATS,
+  type PermanentStat,
+  Stat,
+  TEMP_BATTLE_STATS,
+  type TempBattleStat,
+} from "#enums/stat";
 import { StatusEffect } from "#enums/status-effect";
 import { TextStyle } from "#enums/text-style";
 import type { PlayerPokemon, Pokemon } from "#field/pokemon";
@@ -1272,6 +1279,533 @@ export class ChoiceScarfModifier extends StatBoosterModifier {
 
   getMaxHeldItemCount(_pokemon: Pokemon): number {
     return 1;
+  }
+}
+
+// ==================== 卷轴道具系列 ====================
+
+/**
+ * 耐力卷轴 - 防御能力值增加等级*1
+ */
+export class EnduranceScrollModifier extends PokemonHeldItemModifier {
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof EnduranceScrollModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new EnduranceScrollModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  override shouldApply(pokemon: Pokemon, stat: Stat, statValue: NumberHolder): boolean {
+    return super.shouldApply(pokemon, stat, statValue) && stat === Stat.DEF;
+  }
+
+  override apply(pokemon: Pokemon, _stat: Stat, statValue: NumberHolder): boolean {
+    statValue.value += pokemon.level * this.getStackCount();
+    return true;
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 3;
+  }
+}
+
+/**
+ * 强壮卷轴 - HP上限增加等级*0.6
+ */
+export class VitalityScrollModifier extends PokemonHeldItemModifier {
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof VitalityScrollModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new VitalityScrollModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  /**
+   * 应用HP加成
+   * @param pokemon 宝可梦
+   * @param baseStats 基础能力值数组
+   * @returns true
+   */
+  override shouldApply(pokemon?: Pokemon, baseStats?: number[]): boolean {
+    return super.shouldApply(pokemon, baseStats) && Array.isArray(baseStats);
+  }
+
+  override apply(pokemon: Pokemon, baseStats: number[]): boolean {
+    const hpBonus = Math.floor(pokemon.level * 0.6 * this.getStackCount());
+    baseStats[Stat.HP] += hpBonus;
+    return true;
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 3;
+  }
+}
+
+/**
+ * 敏捷卷轴 - 速度能力值增加等级*1
+ */
+export class AgilityScrollModifier extends PokemonHeldItemModifier {
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof AgilityScrollModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new AgilityScrollModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  override shouldApply(pokemon: Pokemon, stat: Stat, statValue: NumberHolder): boolean {
+    return super.shouldApply(pokemon, stat, statValue) && stat === Stat.SPD;
+  }
+
+  override apply(pokemon: Pokemon, _stat: Stat, statValue: NumberHolder): boolean {
+    statValue.value += pokemon.level * this.getStackCount();
+    return true;
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 3;
+  }
+}
+
+/**
+ * 强力卷轴 - 物攻能力值增加等级*1
+ */
+export class StrengthScrollModifier extends PokemonHeldItemModifier {
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof StrengthScrollModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new StrengthScrollModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  override shouldApply(pokemon: Pokemon, stat: Stat, statValue: NumberHolder): boolean {
+    return super.shouldApply(pokemon, stat, statValue) && stat === Stat.ATK;
+  }
+
+  override apply(pokemon: Pokemon, _stat: Stat, statValue: NumberHolder): boolean {
+    statValue.value += pokemon.level * this.getStackCount();
+    return true;
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 3;
+  }
+}
+
+/**
+ * 智力卷轴 - 特攻能力值增加等级*1
+ */
+export class IntellectScrollModifier extends PokemonHeldItemModifier {
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof IntellectScrollModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new IntellectScrollModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  override shouldApply(pokemon: Pokemon, stat: Stat, statValue: NumberHolder): boolean {
+    return super.shouldApply(pokemon, stat, statValue) && stat === Stat.SPATK;
+  }
+
+  override apply(pokemon: Pokemon, _stat: Stat, statValue: NumberHolder): boolean {
+    statValue.value += pokemon.level * this.getStackCount();
+    return true;
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 3;
+  }
+}
+
+/**
+ * 迟钝卷轴 - 速度能力值减少20%
+ */
+export class SlowScrollModifier extends PokemonHeldItemModifier {
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof SlowScrollModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new SlowScrollModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  override shouldApply(pokemon: Pokemon, stat: Stat, statValue: NumberHolder): boolean {
+    return super.shouldApply(pokemon, stat, statValue) && stat === Stat.SPD;
+  }
+
+  override apply(_pokemon: Pokemon, _stat: Stat, statValue: NumberHolder): boolean {
+    statValue.value = Math.floor(statValue.value * Math.pow(0.8, this.getStackCount()));
+    return true;
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 3;
+  }
+}
+
+/**
+ * 物暴卷轴 - 物理伤害25%概率*2
+ */
+export class PhysicalCritScrollModifier extends PokemonHeldItemModifier {
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof PhysicalCritScrollModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new PhysicalCritScrollModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  /**
+   * 应用物理伤害加倍效果
+   * @param _pokemon 宝可梦
+   * @param isPhysical 是否物理攻击
+   * @param damageMultiplier 伤害倍率
+   */
+  override apply(_pokemon: Pokemon, isPhysical: boolean, damageMultiplier: NumberHolder): boolean {
+    if (isPhysical) {
+      // 每层25%概率，叠加时概率不直接累加而是独立判定
+      for (let i = 0; i < this.getStackCount(); i++) {
+        if (Math.random() < 0.25) {
+          damageMultiplier.value *= 2;
+          break; // 只触发一次
+        }
+      }
+    }
+    return true;
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 3;
+  }
+}
+
+/**
+ * 法暴卷轴 - 特殊伤害25%概率*2
+ */
+export class SpecialCritScrollModifier extends PokemonHeldItemModifier {
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof SpecialCritScrollModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new SpecialCritScrollModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  override apply(_pokemon: Pokemon, isPhysical: boolean, damageMultiplier: NumberHolder): boolean {
+    if (!isPhysical) {
+      for (let i = 0; i < this.getStackCount(); i++) {
+        if (Math.random() < 0.25) {
+          damageMultiplier.value *= 2;
+          break;
+        }
+      }
+    }
+    return true;
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 3;
+  }
+}
+
+/**
+ * 超暴卷轴 - 会心一击时伤害*1.2
+ */
+export class SuperCritScrollModifier extends PokemonHeldItemModifier {
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof SuperCritScrollModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new SuperCritScrollModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  override apply(_pokemon: Pokemon, isCritical: boolean, damageMultiplier: NumberHolder): boolean {
+    if (isCritical) {
+      damageMultiplier.value *= Math.pow(1.2, this.getStackCount());
+    }
+    return true;
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 3;
+  }
+}
+
+/**
+ * 逆击卷轴 - 对能力值上升的目标造成的最终伤害*1.2
+ */
+export class CounterScrollModifier extends PokemonHeldItemModifier {
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof CounterScrollModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new CounterScrollModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  override apply(_pokemon: Pokemon, target: Pokemon, damageMultiplier: NumberHolder): boolean {
+    // 检查目标是否有任何能力等级提升
+    const hasStatBoost = EFFECTIVE_STATS.some(stat => target.getStatStage(stat) > 0);
+    if (hasStatBoost) {
+      damageMultiplier.value *= Math.pow(1.2, this.getStackCount());
+    }
+    return true;
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 3;
+  }
+}
+
+/**
+ * 幸运卷轴 - 受到会心一击时，受到的最终伤害*0.7
+ */
+export class LuckyScrollModifier extends PokemonHeldItemModifier {
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof LuckyScrollModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new LuckyScrollModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  override apply(_pokemon: Pokemon, isCritical: boolean, damageMultiplier: NumberHolder): boolean {
+    if (isCritical) {
+      damageMultiplier.value *= Math.pow(0.7, this.getStackCount());
+    }
+    return true;
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 3;
+  }
+}
+
+/**
+ * 精准卷轴 - 造成伤害时，无视目标的防御和特防能力等级提高
+ */
+export class PrecisionScrollModifier extends PokemonHeldItemModifier {
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof PrecisionScrollModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new PrecisionScrollModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  override apply(_pokemon: Pokemon, ignoreDefBoost: BooleanHolder): boolean {
+    ignoreDefBoost.value = true;
+    return true;
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 1;
+  }
+}
+
+/**
+ * 连击卷轴 - 使用伤害类招式时有30%概率再释放1次，造成70%伤害
+ */
+export class ComboScrollModifier extends PokemonHeldItemModifier {
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof ComboScrollModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new ComboScrollModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  /**
+   * 检查是否触发连击
+   * @param _pokemon 宝可梦
+   * @param triggered 是否触发的holder
+   * @param damageMultiplier 伤害倍率holder
+   */
+  override apply(_pokemon: Pokemon, triggered: BooleanHolder, damageMultiplier: NumberHolder): boolean {
+    // 每层30%概率
+    for (let i = 0; i < this.getStackCount(); i++) {
+      if (Math.random() < 0.3) {
+        triggered.value = true;
+        damageMultiplier.value = 0.7;
+        break;
+      }
+    }
+    return true;
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 3;
+  }
+}
+
+/**
+ * 振奋卷轴 - 不会陷入冰冻、麻痹、睡眠、畏缩状态
+ */
+export class InvigorateScrollModifier extends PokemonHeldItemModifier {
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof InvigorateScrollModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new InvigorateScrollModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  /**
+   * 阻止状态异常和畏缩
+   * @param _pokemon 宝可梦
+   * @param statusEffect 状态异常类型（null表示检查畏缩）
+   * @param prevented 是否阻止的holder
+   */
+  override apply(_pokemon: Pokemon, statusEffect: StatusEffect | null, prevented: BooleanHolder): boolean {
+    // 冰冻、麻痹、睡眠
+    if (
+      statusEffect === StatusEffect.FREEZE
+      || statusEffect === StatusEffect.PARALYSIS
+      || statusEffect === StatusEffect.SLEEP
+    ) {
+      prevented.value = true;
+    }
+    // statusEffect 为 null 时表示检查畏缩状态
+    if (statusEffect === null) {
+      prevented.value = true;
+    }
+    return true;
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 1;
+  }
+}
+
+/**
+ * 自愈卷轴 - 每回合结束时50%概率解除中毒、剧毒、灼烧、盐腌状态
+ */
+export class SelfHealScrollModifier extends PokemonHeldItemModifier {
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof SelfHealScrollModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new SelfHealScrollModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  override apply(pokemon: Pokemon): boolean {
+    // 每层50%概率
+    for (let i = 0; i < this.getStackCount(); i++) {
+      if (Math.random() < 0.5) {
+        // 检查并解除状态异常
+        const status = pokemon.status?.effect;
+        if (status === StatusEffect.POISON || status === StatusEffect.TOXIC || status === StatusEffect.BURN) {
+          pokemon.resetStatus();
+          return true;
+        }
+        // 检查并解除盐腌状态
+        if (pokemon.getTag(BattlerTagType.SALT_CURED)) {
+          pokemon.lapseTag(BattlerTagType.SALT_CURED);
+          return true;
+        }
+        break;
+      }
+    }
+    return true;
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 3;
+  }
+}
+
+/**
+ * 坚韧卷轴 - 受到物理/特殊伤害时，防御/特防能力等级+1
+ */
+export class TenacityScrollModifier extends PokemonHeldItemModifier {
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof TenacityScrollModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new TenacityScrollModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  /**
+   * 受到伤害时提升对应防御
+   * @param pokemon 宝可梦
+   * @param isPhysical 是否物理攻击
+   */
+  override apply(pokemon: Pokemon, isPhysical: boolean): boolean {
+    const statToBoost = isPhysical ? Stat.DEF : Stat.SPDEF;
+    // 直接提升能力等级
+    pokemon.setStatStage(statToBoost, Math.min(6, pokemon.getStatStage(statToBoost) + this.getStackCount()));
+    return true;
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 3;
+  }
+}
+
+/**
+ * 反击卷轴 - 受到接触类招式伤害时60%概率反击
+ */
+export class RetaliatoryScrollModifier extends PokemonHeldItemModifier {
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof RetaliatoryScrollModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new RetaliatoryScrollModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  /**
+   * 检查是否触发反击
+   */
+  override apply(_pokemon: Pokemon, triggered: BooleanHolder): boolean {
+    for (let i = 0; i < this.getStackCount(); i++) {
+      if (Math.random() < 0.6) {
+        triggered.value = true;
+        break;
+      }
+    }
+    return true;
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 3;
+  }
+}
+
+/**
+ * 瞬击卷轴 - 出场时70%概率立即攻击敌人
+ */
+export class QuickStrikeScrollModifier extends PokemonHeldItemModifier {
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof QuickStrikeScrollModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new QuickStrikeScrollModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  /**
+   * 检查是否触发瞬击
+   */
+  override apply(_pokemon: Pokemon, triggered: BooleanHolder): boolean {
+    for (let i = 0; i < this.getStackCount(); i++) {
+      if (Math.random() < 0.7) {
+        triggered.value = true;
+        break;
+      }
+    }
+    return true;
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 3;
   }
 }
 
@@ -4210,6 +4744,25 @@ const ModifierClassMap = Object.freeze({
   EnemyEndureChanceModifier,
   EnemyFusionChanceModifier,
   MoneyMultiplierModifier,
+  // 卷轴道具系列
+  EnduranceScrollModifier,
+  VitalityScrollModifier,
+  AgilityScrollModifier,
+  StrengthScrollModifier,
+  IntellectScrollModifier,
+  SlowScrollModifier,
+  PhysicalCritScrollModifier,
+  SpecialCritScrollModifier,
+  SuperCritScrollModifier,
+  CounterScrollModifier,
+  LuckyScrollModifier,
+  PrecisionScrollModifier,
+  ComboScrollModifier,
+  InvigorateScrollModifier,
+  SelfHealScrollModifier,
+  TenacityScrollModifier,
+  RetaliatoryScrollModifier,
+  QuickStrikeScrollModifier,
 });
 
 export type ModifierConstructorMap = typeof ModifierClassMap;

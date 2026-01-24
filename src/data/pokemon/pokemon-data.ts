@@ -366,4 +366,8 @@ export class PokemonTurnData {
    * @see {@linkcode PokemonSummonData.berriesEatenLast}
    */
   public berriesEaten: BerryType[] = [];
+  /**
+   * 连击卷轴是否已在本回合触发，防止递归触发
+   */
+  public comboScrollTriggered = false;
 }

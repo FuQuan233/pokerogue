@@ -35,6 +35,7 @@ import {
   AbilityLearnerModifier,
   AddPokeballModifier,
   AddVoucherModifier,
+  AgilityScrollModifier,
   AttackTypeBoosterModifier,
   BaseStatModifier,
   BerryModifier,
@@ -43,11 +44,14 @@ import {
   ChoiceBandModifier,
   ChoiceScarfModifier,
   ChoiceSpecsModifier,
+  ComboScrollModifier,
   ContactHeldItemTransferChanceModifier,
+  CounterScrollModifier,
   CritBoosterModifier,
   CriticalCatchChanceBoosterModifier,
   DamageMoneyRewardModifier,
   DoubleBattleChanceBoosterModifier,
+  EnduranceScrollModifier,
   EnemyAttackStatusEffectChanceModifier,
   EnemyDamageBoosterModifier,
   EnemyDamageReducerModifier,
@@ -71,10 +75,13 @@ import {
   HealShopCostModifier,
   HiddenAbilityRateBoosterModifier,
   HitHealModifier,
+  IntellectScrollModifier,
+  InvigorateScrollModifier,
   IvScannerModifier,
   LevelIncrementBoosterModifier,
   LifeOrbModifier,
   LockModifierTiersModifier,
+  LuckyScrollModifier,
   MapModifier,
   MegaEvolutionAccessModifier,
   type Modifier,
@@ -83,6 +90,7 @@ import {
   MoneyRewardModifier,
   MultipleParticipantExpBonusModifier,
   type PersistentModifier,
+  PhysicalCritScrollModifier,
   PokemonAllMovePpRestoreModifier,
   PokemonBaseStatFlatModifier,
   PokemonBaseStatTotalModifier,
@@ -101,24 +109,34 @@ import {
   PokemonPpRestoreModifier,
   PokemonPpUpModifier,
   PokemonStatusHealModifier,
+  PrecisionScrollModifier,
   PreserveBerryModifier,
+  QuickStrikeScrollModifier,
   RememberAbilityModifier,
   RememberMoveModifier,
   ResetNegativeStatStageModifier,
+  RetaliatoryScrollModifier,
+  SelfHealScrollModifier,
   ShinyRateBoosterModifier,
+  SlowScrollModifier,
+  SpecialCritScrollModifier,
   SpeciesCritBoosterModifier,
   SpeciesStatBoosterModifier,
+  StrengthScrollModifier,
+  SuperCritScrollModifier,
   SurviveDamageModifier,
   SwitchEffectTransferModifier,
   TempCritBoosterModifier,
   TempExtraModifierModifier,
   TempStatStageBoosterModifier,
+  TenacityScrollModifier,
   TerastallizeAccessModifier,
   TerastallizeModifier,
   TmModifier,
   TurnHealModifier,
   TurnHeldItemTransferModifier,
   TurnStatusEffectModifier,
+  VitalityScrollModifier,
 } from "#modifiers/modifier";
 import type { PokemonMove } from "#moves/pokemon-move";
 import { getVoucherTypeIcon, getVoucherTypeName, VoucherType } from "#system/voucher";
@@ -2442,6 +2460,134 @@ const modifierTypeInitObj = Object.freeze({
       "携带后，速度提高50%，但只能连续使用相同的招式。\n替换宝可梦下场后重置。（仅限经典模式）",
       "choice_scarf",
       (type, args) => new ChoiceScarfModifier(type, (args[0] as Pokemon).id),
+    ),
+
+  // 卷轴道具系列
+  COMBO_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "连击卷轴",
+      "携带后，使用伤害类招式时有30%概率再释放1次（此次额外释放不触发本效果），造成70%伤害。",
+      "scroll_of_waters",
+      (type, args) => new ComboScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  PHYSICAL_CRIT_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "物暴卷轴",
+      "携带后，造成物理伤害时有25%概率最终伤害*2。",
+      "scroll_of_waters",
+      (type, args) => new PhysicalCritScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  SPECIAL_CRIT_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "法暴卷轴",
+      "携带后，造成特殊伤害时有25%概率最终伤害*2。",
+      "scroll_of_waters",
+      (type, args) => new SpecialCritScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  SUPER_CRIT_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "超暴卷轴",
+      "携带后，造成会心一击时，最终伤害*1.2。",
+      "scroll_of_waters",
+      (type, args) => new SuperCritScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  ENDURANCE_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "耐力卷轴",
+      "携带后，宝可梦的防御能力值增加等级*1。",
+      "scroll_of_waters",
+      (type, args) => new EnduranceScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  VITALITY_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "强壮卷轴",
+      "携带后，宝可梦的HP上限增加等级*0.6。",
+      "scroll_of_waters",
+      (type, args) => new VitalityScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  AGILITY_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "敏捷卷轴",
+      "携带后，宝可梦的速度能力值增加等级*1。",
+      "scroll_of_waters",
+      (type, args) => new AgilityScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  RETALIATORY_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "反击卷轴",
+      "携带后，受到接触类招式伤害时，有60%概率进行一次80威力的反击，\n取物攻和特攻较高的一项，造成对应类型伤害，系别为第一系别。",
+      "scroll_of_waters",
+      (type, args) => new RetaliatoryScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  STRENGTH_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "强力卷轴",
+      "携带后，宝可梦的物攻能力值增加等级*1。",
+      "scroll_of_waters",
+      (type, args) => new StrengthScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  INTELLECT_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "智力卷轴",
+      "携带后，宝可梦的特攻能力值增加等级*1。",
+      "scroll_of_waters",
+      (type, args) => new IntellectScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  COUNTER_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "逆击卷轴",
+      "携带后，对能力值上升的目标造成的最终伤害*1.2。",
+      "scroll_of_waters",
+      (type, args) => new CounterScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  SLOW_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "迟钝卷轴",
+      "携带后，宝可梦的速度能力值减少20%。",
+      "scroll_of_waters",
+      (type, args) => new SlowScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  TENACITY_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "坚韧卷轴",
+      "携带后，受到物理/特殊伤害时，防御/特防能力等级+1。",
+      "scroll_of_waters",
+      (type, args) => new TenacityScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  PRECISION_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "精准卷轴",
+      "携带后，造成伤害时，无视目标的防御和特防能力等级提高。",
+      "scroll_of_waters",
+      (type, args) => new PrecisionScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  LUCKY_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "幸运卷轴",
+      "携带后，受到会心一击时，受到的最终伤害*0.7。",
+      "scroll_of_waters",
+      (type, args) => new LuckyScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  INVIGORATE_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "振奋卷轴",
+      "携带后，宝可梦不会陷入冰冻、麻痹、睡眠、畏缩状态。",
+      "scroll_of_waters",
+      (type, args) => new InvigorateScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  SELF_HEAL_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "自愈卷轴",
+      "携带后，每个回合结束时，有50%概率解除自己的中毒、剧毒、灼烧、盐腌状态。",
+      "scroll_of_waters",
+      (type, args) => new SelfHealScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  QUICK_STRIKE_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "瞬击卷轴",
+      "携带后，出场时有70%概率立即对1个敌人进行70威力的攻击，\n取物攻和特攻较高的一项，造成对应类型伤害，系别为第一系别。",
+      "scroll_of_waters",
+      (type, args) => new QuickStrikeScrollModifier(type, (args[0] as Pokemon).id),
     ),
 
   BATON: () =>
