@@ -1039,7 +1039,26 @@ export class MoveEffectPhase extends PokemonPhase {
     // 坚韧卷轴 - 受到物理/特殊伤害时，防御/特防能力等级+1
     if (dealsDamage && damage > 0 && !target.isFainted()) {
       const isPhysical = user.getMoveCategory(target, this.move) === MoveCategory.PHYSICAL;
-      globalScene.applyModifiers(TenacityScrollModifier, target.isPlayer(), target, isPhysical);
+      const tenacityModifiers = target
+        .getHeldItems()
+        .filter(m => m instanceof TenacityScrollModifier) as TenacityScrollModifier[];
+      if (tenacityModifiers.length > 0) {
+        const statToBoost = isPhysical ? Stat.DEF : Stat.SPDEF;
+        const currentStage = target.getStatStage(statToBoost);
+        const totalStacks = tenacityModifiers.reduce((sum, m) => sum + m.getStackCount(), 0);
+        const newStage = Math.min(6, currentStage + totalStacks);
+        if (newStage > currentStage) {
+          globalScene.phaseManager.unshiftNew(
+            "StatStageChangePhase",
+            target.getBattlerIndex(),
+            true,
+            [statToBoost],
+            newStage - currentStage,
+            true,
+            false,
+          );
+        }
+      }
     }
 
     // 反击卷轴 - 受到接触类招式伤害时60%概率反击
