@@ -1634,6 +1634,7 @@ export class FieldMultiplyStatAbAttr extends AbAttr {
   }
 
   canApply({ hasApplied, target, stat }: FieldMultiplyStatAbAttrParams): boolean {
+    // 检查stat是否匹配，目标是否没有相同的灾祸能力（防止自己降低自己），以及是否已经应用过
     return (
       this.canStack
       || (!hasApplied.value

@@ -1511,8 +1511,12 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     }
 
     // The Ruin abilities here are never ignored, but they reveal themselves on summon anyway
+    // 为每个stat单独设置hasApplied标志，允许多个不同stat的灾祸能力同时生效
     const fieldApplied = new BooleanHolder(false);
     for (const pokemon of globalScene.getField(true)) {
+      if (pokemon === this) {
+        continue; // 跳过自己
+      }
       // TODO: remove `canStack` toggle from ability as breaking out renders it useless
       applyAbAttrs("FieldMultiplyStatAbAttr", {
         pokemon,
@@ -1522,9 +1526,8 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
         hasApplied: fieldApplied,
         simulated,
       });
-      if (fieldApplied.value) {
-        break;
-      }
+      // 注意：不在这里break，因为可能有多个宝可梦有不同stat的灾祸能力
+      // 但hasApplied标志会防止同一个stat被多次降低
     }
 
     if (!ignoreAbility) {

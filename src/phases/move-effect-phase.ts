@@ -1038,7 +1038,8 @@ export class MoveEffectPhase extends PokemonPhase {
 
     // 坚韧卷轴 - 受到物理/特殊伤害时，防御/特防能力等级+1
     if (dealsDamage && damage > 0 && !target.isFainted()) {
-      const isPhysical = user.getMoveCategory(target, this.move) === MoveCategory.PHYSICAL;
+      const moveCategory = user.getMoveCategory(target, this.move);
+      const isPhysical = moveCategory === MoveCategory.PHYSICAL;
       const tenacityModifiers = target
         .getHeldItems()
         .filter(m => m instanceof TenacityScrollModifier) as TenacityScrollModifier[];
