@@ -194,10 +194,16 @@ export class ModifierType {
   }
 
   get name(): string {
+    if (this.localeKey?.startsWith("raw:")) {
+      return this.localeKey.slice(4).split("|")[0];
+    }
     return i18next.t(`${this.localeKey}.name` as any);
   }
 
   getDescription(): string {
+    if (this.localeKey?.startsWith("raw:")) {
+      return this.localeKey.slice(4).split("|")[1] ?? "";
+    }
     return i18next.t(`${this.localeKey}.description` as any);
   }
 
@@ -2434,7 +2440,7 @@ const modifierTypeInitObj = Object.freeze({
     ),
   FIRECRACKER: () =>
     new PokemonHeldItemModifierType(
-      "modifierType:ModifierType.FIRECRACKER",
+      "raw:爆竹|携带后，每次造成伤害时有20.26%概率改为造成2026点固定伤害。",
       "flame_orb",
       (type, args) => new FirecrackerModifier(type, (args[0] as Pokemon).id),
     ),

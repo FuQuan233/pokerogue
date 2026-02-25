@@ -869,9 +869,7 @@ export class MoveEffectPhase extends PokemonPhase {
     if (!isBlockedBySubstitute && dmg > 0) {
       globalScene.applyModifiers(FirecrackerModifier, user.isPlayer(), user, damageHolder);
       if (damageHolder.value === 2026) {
-        globalScene.phaseManager.queueMessage(
-          i18next.t("battle:firecrackerTrigger", { pokemonName: getPokemonNameWithAffix(user) }),
-        );
+        globalScene.phaseManager.queueMessage(`${getPokemonNameWithAffix(user)}的爆竹发动！造成2026点伤害！`);
       }
     }
     const finalDmg = damageHolder.value;
