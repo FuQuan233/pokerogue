@@ -68,6 +68,7 @@ import {
   ExpShareModifier,
   ExtraModifierModifier,
   FieldEffectModifier,
+  FirecrackerModifier,
   FlinchChanceModifier,
   FusePokemonModifier,
   GigantamaxAccessModifier,
@@ -2431,6 +2432,12 @@ const modifierTypeInitObj = Object.freeze({
       "flame_orb",
       (type, args) => new TurnStatusEffectModifier(type, (args[0] as Pokemon).id),
     ),
+  FIRECRACKER: () =>
+    new PokemonHeldItemModifierType(
+      "modifierType:ModifierType.FIRECRACKER",
+      "flame_orb",
+      (type, args) => new FirecrackerModifier(type, (args[0] as Pokemon).id),
+    ),
 
   // Classic mode only items - Life Orb and Choice items (硬编码中文)
   LIFE_ORB: () =>
@@ -3210,11 +3217,24 @@ function getNewModifierTypeOption(
       break;
   }
   if (tier === undefined) {
-    const tierValue = randSeedInt(1024);
+    // 道具掉落权重（版本平衡调整）：
+    // 白字(COMMON) 192/487, 蓝字(GREAT) 195/487, 黄字(ULTRA) 48/487, 红字(ROGUE) 48/487, 粉字(MASTER) 4/487
+    const tierValue = randSeedInt(487);
+    if (tierValue >= 295) {
+      tier = ModifierTier.COMMON;
+    } else if (tierValue >= 100) {
+      tier = ModifierTier.GREAT;
+    } else if (tierValue >= 52) {
+      tier = ModifierTier.ULTRA;
+    } else if (tierValue >= 4) {
+      tier = ModifierTier.ROGUE;
+    } else {
+      tier = ModifierTier.MASTER;
+    }
     if (!upgradeCount) {
       upgradeCount = 0;
     }
-    if (player && tierValue && allowLuckUpgrades) {
+    if (player && allowLuckUpgrades) {
       const partyLuckValue = getPartyLuckValue(party);
       const upgradeOdds = Math.floor(128 / ((partyLuckValue + 4) / 4));
       let upgraded = false;
@@ -3224,18 +3244,6 @@ function getNewModifierTypeOption(
           upgradeCount++;
         }
       } while (upgraded);
-    }
-
-    if (tierValue > 255) {
-      tier = ModifierTier.COMMON;
-    } else if (tierValue > 60) {
-      tier = ModifierTier.GREAT;
-    } else if (tierValue > 12) {
-      tier = ModifierTier.ULTRA;
-    } else if (tierValue) {
-      tier = ModifierTier.ROGUE;
-    } else {
-      tier = ModifierTier.MASTER;
     }
 
     tier += upgradeCount;

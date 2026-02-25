@@ -1611,6 +1611,39 @@ export class PrecisionScrollModifier extends PokemonHeldItemModifier {
 }
 
 /**
+ * 爆竹 - 携带的宝可梦每次造成伤害时，有20.26%概率改为造成2026点固定伤害
+ */
+export class FirecrackerModifier extends PokemonHeldItemModifier {
+  static readonly FIXED_DAMAGE = 2026;
+  static readonly TRIGGER_CHANCE = 2026 / 10000;
+
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof FirecrackerModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new FirecrackerModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  /**
+   * 检查是否触发爆竹效果，若触发则将damageHolder.value设为2026
+   */
+  override apply(_pokemon: Pokemon, damageHolder: NumberHolder): boolean {
+    for (let i = 0; i < this.getStackCount(); i++) {
+      if (_pokemon.randBattleSeedInt(10000) < 2026) {
+        damageHolder.value = FirecrackerModifier.FIXED_DAMAGE;
+        return true;
+      }
+    }
+    return true;
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 1;
+  }
+}
+
+/**
  * 连击卷轴 - 使用伤害类招式时有30%概率再释放1次，造成70%伤害
  */
 export class ComboScrollModifier extends PokemonHeldItemModifier {
@@ -1738,11 +1771,10 @@ export class TenacityScrollModifier extends PokemonHeldItemModifier {
    * 受到伤害时提升对应防御
    * @param pokemon 宝可梦
    * @param isPhysical 是否物理攻击
+   * @returns true 表示需要提升能力值
    */
-  override apply(pokemon: Pokemon, isPhysical: boolean): boolean {
-    const statToBoost = isPhysical ? Stat.DEF : Stat.SPDEF;
-    // 直接提升能力等级
-    pokemon.setStatStage(statToBoost, Math.min(6, pokemon.getStatStage(statToBoost) + this.getStackCount()));
+  override apply(_pokemon: Pokemon, _isPhysical: boolean): boolean {
+    // 返回 true 表示需要提升，实际提升在 move-effect-phase 中通过 StatStageChangePhase 处理
     return true;
   }
 
@@ -4759,6 +4791,7 @@ const ModifierClassMap = Object.freeze({
   CounterScrollModifier,
   LuckyScrollModifier,
   PrecisionScrollModifier,
+  FirecrackerModifier,
   ComboScrollModifier,
   InvigorateScrollModifier,
   SelfHealScrollModifier,

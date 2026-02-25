@@ -616,6 +616,7 @@ function initUltraModifierPool() {
 function initRogueModifierPool() {
   modifierPool[ModifierTier.ROGUE] = [
     new WeightedModifierType(modifierTypes.ROGUE_BALL, () => (hasMaximumBalls(PokeballType.ROGUE_BALL) ? 0 : 16), 16),
+    new WeightedModifierType(modifierTypes.FIRECRACKER, 4),
     new WeightedModifierType(modifierTypes.RELIC_GOLD, skipInLastClassicWaveOrDefault(2)),
     new WeightedModifierType(modifierTypes.LEFTOVERS, 3),
     new WeightedModifierType(modifierTypes.SHELL_BELL, 3),

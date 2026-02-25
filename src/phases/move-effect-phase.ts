@@ -29,6 +29,7 @@ import {
   DamageMoneyRewardModifier,
   EnemyAttackStatusEffectChanceModifier,
   EnemyEndureChanceModifier,
+  FirecrackerModifier,
   FlinchChanceModifier,
   HitHealModifier,
   InvigorateScrollModifier,
@@ -863,9 +864,21 @@ export class MoveEffectPhase extends PokemonPhase {
       globalScene.applyModifiers(EnemyEndureChanceModifier, false, target);
     }
 
+    // 爆竹 - 20.26%概率改为2026固定伤害
+    const damageHolder = new NumberHolder(dmg);
+    if (!isBlockedBySubstitute && dmg > 0) {
+      globalScene.applyModifiers(FirecrackerModifier, user.isPlayer(), user, damageHolder);
+      if (damageHolder.value === 2026) {
+        globalScene.phaseManager.queueMessage(
+          i18next.t("battle:firecrackerTrigger", { pokemonName: getPokemonNameWithAffix(user) }),
+        );
+      }
+    }
+    const finalDmg = damageHolder.value;
+
     const damage = isBlockedBySubstitute
       ? 0
-      : target.damageAndUpdate(dmg, {
+      : target.damageAndUpdate(finalDmg, {
           result: result as DamageResult,
           ignoreFaintPhase: true,
           ignoreSegments: isOneHitKo,

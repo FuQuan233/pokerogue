@@ -3190,6 +3190,9 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
 
     const shinyThreshold = new NumberHolder(BASE_SHINY_CHANCE);
     if (thresholdOverride === undefined) {
+      if (!this.hasTrainer()) {
+        shinyThreshold.value *= 4; // 野生宝可梦闪光概率 ×4（版本平衡调整）
+      }
       if (timedEventManager.isEventActive()) {
         const tchance = timedEventManager.getClassicTrainerShinyChance();
         shinyThreshold.value *= timedEventManager.getShinyMultiplier();

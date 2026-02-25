@@ -1,7 +1,7 @@
 import { globalScene } from "#app/global-scene";
 import Overrides from "#app/overrides";
 import { handleTutorial, Tutorial } from "#app/tutorial";
-import { allMoves } from "#data/data-lists";
+import { allAbilities, allMoves } from "#data/data-lists";
 import { getPokeballAtlasKey } from "#data/pokeball";
 import { Button } from "#enums/buttons";
 import type { PokeballType } from "#enums/pokeball";
@@ -10,7 +10,11 @@ import { TextStyle } from "#enums/text-style";
 import { UiMode } from "#enums/ui-mode";
 import { HealShopCostModifier, LockModifierTiersModifier, PokemonHeldItemModifier } from "#modifiers/modifier";
 import type { ModifierTypeOption } from "#modifiers/modifier-type";
-import { getPlayerShopModifierTypeOptionsForWave, TmModifierType } from "#modifiers/modifier-type";
+import {
+  AbilityLearnerModifierType,
+  getPlayerShopModifierTypeOptionsForWave,
+  TmModifierType,
+} from "#modifiers/modifier-type";
 import { AwaitableUiHandler } from "#ui/awaitable-ui-handler";
 import { MoveInfoOverlay } from "#ui/move-info-overlay";
 import { addTextObject, getModifierTierTextTint, getTextColor, getTextStyleOptions } from "#ui/text";
@@ -576,7 +580,12 @@ export class ModifierSelectUiHandler extends AwaitableUiHandler {
       }
 
       const type = options[this.cursor].modifierTypeOption.type;
-      type && ui.showText(type.getDescription());
+      if (type instanceof AbilityLearnerModifierType) {
+        const ability = allAbilities[type.abilityId];
+        ui.showText(ability?.description ?? type.getDescription());
+      } else if (type) {
+        ui.showText(type.getDescription());
+      }
       if (type instanceof TmModifierType) {
         // prepare the move overlay to be shown with the toggle
         this.moveInfoOverlay.show(allMoves[type.moveId]);
