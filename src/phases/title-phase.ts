@@ -19,6 +19,7 @@ import { Unlockables } from "#enums/unlockables";
 import { getBiomeKey } from "#field/arena";
 import type { Modifier } from "#modifiers/modifier";
 import { getDailyRunStarterModifiers, regenerateModifierPoolThresholds } from "#modifiers/modifier-type";
+import { randomStatsManager } from "#system/random-stats-manager";
 import { vouchers } from "#system/voucher";
 import type { OptionSelectConfig, OptionSelectItem } from "#types/ui-types";
 import { SaveSlotUiMode } from "#ui/save-slot-select-ui-handler";
@@ -111,6 +112,13 @@ export class TitlePhase extends Phase {
             },
           });
           options.push({
+            label: GameMode.getModeName(GameModes.RANDOM_STATS),
+            handler: () => {
+              setModeAndEnd(GameModes.RANDOM_STATS);
+              return true;
+            },
+          });
+          options.push({
             label: i18next.t("menu:dailyRun"),
             handler: () => {
               this.initDailyRun();
@@ -156,6 +164,14 @@ export class TitlePhase extends Phase {
               options,
             }),
           );
+          return true;
+        },
+      },
+      {
+        label: i18next.t("menu:pvpChallenge"),
+        handler: () => {
+          // Open run history to let player choose which run to use for PvP
+          this.initPvPChallenge();
           return true;
         },
       },
@@ -229,6 +245,9 @@ export class TitlePhase extends Phase {
       globalScene.sessionSlotId = slotId;
 
       const generateDaily = (seed: string) => {
+        // Clear randomized stats for new daily run
+        randomStatsManager.clear();
+
         globalScene.gameMode = getGameMode(GameModes.DAILY);
 
         seed = globalScene.gameMode.trySetCustomDailyConfig(seed);
@@ -356,6 +375,26 @@ export class TitlePhase extends Phase {
 
   // TODO: Refactor this
   end(): void {
+    // Check if we have PvP battle data waiting to start
+    const pvpData = (globalScene as any).pvpBattleData;
+    if (pvpData) {
+      console.log("[TitlePhase] Starting PvP battle from end()");
+      // Clear the PvP data
+      (globalScene as any).pvpBattleData = undefined;
+
+      // Start PvP battle phase
+      globalScene.phaseManager.pushNew(
+        "PvPBattlePhase",
+        pvpData.playerRun,
+        pvpData.opponentRun,
+        pvpData.opponentName,
+        0,
+        pvpData.playerRunData,
+      );
+      super.end();
+      return;
+    }
+
     if (!this.loaded && !globalScene.gameMode.isDaily) {
       globalScene.gameMode = getGameMode(this.gameMode);
       if (this.gameMode === GameModes.CHALLENGE) {
@@ -400,5 +439,12 @@ export class TitlePhase extends Phase {
     }
 
     super.end();
+  }
+
+  initPvPChallenge(): void {
+    globalScene.ui.clearText();
+    // Open run history in PvP mode (true = PvP mode)
+    // Player will select their run, then choose opponents
+    globalScene.ui.setMode(UiMode.RUN_HISTORY, true);
   }
 }

@@ -261,6 +261,36 @@ export const trainerPartyTemplates = {
     new TrainerPartyTemplate(3, PartyMemberStrength.AVERAGE, false, true),
     new TrainerPartyTemplate(1, PartyMemberStrength.STRONGER),
   ),
+
+  // 邪恶团队老大模板（强化版）
+  // 115关邪恶老大：全员STRONG
+  EVIL_BOSS_1: new TrainerPartyTemplate(6, PartyMemberStrength.STRONG),
+  // 165关邪恶老大：2 STRONG + 3 STRONGER + 1 STRONGER（Mega）
+  EVIL_BOSS_2: new TrainerPartyCompoundTemplate(
+    new TrainerPartyTemplate(2, PartyMemberStrength.STRONG),
+    new TrainerPartyTemplate(4, PartyMemberStrength.STRONGER),
+  ),
+
+  // 劲敌强化模板
+  // 劲敌4~6：0号位STRONG御三家，1号位STRONG，2号位STRONGER，3~4号位STRONGER，5号位烈空坐STRONGER
+  RIVAL_4_ENHANCED: new TrainerPartyCompoundTemplate(
+    new TrainerPartyTemplate(1, PartyMemberStrength.STRONG), // 御三家
+    new TrainerPartyTemplate(1, PartyMemberStrength.STRONG), // 1号位
+    new TrainerPartyTemplate(3, PartyMemberStrength.STRONGER, false, true), // 2~4号位
+    new TrainerPartyTemplate(1, PartyMemberStrength.STRONGER), // 5号位（烈空坐）
+  ),
+  RIVAL_5_ENHANCED: new TrainerPartyCompoundTemplate(
+    new TrainerPartyTemplate(1, PartyMemberStrength.STRONG), // 御三家
+    new TrainerPartyTemplate(1, PartyMemberStrength.STRONG), // 1号位
+    new TrainerPartyTemplate(3, PartyMemberStrength.STRONGER, false, true), // 2~4号位
+    new TrainerPartyTemplate(1, PartyMemberStrength.STRONGER), // 5号位（烈空坐）
+  ),
+  RIVAL_6_ENHANCED: new TrainerPartyCompoundTemplate(
+    new TrainerPartyTemplate(1, PartyMemberStrength.STRONGER), // 御三家（BOSS）
+    new TrainerPartyTemplate(1, PartyMemberStrength.STRONG), // 1号位
+    new TrainerPartyTemplate(3, PartyMemberStrength.STRONGER, false, true), // 2~4号位
+    new TrainerPartyTemplate(1, PartyMemberStrength.STRONGER), // 5号位（Mega烈空坐）
+  ),
 };
 
 /**

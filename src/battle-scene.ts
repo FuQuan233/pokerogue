@@ -41,6 +41,7 @@ import { getTypeRgb } from "#data/type";
 import { BattleType } from "#enums/battle-type";
 import { BattlerTagType } from "#enums/battler-tag-type";
 import { BiomeId } from "#enums/biome-id";
+import { ClassicFixedBossWaves } from "#enums/fixed-boss-waves";
 import { FormChangeItem } from "#enums/form-change-item";
 import { GameModes } from "#enums/game-modes";
 import { ModifierPoolType } from "#enums/modifier-pool-type";
@@ -97,6 +98,7 @@ import {
   getLuckTextTint,
   getPartyLuckValue,
   type ModifierType,
+  ModifierTypeGenerator,
   PokemonHeldItemModifierType,
 } from "#modifiers/modifier-type";
 import { MysteryEncounter } from "#mystery-encounters/mystery-encounter";
@@ -2664,6 +2666,15 @@ export class BattleScene extends SceneBase {
         }
       }
 
+      // 检查是否是需要强化道具的训练家（邪恶老大或劲敌5/6）
+      const waveIndex = this.currentBattle.waveIndex;
+      const trainerType = this.currentBattle.trainer?.config.trainerType;
+      const isEnhancedTrainer =
+        waveIndex === ClassicFixedBossWaves.EVIL_BOSS_1
+        || waveIndex === ClassicFixedBossWaves.EVIL_BOSS_2
+        || trainerType === TrainerType.RIVAL_5
+        || trainerType === TrainerType.RIVAL_6;
+
       party.forEach((enemyPokemon: EnemyPokemon, i: number) => {
         if (heldModifiersConfigs && i < heldModifiersConfigs.length && heldModifiersConfigs[i]) {
           for (const mt of heldModifiersConfigs[i]) {
@@ -2706,6 +2717,63 @@ export class BattleScene extends SceneBase {
             upgradeChance,
           ).map(mt => mt.newModifier(enemyPokemon).add(this.enemyModifiers, false));
         }
+
+        // 为邪恶老大和劲敌5/6的每只宝可梦添加固定道具
+        // 1个MASTER、1个ROGUE、2个ULTRA、3个GREAT、5个COMMON（共12个）
+        if (isEnhancedTrainer) {
+          // 定义每个等级对应的具体道具类型函数
+          const masterItems = [
+            modifierTypes.KINGS_ROCK,
+            modifierTypes.LEFTOVERS,
+            modifierTypes.SHELL_BELL,
+            modifierTypes.SCOPE_LENS,
+          ];
+          const rogueItems = [
+            modifierTypes.FOCUS_BAND,
+            modifierTypes.QUICK_CLAW,
+            modifierTypes.GRIP_CLAW,
+            modifierTypes.WIDE_LENS,
+          ];
+          const ultraItems = [modifierTypes.ATTACK_TYPE_BOOSTER];
+          const greatItems = [modifierTypes.BASE_STAT_BOOSTER];
+          const commonItems = [modifierTypes.BERRY, modifierTypes.BASE_STAT_BOOSTER];
+
+          const fixedModifierConfigs = [
+            { items: masterItems, count: 1 },
+            { items: rogueItems, count: 1 },
+            { items: ultraItems, count: 2 },
+            { items: greatItems, count: 3 },
+            { items: commonItems, count: 5 },
+          ];
+
+          for (const config of fixedModifierConfigs) {
+            for (let c = 0; c < config.count; c++) {
+              // 随机选择一个道具类型函数
+              const randomIndex = randSeedInt(config.items.length);
+              const modifierTypeFunc = config.items[randomIndex];
+
+              if (modifierTypeFunc) {
+                let modifierType: ModifierType | null = modifierTypeFunc();
+
+                // 如果是ModifierTypeGenerator，需要调用generateType生成具体类型
+                if (modifierType instanceof ModifierTypeGenerator) {
+                  modifierType = modifierType.generateType([enemyPokemon]);
+                }
+
+                if (modifierType) {
+                  const heldModifierType = modifierType as PokemonHeldItemModifierType;
+                  if (heldModifierType.newModifier) {
+                    const modifier = heldModifierType.newModifier(enemyPokemon);
+                    if (modifier) {
+                      modifier.add(this.enemyModifiers, false);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
         return true;
       });
       this.updateModifiers(false);

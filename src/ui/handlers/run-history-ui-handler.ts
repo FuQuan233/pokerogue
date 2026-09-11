@@ -37,6 +37,9 @@ export class RunHistoryUiHandler extends MessageUiHandler {
 
   private runContainerInitialY: number;
 
+  private isPvPMode = false; // Track if in PvP mode
+  private uploadHintText: Phaser.GameObjects.Text | null = null;
+
   override setup() {
     const ui = this.getUi();
 
@@ -73,6 +76,9 @@ export class RunHistoryUiHandler extends MessageUiHandler {
   override show(args: any[]): boolean {
     super.show(args);
 
+    // Check if in PvP mode
+    this.isPvPMode = args[0] === true;
+
     this.getUi().bringToTop(this.runSelectContainer);
     this.runSelectContainer.setVisible(true);
     this.populateRuns().then(() => {
@@ -82,6 +88,11 @@ export class RunHistoryUiHandler extends MessageUiHandler {
       //Destroys the cursor if there are no runs saved so far.
       if (this.runs.length === 0) {
         this.clearCursor();
+      }
+
+      // Show upload hint whenever there are runs (not just in PvP mode)
+      if (this.runs.length > 0) {
+        this.showUploadHint();
       }
     });
 
@@ -93,6 +104,7 @@ export class RunHistoryUiHandler extends MessageUiHandler {
    * @param button
    * The user can navigate through the runs with Button.UP/Button.DOWN.
    * Button.ACTION allows the user to access more information about their runs.
+   * Button.SUBMIT allows uploading runs in PvP mode.
    * Button.CANCEL allows the user to go back.
    */
   override processInput(button: Button): boolean {
@@ -101,13 +113,33 @@ export class RunHistoryUiHandler extends MessageUiHandler {
     let success = false;
     const error = false;
 
-    if ([Button.ACTION, Button.CANCEL].includes(button)) {
+    if ([Button.ACTION, Button.CANCEL, Button.SUBMIT].includes(button)) {
       if (button === Button.ACTION) {
         const cursor = this.cursor + this.scrollCursor;
         if (this.runs[cursor]) {
-          globalScene.ui.setOverlayMode(UiMode.RUN_INFO, this.runs[cursor].entryData, RunDisplayMode.RUN_HISTORY, true);
+          if (this.isPvPMode) {
+            // In PvP mode, ACTION opens base64 code input
+            globalScene.ui.setMode(UiMode.PVP_CODE_INPUT, this.runs[cursor].entryData);
+          } else {
+            // Normal mode, show run details
+            globalScene.ui.setOverlayMode(
+              UiMode.RUN_INFO,
+              this.runs[cursor].entryData,
+              RunDisplayMode.RUN_HISTORY,
+              true,
+            );
+          }
         } else {
           return false;
+        }
+        success = true;
+        return success;
+      }
+      if (button === Button.SUBMIT) {
+        // Export selected run as base64 (available in all modes)
+        const cursor = this.cursor + this.scrollCursor;
+        if (this.runs[cursor]) {
+          this.exportRunAsBase64(this.runs[cursor].entryData);
         }
         success = true;
         return success;
@@ -157,6 +189,10 @@ export class RunHistoryUiHandler extends MessageUiHandler {
   private async populateRuns() {
     const response = await globalScene.gameData.getRunHistoryData();
     const timestamps = Object.keys(response);
+
+    // No longer filter by victory in PvP mode - show all runs
+    // Players can choose any run to challenge with
+
     if (timestamps.length === 0) {
       this.showEmpty();
       return;
@@ -229,6 +265,11 @@ export class RunHistoryUiHandler extends MessageUiHandler {
     this.setScrollCursor(0);
     this.clearCursor();
     this.clearRuns();
+    if (this.uploadHintText) {
+      this.uploadHintText.destroy();
+      this.uploadHintText = null;
+    }
+    this.isPvPMode = false;
   }
 
   private clearCursor() {
@@ -241,6 +282,74 @@ export class RunHistoryUiHandler extends MessageUiHandler {
   private clearRuns() {
     this.runs.splice(0, this.runs.length);
     this.runsContainer.removeAll(true);
+  }
+
+  /**
+   * Show export hint text (available in all modes)
+   */
+  private showUploadHint(): void {
+    if (this.uploadHintText) {
+      this.uploadHintText.destroy();
+    }
+
+    this.uploadHintText = addTextObject(
+      globalScene.scaledCanvas.width - 8,
+      -globalScene.scaledCanvas.height + 8,
+      i18next.t("pvp:exportHint"),
+      TextStyle.WINDOW,
+    );
+    this.uploadHintText.setOrigin(1, 0);
+    this.runSelectContainer.add(this.uploadHintText);
+  }
+
+  /**
+   * Export a run as base64 code
+   */
+  private exportRunAsBase64(runEntry: RunEntry): void {
+    const messageHandler = globalScene.ui.getMessageHandler();
+
+    try {
+      // Create export data with trainer info
+      const exportData = {
+        trainerId: globalScene.gameData.trainerId,
+        playerName: globalScene.gameData.trainerId.toString(),
+        runEntry,
+        exportedAt: Date.now(),
+      };
+
+      // Convert to JSON and encode as base64
+      const jsonStr = JSON.stringify(exportData);
+      const base64Code = btoa(unescape(encodeURIComponent(jsonStr)));
+
+      // Copy to clipboard
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard
+          .writeText(base64Code)
+          .then(() => {
+            messageHandler.showText(i18next.t("pvp:exportSuccess"), null, () => {}, null, true);
+          })
+          .catch(() => {
+            // Fallback: show the code in a message
+            this.showBase64Code(base64Code);
+          });
+      } else {
+        // Fallback: show the code in a message
+        this.showBase64Code(base64Code);
+      }
+    } catch (error) {
+      console.error("Failed to export run:", error);
+      messageHandler.showText(i18next.t("pvp:exportFailed"), null, () => {}, null, true);
+    }
+  }
+
+  /**
+   * Show base64 code when clipboard is not available
+   */
+  private showBase64Code(code: string): void {
+    const messageHandler = globalScene.ui.getMessageHandler();
+    // Truncate code for display if too long
+    const displayCode = code.length > 100 ? `${code.slice(0, 100)}...` : code;
+    messageHandler.showText(`${i18next.t("pvp:exportCode")}\n${displayCode}`, null, () => {}, null, true);
   }
 }
 

@@ -6,6 +6,7 @@ import { handleTutorial, Tutorial } from "#app/tutorial";
 import type { IEggOptions } from "#data/egg";
 import { Egg, getLegendaryGachaSpeciesForTimestamp } from "#data/egg";
 import { Button } from "#enums/buttons";
+import { EggSourceType } from "#enums/egg-source-types";
 import { EggTier } from "#enums/egg-type";
 import { GachaType } from "#enums/gacha-types";
 import { TextStyle } from "#enums/text-style";
@@ -48,14 +49,18 @@ export class EggGachaUiHandler extends MessageUiHandler {
 
   private readonly legendaryExpiration = addTextObject(0, 0, "", TextStyle.WINDOW_ALT);
   private playTimeTimer: Phaser.Time.TimerEvent | null;
+  private optionText: Phaser.GameObjects.Text;
+  private optionIcons: Phaser.GameObjects.Sprite[] = [];
 
   private setupGachaType(key: keyof typeof GachaType, gachaType: GachaType): void {
     const gachaTypeKey = key.toLowerCase();
+    // UNLOCK gacha reuses MOVE gacha visuals
+    const visualKey = gachaType === GachaType.UNLOCK ? "move" : gachaTypeKey;
     const gachaContainer = globalScene.add.container(180 * gachaType, 18);
 
-    const gacha = globalScene.add.sprite(0, 0, `gacha_${gachaTypeKey}`).setOrigin(0);
+    const gacha = globalScene.add.sprite(0, 0, `gacha_${visualKey}`).setOrigin(0);
 
-    const gachaUnderlay = globalScene.add.sprite(115, 80, `gacha_underlay_${gachaTypeKey}`).setOrigin(0);
+    const gachaUnderlay = globalScene.add.sprite(115, 80, `gacha_underlay_${visualKey}`).setOrigin(0);
 
     const gachaEggs = globalScene.add.sprite(0, 0, "gacha_eggs").setOrigin(0);
 
@@ -136,6 +141,14 @@ export class EggGachaUiHandler extends MessageUiHandler {
         }
 
         gachaUpLabel.setText(i18next.t("egg:shinyUpGacha")).setX(0).setOrigin(0.5, 0);
+        break;
+      case GachaType.UNLOCK:
+        // Reuse MOVE gacha visuals
+        if (["de", "es-ES", "fr", "pt-BR", "ru"].includes(currentLanguage)) {
+          gachaUpLabel.setAlign("center").setY(0);
+        }
+
+        gachaUpLabel.setText("NEW-UP!").setX(0).setOrigin(0.5, 0);
         break;
     }
 
@@ -221,64 +234,25 @@ export class EggGachaUiHandler extends MessageUiHandler {
       .add(this.eggGachaOptionSelectBg);
     this.eggGachaContainer.add(this.eggGachaOptionsContainer);
 
-    const multiplierOne = "x1";
-    const multiplierTen = "x10";
-    const pullOptions = [
-      {
-        multiplier: multiplierOne,
-        description: `1 ${i18next.t("egg:pull")}`,
-        icon: getVoucherTypeIcon(VoucherType.REGULAR),
-      },
-      {
-        multiplier: multiplierTen,
-        description: `10 ${i18next.t("egg:pulls")}`,
-        icon: getVoucherTypeIcon(VoucherType.REGULAR),
-      },
-      {
-        multiplier: multiplierOne,
-        description: `5 ${i18next.t("egg:pulls")}`,
-        icon: getVoucherTypeIcon(VoucherType.PLUS),
-      },
-      {
-        multiplier: multiplierOne,
-        description: `10 ${i18next.t("egg:pulls")}`,
-        icon: getVoucherTypeIcon(VoucherType.PREMIUM),
-      },
-      {
-        multiplier: multiplierOne,
-        description: `25 ${i18next.t("egg:pulls")}`,
-        icon: getVoucherTypeIcon(VoucherType.GOLDEN),
-      },
-    ];
-
-    const resolvedLanguage = i18next.resolvedLanguage ?? "en";
-    const pullOptionsText = pullOptions
-      .map(option => {
-        const desc = option.description.split(" ");
-        if (desc[0].length < 2) {
-          desc[0] += ["zh", "ko"].includes(resolvedLanguage.slice(0, 2)) ? " " : "  ";
-        }
-        if (option.multiplier === multiplierOne) {
-          desc[0] += " ";
-        }
-        return `     ${option.multiplier.padEnd(5)}${desc.join(" ")}`;
-      })
-      .join("\n");
-
-    const optionText = addTextObject(0, 0, `${pullOptionsText}\n${i18next.t("menu:cancel")}`, TextStyle.WINDOW)
+    // Create option text (will be updated dynamically)
+    this.optionText = addTextObject(0, 0, "", TextStyle.WINDOW)
       .setLineSpacing(28)
       .setFontSize("80px")
       .setPositionRelative(this.eggGachaOptionSelectBg, 16, 9);
+    this.eggGachaOptionsContainer.add(this.optionText);
 
-    this.eggGachaOptionsContainer.add(optionText);
-
-    pullOptions.forEach((option, i) => {
+    // Create option icons (will be updated dynamically)
+    for (let i = 0; i < 5; i++) {
       const icon = globalScene.add
-        .sprite(0, 0, "items", option.icon)
+        .sprite(0, 0, "items", getVoucherTypeIcon(VoucherType.REGULAR))
         .setScale(3 * this.scale)
-        .setPositionRelative(this.eggGachaOptionSelectBg, 20, 9 + (48 + i * 96) * this.scale);
+        .setPositionRelative(this.eggGachaOptionSelectBg, 20, 9 + (48 + i * 96) * this.scale)
+        .setVisible(false);
       this.eggGachaOptionsContainer.add(icon);
-    });
+      this.optionIcons.push(icon);
+    }
+
+    // Note: updatePullOptions() will be called in show() after gachaCursor is set
 
     this.eggGachaContainer.add(this.eggGachaOptionsContainer);
 
@@ -471,15 +445,19 @@ export class EggGachaUiHandler extends MessageUiHandler {
    */
   private pullEggs(pullCount: number): Egg[] {
     const eggs: Egg[] = [];
+    // Convert GachaType to EggSourceType
+    const sourceType = this.gachaCursor as unknown as EggSourceType;
+    const isUnlockGacha = sourceType === EggSourceType.GACHA_UNLOCK;
     for (let i = 1; i <= pullCount; i++) {
       const eggOptions: IEggOptions = {
         pulled: true,
-        sourceType: this.gachaCursor,
+        sourceType,
       };
 
       // Before creating the last egg, check if the guaranteed egg tier was already generated
       // if not, override the egg tier
-      if (i === pullCount) {
+      // Skip for UNLOCK gacha as tier is determined by species
+      if (i === pullCount && !isUnlockGacha) {
         const guaranteedEggTier = this.getGuaranteedEggTierFromPullCount(pullCount);
         if (guaranteedEggTier !== EggTier.COMMON && !eggs.some(egg => egg.tier >= guaranteedEggTier)) {
           eggOptions.tier = guaranteedEggTier;
@@ -702,9 +680,26 @@ export class EggGachaUiHandler extends MessageUiHandler {
   /**
    * Convert a cursor index to a voucher type and count
    * @param cursor - The cursor index corresponding to the voucher type
+   * @param gachaCursor - The current gacha type cursor
    * @returns The voucher type, vouchers used, and pulls given, or an empty array if the cursor is not on a voucher
    */
-  private static cursorToVoucher(cursor: number): [VoucherType, number, number] | undefined {
+  private cursorToVoucher(cursor: number, gachaCursor: number): [VoucherType, number, number] | undefined {
+    const isUnlockGacha = gachaCursor === GachaType.UNLOCK;
+
+    if (isUnlockGacha) {
+      // UNLOCK gacha: 100抽选项
+      switch (cursor) {
+        case 0:
+          return [VoucherType.REGULAR, 100, 1];
+        case 1:
+          return [VoucherType.PLUS, 20, 1];
+        case 2:
+          return [VoucherType.PREMIUM, 10, 1];
+        case 3:
+          return [VoucherType.GOLDEN, 4, 1];
+      }
+    }
+    // Other gachas: normal options
     switch (cursor) {
       case 0:
         return [VoucherType.REGULAR, 1, 1];
@@ -735,7 +730,7 @@ export class EggGachaUiHandler extends MessageUiHandler {
       return;
     }
     const ui = this.getUi();
-    const voucher = EggGachaUiHandler.cursorToVoucher(cursor);
+    const voucher = this.cursorToVoucher(cursor, this.gachaCursor);
     if (!voucher) {
       ui.revertMode();
       return true;
@@ -801,11 +796,13 @@ export class EggGachaUiHandler extends MessageUiHandler {
           success = this.setCursor(this.cursor - 1);
         }
         break;
-      case Button.DOWN:
-        if (this.cursor < 5) {
+      case Button.DOWN: {
+        const maxCursor = this.gachaCursor === GachaType.UNLOCK ? 3 : 4; // UNLOCK has 4 options, others have 5
+        if (this.cursor < maxCursor) {
           success = this.setCursor(this.cursor + 1);
         }
         break;
+      }
       case Button.LEFT:
         if (this.gachaCursor) {
           success = this.setGachaCursor(this.gachaCursor - 1);
@@ -882,6 +879,9 @@ export class EggGachaUiHandler extends MessageUiHandler {
     if (changed) {
       this.gachaCursor = cursor;
 
+      // Update pull options based on gacha type
+      this.updatePullOptions();
+
       this.setTransitioning(true);
 
       globalScene.tweens.add({
@@ -894,6 +894,88 @@ export class EggGachaUiHandler extends MessageUiHandler {
     }
 
     return changed;
+  }
+
+  private updatePullOptions(): void {
+    const isUnlockGacha = this.gachaCursor === GachaType.UNLOCK;
+    const multiplierOne = "x1";
+    const multiplierTen = "x10";
+
+    const pullOptions = isUnlockGacha
+      ? [
+          {
+            multiplier: "x100",
+            description: `1 ${i18next.t("egg:pull")}`,
+            icon: getVoucherTypeIcon(VoucherType.REGULAR),
+          },
+          {
+            multiplier: "x20",
+            description: `1 ${i18next.t("egg:pull")}`,
+            icon: getVoucherTypeIcon(VoucherType.PLUS),
+          },
+          {
+            multiplier: "x10",
+            description: `1 ${i18next.t("egg:pull")}`,
+            icon: getVoucherTypeIcon(VoucherType.PREMIUM),
+          },
+          {
+            multiplier: "x4",
+            description: `1 ${i18next.t("egg:pull")}`,
+            icon: getVoucherTypeIcon(VoucherType.GOLDEN),
+          },
+        ]
+      : [
+          {
+            multiplier: multiplierOne,
+            description: `1 ${i18next.t("egg:pull")}`,
+            icon: getVoucherTypeIcon(VoucherType.REGULAR),
+          },
+          {
+            multiplier: multiplierTen,
+            description: `10 ${i18next.t("egg:pulls")}`,
+            icon: getVoucherTypeIcon(VoucherType.REGULAR),
+          },
+          {
+            multiplier: multiplierOne,
+            description: `5 ${i18next.t("egg:pulls")}`,
+            icon: getVoucherTypeIcon(VoucherType.PLUS),
+          },
+          {
+            multiplier: multiplierOne,
+            description: `10 ${i18next.t("egg:pulls")}`,
+            icon: getVoucherTypeIcon(VoucherType.PREMIUM),
+          },
+          {
+            multiplier: multiplierOne,
+            description: `25 ${i18next.t("egg:pulls")}`,
+            icon: getVoucherTypeIcon(VoucherType.GOLDEN),
+          },
+        ];
+
+    const resolvedLanguage = i18next.resolvedLanguage ?? "en";
+    const pullOptionsText = pullOptions
+      .map(option => {
+        const desc = option.description.split(" ");
+        if (desc[0].length < 2) {
+          desc[0] += ["zh", "ko"].includes(resolvedLanguage.slice(0, 2)) ? " " : "  ";
+        }
+        if (option.multiplier === multiplierOne) {
+          desc[0] += " ";
+        }
+        return `     ${option.multiplier.padEnd(5)}${desc.join(" ")}`;
+      })
+      .join("\n");
+
+    this.optionText.setText(`${pullOptionsText}\n${i18next.t("menu:cancel")}`);
+
+    // Update icons
+    this.optionIcons.forEach((icon, i) => {
+      if (i < pullOptions.length) {
+        icon.setTexture("items", pullOptions[i].icon).setVisible(true);
+      } else {
+        icon.setVisible(false);
+      }
+    });
   }
 
   legendaryGachaTimer(): void {

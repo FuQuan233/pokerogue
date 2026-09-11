@@ -1,4 +1,3 @@
-import { timedEventManager } from "#app/global-event-manager";
 import { globalScene } from "#app/global-scene";
 import { speciesDataRegistry } from "#app/global-species-data-registry";
 import { modifierTypes } from "#data/data-lists";
@@ -129,6 +128,12 @@ function initCommonModifierPool() {
     new WeightedModifierType(modifierTypes.TEMP_STAT_STAGE_BOOSTER, 4),
     new WeightedModifierType(modifierTypes.BERRY, 2),
     new WeightedModifierType(modifierTypes.TM_COMMON, 2),
+    // 特性学习器 - 权重约为COMMON池总权重(约42)的十分之一
+    new WeightedModifierType(
+      modifierTypes.ABILITY_LEARNER,
+      () => (globalScene.gameMode.isClassic ? 4 : 0), // 仅经典模式，权重4
+      4,
+    ),
   ].map(m => {
     m.setTier(ModifierTier.COMMON);
     return m;
@@ -299,7 +304,7 @@ function initGreatModifierPool() {
       },
       4,
     ),
-    new WeightedModifierType(modifierTypes.BASE_STAT_BOOSTER, 3),
+    new WeightedModifierType(modifierTypes.BASE_STAT_BOOSTER, 10),
     new WeightedModifierType(modifierTypes.TERA_SHARD, (party: Pokemon[]) =>
       party.filter(
         p =>
@@ -308,7 +313,8 @@ function initGreatModifierPool() {
         ? 1
         : 0,
     ),
-    new WeightedModifierType(
+    // TODO: DNA_SPLICERS已移至ROGUE池，如需还原请取消注释
+    /*new WeightedModifierType(
       modifierTypes.DNA_SPLICERS,
       (party: readonly Pokemon[]) => {
         if (party.filter(p => !p.fusionSpecies).length > 1) {
@@ -322,13 +328,32 @@ function initGreatModifierPool() {
         return 0;
       },
       4,
-    ),
+    ),*/
+    /*new WeightedModifierType(
+      modifierTypes.DNA_SPLICERS,
+      (party: Pokemon[]) => {
+        if (
+          globalScene.gameMode.isClassic // 经典模式限定
+          && party.filter(p => !p.fusionSpecies).length > 1
+        ) {
+          return 16;
+        }
+        return 0;
+      },
+      16,
+    ),*/
+
     new WeightedModifierType(
       modifierTypes.VOUCHER,
       (_party: readonly Pokemon[], rerollCount: number) =>
         globalScene.gameMode.isDaily ? 0 : Math.max(1 - rerollCount, 0),
       1,
     ),
+    // Classic mode only - Life Orb and Choice items
+    new WeightedModifierType(modifierTypes.LIFE_ORB, () => (globalScene.gameMode.isClassic ? 3 : 0), 3),
+    new WeightedModifierType(modifierTypes.CHOICE_BAND, () => (globalScene.gameMode.isClassic ? 3 : 0), 3),
+    new WeightedModifierType(modifierTypes.CHOICE_SPECS, () => (globalScene.gameMode.isClassic ? 3 : 0), 3),
+    new WeightedModifierType(modifierTypes.CHOICE_SCARF, () => (globalScene.gameMode.isClassic ? 3 : 0), 3),
   ].map(m => {
     m.setTier(ModifierTier.GREAT);
     return m;
@@ -540,6 +565,25 @@ function initUltraModifierPool() {
     new WeightedModifierType(modifierTypes.REVIVER_SEED, 4),
     new WeightedModifierType(modifierTypes.CANDY_JAR, skipInLastClassicWaveOrDefault(5)),
     new WeightedModifierType(modifierTypes.ATTACK_TYPE_BOOSTER, 9),
+    // 卷轴道具系列
+    new WeightedModifierType(modifierTypes.COMBO_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.PHYSICAL_CRIT_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.SPECIAL_CRIT_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.SUPER_CRIT_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.ENDURANCE_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.VITALITY_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.AGILITY_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.RETALIATORY_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.STRENGTH_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.INTELLECT_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.COUNTER_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.SLOW_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.TENACITY_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.PRECISION_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.LUCKY_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.INVIGORATE_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.SELF_HEAL_SCROLL, 3),
+    new WeightedModifierType(modifierTypes.QUICK_STRIKE_SCROLL, 3),
     new WeightedModifierType(modifierTypes.TM_ULTRA, 11),
     new WeightedModifierType(modifierTypes.RARER_CANDY, 4),
     new WeightedModifierType(modifierTypes.GOLDEN_PUNCH, skipInLastClassicWaveOrDefault(2)),
@@ -565,6 +609,7 @@ function initUltraModifierPool() {
 function initRogueModifierPool() {
   modifierPool[ModifierTier.ROGUE] = [
     new WeightedModifierType(modifierTypes.ROGUE_BALL, () => (hasMaximumBalls(PokeballType.ROGUE_BALL) ? 0 : 16), 16),
+    new WeightedModifierType(modifierTypes.FIRECRACKER, 4),
     new WeightedModifierType(modifierTypes.RELIC_GOLD, skipInLastClassicWaveOrDefault(2)),
     new WeightedModifierType(modifierTypes.LEFTOVERS, 3),
     new WeightedModifierType(modifierTypes.SHELL_BELL, 3),
@@ -599,6 +644,20 @@ function initRogueModifierPool() {
       (_party: Pokemon[], rerollCount: number) => (globalScene.gameMode.isDaily ? 0 : Math.max(3 - rerollCount * 1, 0)),
       3,
     ),
+    // TODO: DNA_SPLICERS从GREAT池移至ROGUE池，权重约为ROGUE池的10%
+    new WeightedModifierType(
+      modifierTypes.DNA_SPLICERS,
+      (party: Pokemon[]) => {
+        if (
+          globalScene.gameMode.isClassic // 经典模式限定
+          && party.filter(p => !p.fusionSpecies).length > 1
+        ) {
+          return 16; // 权重约为ROGUE池总权重的10%
+        }
+        return 0;
+      },
+      16,
+    ),
   ].map(m => {
     m.setTier(ModifierTier.ROGUE);
     return m;
@@ -622,7 +681,7 @@ function initMasterModifierPool() {
           : 0,
       5,
     ),
-    new WeightedModifierType(
+    /*new WeightedModifierType(
       modifierTypes.DNA_SPLICERS,
       (party: Pokemon[]) =>
         !(globalScene.gameMode.isClassic && timedEventManager.areFusionsBoosted())
@@ -631,7 +690,7 @@ function initMasterModifierPool() {
           ? 24
           : 0,
       24,
-    ),
+    ),*/
     new WeightedModifierType(
       modifierTypes.MINI_BLACK_HOLE,
       () =>

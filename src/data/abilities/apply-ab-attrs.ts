@@ -94,6 +94,24 @@ function applyAbAttrsInternal<T extends CallableAbAttrString>(
     return;
   }
 
+  if (params.pokemon.isFusion() && !params.pokemon.isTransformed()) {
+    const pokemon = params.pokemon;
+    const applied = new Set<number>();
+    try {
+      for (const { ability, passive } of pokemon.getEffectiveAbilityEntries()) {
+        if (!ability || applied.has(ability.id)) {
+          continue;
+        }
+        applied.add(ability.id);
+        params.passive = passive;
+        pokemon.withAbilityContext(ability, passive, () => applySingleAbAttrs(attrType, params, config));
+      }
+    } finally {
+      params.passive = undefined;
+    }
+    return;
+  }
+
   for (const passive of [false, true]) {
     params.passive = passive;
     applySingleAbAttrs(attrType, params, config);

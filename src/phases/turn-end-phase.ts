@@ -1,6 +1,7 @@
 import { applyAbAttrs } from "#abilities/apply-ab-attrs";
 import { globalScene } from "#app/global-scene";
 import { getPokemonNameWithAffix } from "#app/messages";
+import { damageCalculationLog } from "#data/damage-calculation-log";
 import { TerrainType } from "#data/terrain";
 import { BattlerTagLapseType } from "#enums/battler-tag-lapse-type";
 import { WeatherType } from "#enums/weather-type";
@@ -9,6 +10,7 @@ import type { Pokemon } from "#field/pokemon";
 import {
   EnemyStatusEffectHealChanceModifier,
   EnemyTurnHealModifier,
+  SelfHealScrollModifier,
   TurnHealModifier,
   TurnHeldItemTransferModifier,
   TurnStatusEffectModifier,
@@ -23,6 +25,9 @@ export class TurnEndPhase extends FieldPhase {
 
   start() {
     super.start();
+
+    // 保存当前回合的伤害计算记录到上一回合
+    damageCalculationLog.endTurn();
 
     globalScene.currentBattle.incrementTurn();
     globalScene.eventTarget.dispatchEvent(new TurnEndEvent(globalScene.currentBattle.turn));
@@ -55,6 +60,9 @@ export class TurnEndPhase extends FieldPhase {
         }
 
         applyAbAttrs("PostTurnAbAttr", { pokemon });
+
+        // 自愈卷轴 - 50%概率解除中毒、剧毒、灼烧状态
+        globalScene.applyModifiers(SelfHealScrollModifier, pokemon.isPlayer(), pokemon);
       }
 
       globalScene.applyModifiers(TurnStatusEffectModifier, pokemon.isPlayer(), pokemon);

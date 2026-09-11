@@ -19,6 +19,15 @@ export class MockRectangle implements MockGameObject {
   setAlpha(_alpha): this {
     return this;
   }
+  setStrokeStyle(_lineWidth: number, _color: number, _alpha?: number): this {
+    return this;
+  }
+  setInteractive(_options?: object): this {
+    return this;
+  }
+  on(_event: string, _callback: (...args: any[]) => void): this {
+    return this;
+  }
   setVisible(_visible): this {
     return this;
   }

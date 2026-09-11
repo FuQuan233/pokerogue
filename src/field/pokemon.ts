@@ -39,6 +39,11 @@ import {
 } from "#data/battler-tags";
 import { getDailyEventSeedBoss, isDailyForcedWaveHiddenAbility } from "#data/daily-run";
 import { isDailyEventSeed, isDailyFinalBoss } from "#data/daily-seed-utils";
+import {
+  type DamageCalculationEntry,
+  type DamageCalculationParams,
+  damageCalculationLog,
+} from "#data/damage-calculation-log";
 import { allAbilities, allMoves } from "#data/data-lists";
 import { getLevelTotalExp } from "#data/exp";
 import {
@@ -80,6 +85,7 @@ import { Challenges } from "#enums/challenges";
 import { DexAttr } from "#enums/dex-attr";
 import { ExpGainsSpeed } from "#enums/exp-gains-speed";
 import { FieldPosition } from "#enums/field-position";
+import { GameModes } from "#enums/game-modes";
 import { HitResult } from "#enums/hit-result";
 import { LearnMoveSituation } from "#enums/learn-move-situation";
 import { LearnableMoveSource } from "#enums/learnable-move-source";
@@ -111,13 +117,20 @@ import { UiMode } from "#enums/ui-mode";
 import { VolumeSetting } from "#enums/volume-setting";
 import { WeatherType } from "#enums/weather-type";
 import {
+  AgilityScrollModifier,
   BaseStatModifier,
+  CounterScrollModifier,
   CritBoosterModifier,
+  EnduranceScrollModifier,
   EnemyDamageBoosterModifier,
   EnemyDamageReducerModifier,
   EnemyFusionChanceModifier,
   EvoTrackerModifier,
   HiddenAbilityRateBoosterModifier,
+  IntellectScrollModifier,
+  InvigorateScrollModifier,
+  LuckyScrollModifier,
+  PhysicalCritScrollModifier,
   PokemonBaseStatFlatModifier,
   PokemonBaseStatTotalModifier,
   PokemonFriendshipBoosterModifier,
@@ -125,12 +138,19 @@ import {
   PokemonIncrementingStatModifier,
   PokemonMultiHitModifier,
   PokemonNatureWeightModifier,
+  PrecisionScrollModifier,
   ShinyRateBoosterModifier,
+  SlowScrollModifier,
+  SpecialCritScrollModifier,
   StatBoosterModifier,
+  StrengthScrollModifier,
+  SuperCritScrollModifier,
   SurviveDamageModifier,
   TempCritBoosterModifier,
   TempStatStageBoosterModifier,
+  VitalityScrollModifier,
 } from "#modifiers/modifier";
+import { getPartyLuckValue } from "#modifiers/modifier-type";
 import { applyMoveAttrs } from "#moves/apply-attrs";
 import type { HitsTagAttr, Move } from "#moves/move";
 import { getMoveTargets } from "#moves/move-utils";
@@ -140,6 +160,7 @@ import type { Variant } from "#sprites/variant";
 import { populateVariantColors, variantColorCache, variantData } from "#sprites/variant";
 import { achvs } from "#system/achv";
 import type { PokemonData } from "#system/pokemon-data";
+import { randomStatsManager } from "#system/random-stats-manager";
 import { RibbonData } from "#system/ribbon-data";
 import { awardRibbonsToSpeciesLine } from "#system/ribbon-methods";
 import type { AbAttrMap, AbAttrString, TypeMultiplierAbAttrParams } from "#types/ability-types";
@@ -392,7 +413,9 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
       this.fusionVariant = dataSource.fusionVariant || 0;
       this.fusionGender = dataSource.fusionGender;
       this.fusionLuck = dataSource.fusionLuck;
-      this.fusionCustomPokemonData = dataSource.fusionCustomPokemonData;
+      this.fusionCustomPokemonData = dataSource.fusionCustomPokemonData
+        ? new CustomPokemonData(dataSource.fusionCustomPokemonData)
+        : null;
       this.fusionTeraType = dataSource.fusionTeraType;
       this.usedTMs = dataSource.usedTMs ?? [];
       this.customPokemonData = new CustomPokemonData(dataSource.customPokemonData);
@@ -613,7 +636,13 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
       ret |= this.gender === Gender.FEMALE ? DexAttr.FEMALE : DexAttr.MALE;
     }
     ret |= this.shiny ? DexAttr.SHINY : DexAttr.NON_SHINY;
-    ret |= this.variant >= 2 ? DexAttr.VARIANT_3 : this.variant === 1 ? DexAttr.VARIANT_2 : DexAttr.DEFAULT_VARIANT;
+    // For species without variants, always use DEFAULT_VARIANT regardless of variant value
+    // This ensures the dexAttr matches what getFullUnlocksData() allows
+    if (this.species.hasVariants()) {
+      ret |= this.variant >= 2 ? DexAttr.VARIANT_3 : this.variant === 1 ? DexAttr.VARIANT_2 : DexAttr.DEFAULT_VARIANT;
+    } else {
+      ret |= DexAttr.DEFAULT_VARIANT;
+    }
     ret |= globalScene.gameData.getFormAttr(this.formIndex);
     return ret;
   }
@@ -1431,6 +1460,24 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
       critStage.value += critBoostTag.critStages;
     }
 
+    // Classic mode: Luck-based crit stage boost
+    // B (4), A (7), S (10) each add +1 crit stage (max 3)
+    if (globalScene.gameMode.isClassic && source.isPlayer()) {
+      const partyLuckValue = getPartyLuckValue(globalScene.getPlayerParty());
+      let luckCritBoost = 0;
+      if (partyLuckValue >= 10) {
+        // S or higher: +3 total (B +1, A +1, S +1)
+        luckCritBoost = 3;
+      } else if (partyLuckValue >= 7) {
+        // A or higher: +2 total (B +1, A +1)
+        luckCritBoost = 2;
+      } else if (partyLuckValue >= 4) {
+        // B or higher: +1 total
+        luckCritBoost = 1;
+      }
+      critStage.value = Math.min(critStage.value + luckCritBoost, 3);
+    }
+
     console.log(`crit stage: +${critStage.value}`);
     return critStage.value;
   }
@@ -1475,11 +1522,22 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     const statVal = new NumberHolder(this.getStat(stat, false));
     if (!ignoreHeldItems) {
       globalScene.applyModifiers(StatBoosterModifier, this.isPlayer(), this, stat, statVal);
+
+      // 卷轴道具能力值加成
+      globalScene.applyModifiers(EnduranceScrollModifier, this.isPlayer(), this, stat, statVal); // 防御
+      globalScene.applyModifiers(StrengthScrollModifier, this.isPlayer(), this, stat, statVal); // 物攻
+      globalScene.applyModifiers(IntellectScrollModifier, this.isPlayer(), this, stat, statVal); // 特攻
+      globalScene.applyModifiers(AgilityScrollModifier, this.isPlayer(), this, stat, statVal); // 速度
+      globalScene.applyModifiers(SlowScrollModifier, this.isPlayer(), this, stat, statVal); // 速度减少
     }
 
     // The Ruin abilities here are never ignored, but they reveal themselves on summon anyway
+    // 为每个stat单独设置hasApplied标志，允许多个不同stat的灾祸能力同时生效
     const fieldApplied = new BooleanHolder(false);
     for (const pokemon of globalScene.getField(true)) {
+      if (pokemon === this) {
+        continue; // 跳过自己
+      }
       // TODO: remove `canStack` toggle from ability as breaking out renders it useless
       applyAbAttrs("FieldMultiplyStatAbAttr", {
         pokemon,
@@ -1489,9 +1547,8 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
         hasApplied: fieldApplied,
         simulated,
       });
-      if (fieldApplied.value) {
-        break;
-      }
+      // 注意：不在这里break，因为可能有多个宝可梦有不同stat的灾祸能力
+      // 但hasApplied标志会防止同一个stat被多次降低
     }
 
     if (!ignoreAbility) {
@@ -1563,6 +1620,10 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
         if (this.getTag(BattlerTagType.UNBURDEN) && this.hasAbility(AbilityId.UNBURDEN)) {
           ret *= 2;
         }
+        // Winter event: Ice-type Pokemon in Classic mode get 33% speed boost
+        if (globalScene.gameMode.isClassic && this.isOfType(PokemonType.ICE)) {
+          ret *= 1.33;
+        }
         break;
       }
     }
@@ -1590,6 +1651,8 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
       if (s === Stat.HP) {
         statHolder.value = statHolder.value + this.level + 10;
         globalScene.applyModifier(PokemonIncrementingStatModifier, this.isPlayer(), this, s, statHolder);
+        // 强壮卷轴 - HP上限增加等级*0.6
+        globalScene.applyModifiers(VitalityScrollModifier, this.isPlayer(), this, s, statHolder);
         if (this.hasAbility(AbilityId.WONDER_GUARD, false, true)) {
           statHolder.value = 1;
         }
@@ -1621,18 +1684,35 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
   }
 
   calculateBaseStats(): number[] {
-    const baseStats = this.getSpeciesForm(true).baseStats.slice(0);
+    let baseStats = this.getSpeciesForm(true).baseStats.slice(0);
+
+    // Apply random stats in RANDOM_STATS mode (before any other modifications)
+    if (globalScene.gameMode?.modeId === GameModes.RANDOM_STATS) {
+      baseStats = randomStatsManager.getRandomizedStats(this.species.speciesId, this.formIndex, baseStats);
+    }
+
     applyChallenges(ChallengeType.FLIP_STAT, this, baseStats);
     // Shuckle Juice
     globalScene.applyModifiers(PokemonBaseStatTotalModifier, this.isPlayer(), this, baseStats);
     // Old Gateau
     globalScene.applyModifiers(PokemonBaseStatFlatModifier, this.isPlayer(), this, baseStats);
     if (this.isFusion()) {
-      const fusionBaseStats = this.getFusionSpeciesForm(true).baseStats.slice(0);
+      let fusionBaseStats = this.getFusionSpeciesForm(true).baseStats.slice(0);
+
+      // Apply random stats to fusion Pokemon in RANDOM_STATS mode
+      if (globalScene.gameMode?.modeId === GameModes.RANDOM_STATS) {
+        fusionBaseStats = randomStatsManager.getRandomizedStats(
+          this.fusionSpecies!.speciesId,
+          this.fusionFormIndex,
+          fusionBaseStats,
+        );
+      }
+
       applyChallenges(ChallengeType.FLIP_STAT, this, fusionBaseStats);
 
+      // Take the maximum value for each stat
       for (const s of PERMANENT_STATS) {
-        baseStats[s] = Math.ceil((baseStats[s] + fusionBaseStats[s]) / 2);
+        baseStats[s] = Math.max(baseStats[s], fusionBaseStats[s]);
       }
     } else if (globalScene.gameMode.isSplicedOnly) {
       for (const s of PERMANENT_STATS) {
@@ -1904,10 +1984,13 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
    * @remarks
    * Looks at either the species it was met at or the first {@linkcode Species} in its evolution
    * line that can act as a starter and provides those egg moves.
+   * For fusion Pokemon, also includes egg moves from the fusion species.
    * @returns An array of all {@linkcode MoveId}s that are egg moves and unlocked for this Pokemon.
    */
   private getUnlockedEggMoves(): MoveId[] {
     const moves: MoveId[] = [];
+
+    // Get egg moves from the main species
     const species =
       this.metSpecies in speciesEggMoves ? this.metSpecies : this.getSpeciesForm(true).getRootSpeciesId(true);
 
@@ -1915,6 +1998,22 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
       for (let i = 0; i < 4; i++) {
         if (globalScene.gameData.starterData[species].eggMoves & (1 << i)) {
           moves.push(speciesEggMoves[species][i]);
+        }
+      }
+    }
+
+    // For fusion Pokemon, also get egg moves from the fusion species
+    if (this.fusionSpecies) {
+      const fusionRootSpecies = this.fusionSpecies.getRootSpeciesId(true);
+      if (fusionRootSpecies in speciesEggMoves) {
+        for (let i = 0; i < 4; i++) {
+          if (globalScene.gameData.starterData[fusionRootSpecies]?.eggMoves & (1 << i)) {
+            const fusionEggMove = speciesEggMoves[fusionRootSpecies][i];
+            // Avoid duplicates
+            if (!moves.includes(fusionEggMove)) {
+              moves.push(fusionEggMove);
+            }
+          }
         }
       }
     }
@@ -2088,7 +2187,7 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     const secondCustomType = customTypes[1] ?? speciesForm.type2;
 
     // Second type
-    let secondType: PokemonType | null = secondCustomType;
+    const secondType: PokemonType | null = secondCustomType;
 
     if (fusionSpeciesForm) {
       // Check if the fusion Pokemon also has permanent changes from ME when determining the fusion types
@@ -2097,12 +2196,8 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
       const fusionType1 = fusionCustomTypes[0] ?? fusionSpeciesForm.type1;
       const fusionType2 = fusionCustomTypes[1] ?? fusionSpeciesForm.type2;
 
-      // Assign second type if the fusion can provide one
-      if (fusionType2 !== null && fusionType2 !== firstType) {
-        secondType = fusionType2;
-      } else if (fusionType1 !== firstType) {
-        secondType = fusionType1;
-      }
+      // FuQuan fusions retain all unique types from both component Pokemon.
+      return [...new Set([firstType, secondCustomType, fusionType1, fusionType2])].filter(type => type !== null);
     }
 
     return [firstType, secondType ?? PokemonType.UNKNOWN];
@@ -2155,6 +2250,9 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
    * @returns The non-passive {@linkcode Ability} of this Pokemon.
    */
   public getAbility(ignoreOverride = false): Ability {
+    if (this.fuquanAbilityContext && !this.fuquanAbilityContext.passive) {
+      return this.fuquanAbilityContext.ability;
+    }
     if (!ignoreOverride && this.summonData.ability) {
       return allAbilities[this.summonData.ability];
     }
@@ -2164,6 +2262,11 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     if (activeOverrides.ENEMY_ABILITY_OVERRIDE && this.isEnemy()) {
       return allAbilities[activeOverrides.ENEMY_ABILITY_OVERRIDE];
     }
+    // 优先检查主体的自定义特性（特性学习器修改的）
+    if (this.customPokemonData.ability != null && this.customPokemonData.ability !== -1) {
+      return allAbilities[this.customPokemonData.ability];
+    }
+    // 对于融合宝可梦，如果主体没有自定义特性，返回融合部分的特性
     if (this.isFusion()) {
       if (this.fusionCustomPokemonData?.ability != null && this.fusionCustomPokemonData.ability !== -1) {
         return allAbilities[this.fusionCustomPokemonData.ability];
@@ -2194,6 +2297,9 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
    * @returns The passive {@linkcode Ability} of the pokemon
    */
   public getPassiveAbility(): Ability {
+    if (this.fuquanAbilityContext?.passive) {
+      return this.fuquanAbilityContext.ability;
+    }
     if (activeOverrides.PASSIVE_ABILITY_OVERRIDE && this.isPlayer()) {
       return allAbilities[activeOverrides.PASSIVE_ABILITY_OVERRIDE];
     }
@@ -2214,26 +2320,84 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
   }
 
   /**
+   * 获取此宝可梦的所有特性（包括普通特性、被动特性，融合宝可梦还包括融合部分的特性）
+   * 按固定顺序返回：[主体特性, 主体被动, 融合特性, 融合被动]
+   * @returns 所有特性的 Ability 数组
+   */
+  public getAllAbilities(): Ability[] {
+    const abilities: Ability[] = [];
+
+    // 槽位0: 主体的普通特性（不使用 getAbility()，因为它对融合宝可梦会返回融合部分的特性）
+    let primaryAbilityId: AbilityId;
+    if (this.customPokemonData.ability != null && this.customPokemonData.ability !== -1) {
+      primaryAbilityId = this.customPokemonData.ability;
+    } else {
+      primaryAbilityId = this.getSpeciesForm().getAbility(this.abilityIndex);
+      if (primaryAbilityId === AbilityId.NONE) {
+        primaryAbilityId = this.species.ability1;
+      }
+    }
+    abilities.push(allAbilities[primaryAbilityId]);
+
+    // 槽位1: 主体的被动特性（如果有）
+    if (this.hasPassive()) {
+      let passiveAbilityId: AbilityId;
+      if (this.customPokemonData.passive != null && this.customPokemonData.passive !== -1) {
+        passiveAbilityId = this.customPokemonData.passive;
+      } else {
+        passiveAbilityId = this.species.getPassiveAbility(this.formIndex);
+      }
+      abilities.push(allAbilities[passiveAbilityId]);
+    }
+
+    // 融合宝可梦的额外特性
+    if (this.isFusion()) {
+      // 槽位2: 融合部分的普通特性
+      let fusionAbilityId: AbilityId;
+      if (this.fusionCustomPokemonData?.ability != null && this.fusionCustomPokemonData.ability !== -1) {
+        fusionAbilityId = this.fusionCustomPokemonData.ability;
+      } else {
+        fusionAbilityId = this.getFusionSpeciesForm().getAbility(this.fusionAbilityIndex);
+      }
+      abilities.push(allAbilities[fusionAbilityId]);
+
+      // 槽位3: 融合部分的被动特性
+      if (this.fusionSpecies && this.hasPassive()) {
+        let fusionPassiveId: AbilityId;
+        if (this.fusionCustomPokemonData?.passive != null && this.fusionCustomPokemonData.passive !== -1) {
+          fusionPassiveId = this.fusionCustomPokemonData.passive;
+        } else {
+          fusionPassiveId = this.fusionSpecies.getPassiveAbility(this.fusionFormIndex);
+        }
+        if (fusionPassiveId !== AbilityId.NONE) {
+          abilities.push(allAbilities[fusionPassiveId]);
+        }
+      }
+    }
+
+    return abilities;
+  }
+
+  /**
    * Gets a list of all instances of a given ability attribute among abilities this pokemon has.
    * Accounts for all the various effects which can affect whether an ability will be present or
    * in effect, and both passive and non-passive.
+   * For fusions, includes abilities from both Pokemon A and B.
    * @param attrType - {@linkcode AbAttr} The ability attribute to check for.
    * @param canApply - Whether to check if the ability is currently active; Default `true`
    * @param ignoreOverride - Whether to ignore ability changing effects; Default `false`
    * @returns An array of all the ability attributes on this ability.
    */
   public getAbilityAttrs<T extends AbAttrString>(attrType: T, canApply = true, ignoreOverride = false): AbAttrMap[T][] {
-    const abilityAttrs: AbAttrMap[T][] = [];
-
-    if (!canApply || this.canApplyAbility()) {
-      abilityAttrs.push(...this.getAbility(ignoreOverride).getAttrs(attrType));
+    const attrs: AbAttrMap[T][] = [];
+    for (const { ability, passive } of this.getEffectiveAbilityEntries(ignoreOverride)) {
+      this.withAbilityContext(ability, passive, () => {
+        if (!canApply || this.canApplyAbility(passive)) {
+          attrs.push(...ability.getAttrs(attrType));
+        }
+      });
     }
-
-    if (!canApply || this.canApplyAbility(true)) {
-      abilityAttrs.push(...this.getPassiveAbility().getAttrs(attrType));
-    }
-
-    return abilityAttrs;
+    return attrs;
   }
 
   /**
@@ -2366,19 +2530,72 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     return (this.hp > 0 || ability.bypassFaint) && !ability.conditions.find(condition => !condition(this));
   }
 
+  /** Ability slots shared by attribute queries and effect dispatch. */
+  public getEffectiveAbilityEntries(ignoreOverride = false): { ability: Ability; passive: boolean }[] {
+    if (!this.isFusion(ignoreOverride) || (!ignoreOverride && this.isTransformed())) {
+      return [
+        { ability: this.getAbility(ignoreOverride), passive: false },
+        ...(this.hasPassive() ? [{ ability: this.getPassiveAbility(), passive: true }] : []),
+      ];
+    }
+    const abilities = this.getAllAbilities();
+    const entries = abilities.map((ability, index) => ({ ability, passive: this.hasPassive() && index % 2 === 1 }));
+    if (!ignoreOverride && this.summonData.ability) {
+      for (const entry of entries) {
+        if (!entry.passive) {
+          entry.ability = allAbilities[this.summonData.ability];
+        }
+      }
+    }
+    if (this.summonData.passiveAbility) {
+      for (const entry of entries) {
+        if (entry.passive) {
+          entry.ability = allAbilities[this.summonData.passiveAbility];
+        }
+      }
+    }
+    const seen = new Set<AbilityId>();
+    return entries.filter(({ ability }) => {
+      if (!ability || ability.id === AbilityId.NONE || seen.has(ability.id)) {
+        return false;
+      }
+      seen.add(ability.id);
+      return true;
+    });
+  }
+
+  /** Run one fused ability with its own conditions, suppression rules and display identity. */
+  public withAbilityContext<T>(ability: Ability, passive: boolean, action: () => T): T {
+    const previous = this.fuquanAbilityContext;
+    this.fuquanAbilityContext = { ability, passive };
+    try {
+      return action();
+    } finally {
+      this.fuquanAbilityContext = previous;
+    }
+  }
+
+  private fuquanAbilityContext: { ability: Ability; passive: boolean } | undefined;
+
   /**
    * Check whether a pokemon has the specified ability in effect, either as a normal or passive ability.
    * Accounts for all the various effects which can disable or modify abilities.
-   * @param ability - The {@linkcode AbilityId | Ability} to check for
+   * For fusions, checks abilities from both Pokemon A and B.
+   * @param ability - The {@linkcode Abilities | Ability} to check for
    * @param canApply - Whether to check if the ability is currently active; default `true`
    * @param ignoreOverride - Whether to ignore any overrides caused by {@linkcode MoveId.TRANSFORM | Transform}; default `false`
    * @returns Whether this {@linkcode Pokemon} has the given ability
    */
   public hasAbility(ability: AbilityId, canApply = true, ignoreOverride = false): boolean {
-    if (this.getAbility(ignoreOverride).id === ability && (!canApply || this.canApplyAbility())) {
-      return true;
-    }
-    return this.getPassiveAbility().id === ability && this.hasPassive() && (!canApply || this.canApplyAbility(true));
+    return this.getEffectiveAbilityEntries(ignoreOverride).some(
+      entry =>
+        entry.ability.id === ability
+        && this.withAbilityContext(
+          entry.ability,
+          entry.passive,
+          () => !canApply || this.canApplyAbility(entry.passive),
+        ),
+    );
   }
 
   /**
@@ -2390,10 +2607,7 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
    * @returns Whether this Pokemon has an ability with the given {@linkcode AbAttr}.
    */
   public hasAbilityWithAttr(attrType: AbAttrString, canApply = true, ignoreOverride = false): boolean {
-    if ((!canApply || this.canApplyAbility()) && this.getAbility(ignoreOverride).hasAttr(attrType)) {
-      return true;
-    }
-    return this.hasPassive() && (!canApply || this.canApplyAbility(true)) && this.getPassiveAbility().hasAttr(attrType);
+    return this.getAbilityAttrs(attrType, canApply, ignoreOverride).length > 0;
   }
 
   /**
@@ -2785,6 +2999,14 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
         globalScene.phaseManager.queueMessage(i18next.t("weather:strongWindsEffectMessage"));
       }
     }
+    if (
+      globalScene.gameMode.isClassic
+      && this.isOfType(PokemonType.ICE)
+      && multi.value > 1
+      && !this.hasAbility(AbilityId.WONDER_GUARD, false, true)
+    ) {
+      multi.value = 1;
+    }
     return multi.value as TypeDamageMultiplier;
   }
 
@@ -2978,6 +3200,9 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
 
     const shinyThreshold = new NumberHolder(BASE_SHINY_CHANCE);
     if (thresholdOverride === undefined) {
+      if (!this.hasTrainer()) {
+        shinyThreshold.value *= 4; // 野生宝可梦闪光概率 ×4（版本平衡调整）
+      }
       if (timedEventManager.isEventActive()) {
         const tchance = timedEventManager.getClassicTrainerShinyChance();
         if (this.isEnemy() && this.hasTrainer() && tchance > 0) {
@@ -3561,6 +3786,11 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     );
     applyMoveAttrs("VariableAtkAttr", source, this, move, sourceAtk);
 
+    // 精准卷轴 - 无视目标的防御和特防能力等级提高
+    const ignoreDefBoost = new BooleanHolder(isCritical); // 会心一击本身就忽略防御提升
+    globalScene.applyModifiers(PrecisionScrollModifier, source.isPlayer(), source, ignoreDefBoost);
+    const ignoreDefStageBoost = ignoreDefBoost.value;
+
     /**
      * This Pokemon's defensive stat for the given move's category.
      * Critical hits cause positive stat stages to be ignored.
@@ -3572,7 +3802,7 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
         ignoreAbility,
         ignoreOppAbility: ignoreSourceAbility,
         ignoreAllyAbility: ignoreSourceAllyAbility,
-        isCritical,
+        isCritical: ignoreDefStageBoost,
         simulated,
         forDefend: true,
       }),
@@ -3689,6 +3919,7 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     const variableCategory = new NumberHolder(move.category);
     applyMoveAttrs("VariableMoveCategoryAttr", source, this, move, variableCategory);
     const moveCategory = variableCategory.value as MoveCategory;
+    const isPhysical = moveCategory === MoveCategory.PHYSICAL;
 
     /** If `value` is `true`, cancels the move and suppresses "No Effect" messages */
     const cancelled = new BooleanHolder(false);
@@ -3801,7 +4032,20 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     }
 
     /** The damage multiplier when the given move critically hits */
-    const criticalMultiplier = new NumberHolder(isCritical ? 1.5 : 1);
+    let baseCritMultiplier = isCritical ? 1.5 : 1;
+
+    // Classic mode: Luck-based crit damage boost (only if luck >= S)
+    // S (10): 1.7x, S+ (11): 1.9x, SS (12): 2.1x, SS+ (13): 2.3x, SSS (14): 2.5x
+    if (isCritical && globalScene.gameMode.isClassic && source.isPlayer()) {
+      const partyLuckValue = getPartyLuckValue(globalScene.getPlayerParty());
+      if (partyLuckValue >= 10) {
+        // S or higher: add 0.2x per level above S
+        const luckBonus = 0.2 * (partyLuckValue - 9); // S (10) = 0.2, S+ (11) = 0.4, etc.
+        baseCritMultiplier = 1.5 + luckBonus;
+      }
+    }
+
+    const criticalMultiplier = new NumberHolder(baseCritMultiplier);
     applyAbAttrs("MultCritAbAttr", { pokemon: source, simulated, critMult: criticalMultiplier });
 
     /**
@@ -3890,6 +4134,19 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
       globalScene.applyModifiers(EnemyDamageReducerModifier, false, damage);
     }
 
+    // 卷轴道具伤害加成
+    // 物暴卷轴 - 物理伤害25%概率*2
+    globalScene.applyModifiers(PhysicalCritScrollModifier, source.isPlayer(), source, isPhysical, damage);
+    // 法暴卷轴 - 特殊伤害25%概率*2
+    globalScene.applyModifiers(SpecialCritScrollModifier, source.isPlayer(), source, isPhysical, damage);
+    // 超暴卷轴 - 会心一击时伤害*1.2
+    globalScene.applyModifiers(SuperCritScrollModifier, source.isPlayer(), source, isCritical, damage);
+    // 逆击卷轴 - 对能力值上升的目标伤害*1.2
+    globalScene.applyModifiers(CounterScrollModifier, source.isPlayer(), source, this, damage);
+
+    // 幸运卷轴 - 受到会心一击时伤害*0.7 (防御方)
+    globalScene.applyModifiers(LuckyScrollModifier, this.isPlayer(), this, isCritical, damage);
+
     const abAttrParams: PreAttackModifyDamageAbAttrParams = {
       pokemon: this,
       opponent: source,
@@ -3917,7 +4174,50 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
 
     // debug message for when damage is applied
     if (!simulated) {
-      console.log(`Move: ${move.name} | Attack damage: ${damage.value}`);
+      console.log("damage", damage.value, move.name);
+
+      // 记录伤害计算过程
+      const damageParams: DamageCalculationParams = {
+        levelMultiplier: (2 * source.level) / 5 + 2,
+        attackerLevel: source.level,
+        movePower: move.calculateBattlePower(source, this, true),
+        attackStat: source.getEffectiveStat(isPhysical ? Stat.ATK : Stat.SPATK, { opponent: this }),
+        defenseStat: this.getEffectiveStat(isPhysical ? Stat.DEF : Stat.SPDEF, { opponent: source }),
+        baseDamage,
+        targetMultiplier,
+        multiStrikeMultiplier: multiStrikeEnhancementMultiplier.value,
+        arenaMultiplier: weatherDamageMultiplier,
+        glaiveRushMultiplier: glaiveRushMultiplier.value,
+        criticalMultiplier: criticalMultiplier.value,
+        randomMultiplier,
+        stabMultiplier,
+        typeMultiplier,
+        burnMultiplier,
+        screenMultiplier: screenMultiplier.value,
+        hitsTagMultiplier: hitsTagMultiplier.value,
+        mistyTerrainMultiplier: 1,
+        abilityDamageMultiplier: 1, // 特性修正已经包含在damage.value中
+        enemyModifier: 1, // 敌方修正已经包含在damage.value中
+        lifeOrbMultiplier: 1, // 生命宝珠修正在其他地方处理
+      };
+
+      const entry: DamageCalculationEntry = {
+        attackerName: source.getNameToRender(),
+        attackerSpecies: source.species.speciesId,
+        attackerIsPlayer: source.isPlayer(),
+        defenderName: this.getNameToRender(),
+        defenderSpecies: this.species.speciesId,
+        moveId: move.id,
+        moveName: move.name,
+        moveType: source.getMoveType(move),
+        moveCategory: isPhysical ? "物理" : "特殊",
+        isCritical,
+        finalDamage: damage.value,
+        params: damageParams,
+        timestamp: Date.now(),
+      };
+
+      damageCalculationLog.addEntry(entry);
     }
 
     let hitResult: HitResult;
@@ -4963,6 +5263,12 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     // Check for cancellations from self/ally abilities
     const cancelled = new BooleanHolder(false);
     applyAbAttrs("StatusEffectImmunityAbAttr", { pokemon: this, effect, cancelled, simulated: quiet });
+    if (cancelled.value) {
+      return false;
+    }
+
+    // 振奋卷轴 - 防止冰冻、麻痹、睡眠状态
+    globalScene.applyModifiers(InvigorateScrollModifier, this.isPlayer(), this, effect, cancelled);
     if (cancelled.value) {
       return false;
     }
@@ -6380,7 +6686,7 @@ export class PlayerPokemon extends Pokemon {
     this.fusionVariant = pokemon.variant;
     this.fusionGender = pokemon.gender;
     this.fusionLuck = pokemon.luck;
-    this.fusionCustomPokemonData = pokemon.customPokemonData;
+    this.fusionCustomPokemonData = new CustomPokemonData(pokemon.customPokemonData);
     if (pokemon.pauseEvolutions || this.pauseEvolutions) {
       this.pauseEvolutions = true;
     }

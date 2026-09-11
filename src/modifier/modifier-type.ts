@@ -9,12 +9,14 @@ import { EvolutionItem } from "#balance/pokemon-evolutions";
 import { getTmNumber, tmPoolTiers } from "#balance/tm-pool-tiers";
 import { getBerryEffectDescription, getBerryName } from "#data/berry";
 import { getDailyEventSeedLuck } from "#data/daily-run";
-import { allMoves, modifierTypes } from "#data/data-lists";
+import { allAbilities, allMoves, modifierTypes } from "#data/data-lists";
 import { SpeciesFormChangeItemTrigger } from "#data/form-change-triggers";
 import { getNatureName, getNatureStatMultiplier } from "#data/nature";
 import { getPokeballCatchMultiplier, getPokeballName } from "#data/pokeball";
 import { SpeciesFormChangeCondition } from "#data/pokemon-forms";
 import { getStatusEffectDescriptor } from "#data/status-effect";
+import { AbilityAttr } from "#enums/ability-attr";
+import { AbilityId } from "#enums/ability-id";
 import { BattlerTagType } from "#enums/battler-tag-type";
 import { BerryType } from "#enums/berry-type";
 import { ChallengeType } from "#enums/challenge-type";
@@ -33,18 +35,26 @@ import { StatusEffect } from "#enums/status-effect";
 import { VoucherType } from "#enums/voucher-type";
 import type { EnemyPokemon, PlayerPokemon, Pokemon } from "#field/pokemon";
 import {
+  AbilityLearnerModifier,
   AddPokeballModifier,
   AddVoucherModifier,
+  AgilityScrollModifier,
   AttackTypeBoosterModifier,
   BaseStatModifier,
   BerryModifier,
   BoostBugSpawnModifier,
   BypassSpeedChanceModifier,
+  ChoiceBandModifier,
+  ChoiceScarfModifier,
+  ChoiceSpecsModifier,
+  ComboScrollModifier,
   ContactHeldItemTransferChanceModifier,
+  CounterScrollModifier,
   CritBoosterModifier,
   CriticalCatchChanceBoosterModifier,
   DamageMoneyRewardModifier,
   DoubleBattleChanceBoosterModifier,
+  EnduranceScrollModifier,
   EnemyAttackStatusEffectChanceModifier,
   EnemyDamageBoosterModifier,
   EnemyDamageReducerModifier,
@@ -61,6 +71,7 @@ import {
   ExpShareModifier,
   ExtraModifierModifier,
   FieldEffectModifier,
+  FirecrackerModifier,
   FlinchChanceModifier,
   FusePokemonModifier,
   GigantamaxAccessModifier,
@@ -68,9 +79,13 @@ import {
   HealShopCostModifier,
   HiddenAbilityRateBoosterModifier,
   HitHealModifier,
+  IntellectScrollModifier,
+  InvigorateScrollModifier,
   IvScannerModifier,
   LevelIncrementBoosterModifier,
+  LifeOrbModifier,
   LockModifierTiersModifier,
+  LuckyScrollModifier,
   MapModifier,
   MegaEvolutionAccessModifier,
   type Modifier,
@@ -79,6 +94,7 @@ import {
   MoneyRewardModifier,
   MultipleParticipantExpBonusModifier,
   type PersistentModifier,
+  PhysicalCritScrollModifier,
   PokemonAllMovePpRestoreModifier,
   PokemonBaseStatFlatModifier,
   PokemonBaseStatTotalModifier,
@@ -97,23 +113,34 @@ import {
   PokemonPpRestoreModifier,
   PokemonPpUpModifier,
   PokemonStatusHealModifier,
+  PrecisionScrollModifier,
   PreserveBerryModifier,
+  QuickStrikeScrollModifier,
+  RememberAbilityModifier,
   RememberMoveModifier,
   ResetNegativeStatStageModifier,
+  RetaliatoryScrollModifier,
+  SelfHealScrollModifier,
   ShinyRateBoosterModifier,
+  SlowScrollModifier,
+  SpecialCritScrollModifier,
   SpeciesCritBoosterModifier,
   SpeciesStatBoosterModifier,
+  StrengthScrollModifier,
+  SuperCritScrollModifier,
   SurviveDamageModifier,
   SwitchEffectTransferModifier,
   TempCritBoosterModifier,
   TempExtraModifierModifier,
   TempStatStageBoosterModifier,
+  TenacityScrollModifier,
   TerastallizeAccessModifier,
   TerastallizeModifier,
   TmModifier,
   TurnHealModifier,
   TurnHeldItemTransferModifier,
   TurnStatusEffectModifier,
+  VitalityScrollModifier,
 } from "#modifiers/modifier";
 import type { PokemonMove } from "#moves/pokemon-move";
 import { getVoucherTypeIcon, getVoucherTypeName } from "#system/voucher";
@@ -171,10 +198,16 @@ export class ModifierType {
   }
 
   get name(): string {
+    if (this.localeKey?.startsWith("raw:")) {
+      return this.localeKey.slice(4).split("|")[0];
+    }
     return i18next.t(`${this.localeKey}.name` as any);
   }
 
   getDescription(): string {
+    if (this.localeKey?.startsWith("raw:")) {
+      return this.localeKey.slice(4).split("|")[1] ?? "";
+    }
     return i18next.t(`${this.localeKey}.description` as any);
   }
 
@@ -419,6 +452,36 @@ export class PokemonHeldItemModifierType extends PokemonModifierType {
 
   newModifier(...args: any[]): PokemonHeldItemModifier {
     return super.newModifier(...args) as PokemonHeldItemModifier;
+  }
+}
+
+/**
+ * 支持硬编码中文名称和描述的持有物道具类型
+ * 用于不依赖本地化系统的自定义道具
+ */
+export class HardcodedPokemonHeldItemModifierType extends PokemonHeldItemModifierType {
+  private _name: string;
+  private _description: string;
+
+  constructor(
+    name: string,
+    description: string,
+    iconImage: string,
+    newModifierFunc: NewModifierFunc,
+    group?: string,
+    soundName?: string,
+  ) {
+    super("", iconImage, newModifierFunc, group, soundName);
+    this._name = name;
+    this._description = description;
+  }
+
+  override get name(): string {
+    return this._name;
+  }
+
+  override getDescription(): string {
+    return this._description;
   }
 }
 
@@ -736,6 +799,172 @@ export class RememberMoveModifierType extends PokemonModifierType {
       },
       group,
     );
+  }
+}
+
+/**
+ * 特性学习器类型 - 类似招式学习器，但用于特性
+ */
+export class AbilityLearnerModifierType extends PokemonModifierType {
+  public abilityId: AbilityId;
+
+  constructor(abilityId: AbilityId) {
+    super(
+      "",
+      "tm_normal", // 复用普通招式学习器图标
+      (type, args) =>
+        new AbilityLearnerModifier(
+          type as AbilityLearnerModifierType,
+          (args[0] as PlayerPokemon).id,
+          args[1] as number,
+        ),
+      (pokemon: PlayerPokemon) => {
+        // 检查宝可梦是否已拥有该特性
+        const currentAbilities = pokemon.getAllAbilities();
+        if (currentAbilities.some(a => a.id === abilityId)) {
+          return PartyUiHandler.NoEffectMessage;
+        }
+        return null;
+      },
+      "ability_learner",
+    );
+
+    this.abilityId = abilityId;
+  }
+
+  get name(): string {
+    return `特性学习器: ${allAbilities[this.abilityId].name}`;
+  }
+
+  getDescription(): string {
+    return `教授宝可梦特性「${allAbilities[this.abilityId].name}」，可替换已有的一个特性或被动。`;
+  }
+}
+
+/**
+ * 回忆咖啡类型 - 用于恢复本局习得过的特性或图鉴已解锁的特性
+ */
+export class RememberAbilityModifierType extends PokemonModifierType {
+  constructor(iconImage: string, group?: string) {
+    super(
+      "",
+      iconImage,
+      (type, args) => new RememberAbilityModifier(type, (args[0] as PlayerPokemon).id, args[1] as number),
+      (pokemon: PlayerPokemon) => {
+        // 获取可回忆的特性列表
+        const recallableAbilities = RememberAbilityModifierType.getRecallableAbilities(pokemon);
+        if (recallableAbilities.length === 0) {
+          return PartyUiHandler.NoEffectMessage;
+        }
+        return null;
+      },
+      group,
+    );
+  }
+
+  /**
+   * 获取宝可梦可回忆的特性列表
+   * 包括：本局习得过但现在没有的特性 + 图鉴已解锁但现在没有的特性
+   * 对于融合宝可梦，还包括副将的可回忆特性
+   * @param pokemon 目标宝可梦
+   * @returns 可回忆的特性ID数组
+   */
+  static getRecallableAbilities(pokemon: PlayerPokemon): AbilityId[] {
+    const currentAbilities = pokemon.getAllAbilities().map(a => a.id);
+    const recallableSet = new Set<AbilityId>();
+
+    // 1. 主将本局习得过但现在没有的特性
+    const learnedAbilities = pokemon.customPokemonData.learnedAbilities || [];
+    for (const abilityId of learnedAbilities) {
+      if (!currentAbilities.includes(abilityId)) {
+        recallableSet.add(abilityId);
+      }
+    }
+
+    // 2. 主将图鉴已解锁但现在没有的特性（基于宝可梦的根形态）
+    const rootSpeciesId = pokemon.species.getRootSpeciesId();
+    const starterData = globalScene.gameData.starterData[rootSpeciesId];
+    if (starterData) {
+      const abilityAttr = starterData.abilityAttr || 0;
+      const speciesForm = pokemon.getSpeciesForm();
+
+      // 检查 ability1 是否已解锁
+      if (abilityAttr & AbilityAttr.ABILITY_1) {
+        const ability1 = speciesForm.ability1;
+        if (ability1 !== AbilityId.NONE && !currentAbilities.includes(ability1)) {
+          recallableSet.add(ability1);
+        }
+      }
+
+      // 检查 ability2 是否已解锁
+      if (abilityAttr & AbilityAttr.ABILITY_2) {
+        const ability2 = speciesForm.ability2;
+        if (ability2 !== AbilityId.NONE && !currentAbilities.includes(ability2)) {
+          recallableSet.add(ability2);
+        }
+      }
+
+      // 检查隐藏特性是否已解锁
+      if (abilityAttr & AbilityAttr.ABILITY_HIDDEN) {
+        const abilityHidden = speciesForm.abilityHidden;
+        if (abilityHidden !== AbilityId.NONE && !currentAbilities.includes(abilityHidden)) {
+          recallableSet.add(abilityHidden);
+        }
+      }
+    }
+
+    // 3. 对于融合宝可梦，还需要检查副将的可回忆特性
+    if (pokemon.isFusion() && pokemon.fusionSpecies) {
+      // 3.1 副将本局习得过但现在没有的特性
+      const fusionLearnedAbilities = pokemon.fusionCustomPokemonData?.learnedAbilities || [];
+      for (const abilityId of fusionLearnedAbilities) {
+        if (!currentAbilities.includes(abilityId)) {
+          recallableSet.add(abilityId);
+        }
+      }
+
+      // 3.2 副将图鉴已解锁但现在没有的特性
+      const fusionRootSpeciesId = pokemon.fusionSpecies.getRootSpeciesId();
+      const fusionStarterData = globalScene.gameData.starterData[fusionRootSpeciesId];
+      if (fusionStarterData) {
+        const fusionAbilityAttr = fusionStarterData.abilityAttr || 0;
+        const fusionSpeciesForm = pokemon.getFusionSpeciesForm();
+
+        // 检查 ability1 是否已解锁
+        if (fusionAbilityAttr & AbilityAttr.ABILITY_1) {
+          const ability1 = fusionSpeciesForm.ability1;
+          if (ability1 !== AbilityId.NONE && !currentAbilities.includes(ability1)) {
+            recallableSet.add(ability1);
+          }
+        }
+
+        // 检查 ability2 是否已解锁
+        if (fusionAbilityAttr & AbilityAttr.ABILITY_2) {
+          const ability2 = fusionSpeciesForm.ability2;
+          if (ability2 !== AbilityId.NONE && !currentAbilities.includes(ability2)) {
+            recallableSet.add(ability2);
+          }
+        }
+
+        // 检查隐藏特性是否已解锁
+        if (fusionAbilityAttr & AbilityAttr.ABILITY_HIDDEN) {
+          const abilityHidden = fusionSpeciesForm.abilityHidden;
+          if (abilityHidden !== AbilityId.NONE && !currentAbilities.includes(abilityHidden)) {
+            recallableSet.add(abilityHidden);
+          }
+        }
+      }
+    }
+
+    return Array.from(recallableSet);
+  }
+
+  get name(): string {
+    return "回忆咖啡";
+  }
+
+  getDescription(): string {
+    return "使宝可梦回忆起本局习得过或图鉴已解锁的一个特性。";
   }
 }
 
@@ -1526,6 +1755,35 @@ class TmModifierTypeGenerator extends ModifierTypeGenerator {
   }
 }
 
+/**
+ * 特性学习器生成器 - 随机生成一个特性学习器
+ */
+class AbilityLearnerModifierTypeGenerator extends ModifierTypeGenerator {
+  constructor() {
+    super((_party: readonly Pokemon[], pregenArgs?: any[]) => {
+      if (pregenArgs && pregenArgs.length === 1 && pregenArgs[0] in AbilityId) {
+        return new AbilityLearnerModifierType(pregenArgs[0] as AbilityId);
+      }
+
+      // 获取所有有效的特性ID（排除 NONE 和未实现的特性）
+      const validAbilityIds = Object.values(AbilityId)
+        .filter((id): id is AbilityId => typeof id === "number" && id !== AbilityId.NONE)
+        .filter(id => {
+          const ability = allAbilities[id];
+          return ability && ability.name && !ability.name.endsWith(" (N)");
+        });
+
+      if (validAbilityIds.length === 0) {
+        return null;
+      }
+
+      // 随机选择一个特性
+      const randIndex = randSeedInt(validAbilityIds.length);
+      return new AbilityLearnerModifierType(validAbilityIds[randIndex]);
+    });
+  }
+}
+
 class EvolutionItemModifierTypeGenerator extends ModifierTypeGenerator {
   constructor(rare: boolean) {
     super((party: readonly Pokemon[], pregenArgs?: any[]) => {
@@ -1993,6 +2251,12 @@ const modifierTypeInitObj = Object.freeze({
 
   MEMORY_MUSHROOM: () => new RememberMoveModifierType("modifierType:ModifierType.MEMORY_MUSHROOM", "big_mushroom"),
 
+  // 特性学习器 - 从商店掉落中随机获得，可教授宝可梦新特性
+  ABILITY_LEARNER: () => new AbilityLearnerModifierTypeGenerator(),
+
+  // 回忆咖啡 - 商店贩售道具，可恢复本局习得过的特性
+  MEMORY_COFFEE: () => new RememberAbilityModifierType("big_mushroom"),
+
   EXP_SHARE: () =>
     new ModifierType("modifierType:ModifierType.EXP_SHARE", "exp_share", (type, _args) => new ExpShareModifier(type)),
   EXP_BALANCE: () =>
@@ -2170,6 +2434,170 @@ const modifierTypeInitObj = Object.freeze({
       "modifierType:ModifierType.FLAME_ORB",
       "flame_orb",
       (type, args) => new TurnStatusEffectModifier(type, (args[0] as Pokemon).id),
+    ),
+  FIRECRACKER: () =>
+    new PokemonHeldItemModifierType(
+      "raw:爆竹|携带后，每次造成伤害时有20.26%概率改为造成2026点固定伤害。",
+      "flame_orb",
+      (type, args) => new FirecrackerModifier(type, (args[0] as Pokemon).id),
+    ),
+
+  // Classic mode only items - Life Orb and Choice items (硬编码中文)
+  LIFE_ORB: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "生命宝珠",
+      "携带后，每次使用伤害类招式时HP减少最大HP的10%，\n但招式威力提高30%。（仅限经典模式）",
+      "toxic_orb", // 使用剧毒宝珠图片
+      (type, args) => new LifeOrbModifier(type, (args[0] as Pokemon).id),
+    ),
+  CHOICE_BAND: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "讲究头带",
+      "携带后，攻击提高50%，但只能连续使用相同的招式。\n替换宝可梦下场后重置。（仅限经典模式）",
+      "focus_band", // 使用气势头带图片
+      (type, args) => new ChoiceBandModifier(type, (args[0] as Pokemon).id),
+    ),
+  CHOICE_SPECS: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "讲究眼镜",
+      "携带后，特攻提高50%，但只能连续使用相同的招式。\n替换宝可梦下场后重置。（仅限经典模式）",
+      "choice_specs",
+      (type, args) => new ChoiceSpecsModifier(type, (args[0] as Pokemon).id),
+    ),
+  CHOICE_SCARF: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "讲究围巾",
+      "携带后，速度提高50%，但只能连续使用相同的招式。\n替换宝可梦下场后重置。（仅限经典模式）",
+      "choice_scarf",
+      (type, args) => new ChoiceScarfModifier(type, (args[0] as Pokemon).id),
+    ),
+
+  // 卷轴道具系列
+  COMBO_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "连击卷轴",
+      "携带后，使用伤害类招式时有30%概率再释放1次（此次额外释放不触发本效果），造成70%伤害。",
+      "scroll_of_waters",
+      (type, args) => new ComboScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  PHYSICAL_CRIT_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "物暴卷轴",
+      "携带后，造成物理伤害时有25%概率最终伤害*2。",
+      "scroll_of_waters",
+      (type, args) => new PhysicalCritScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  SPECIAL_CRIT_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "法暴卷轴",
+      "携带后，造成特殊伤害时有25%概率最终伤害*2。",
+      "scroll_of_waters",
+      (type, args) => new SpecialCritScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  SUPER_CRIT_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "超暴卷轴",
+      "携带后，造成会心一击时，最终伤害*1.2。",
+      "scroll_of_waters",
+      (type, args) => new SuperCritScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  ENDURANCE_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "耐力卷轴",
+      "携带后，宝可梦的防御能力值增加等级*1。",
+      "scroll_of_waters",
+      (type, args) => new EnduranceScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  VITALITY_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "强壮卷轴",
+      "携带后，宝可梦的HP上限增加等级*0.6。",
+      "scroll_of_waters",
+      (type, args) => new VitalityScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  AGILITY_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "敏捷卷轴",
+      "携带后，宝可梦的速度能力值增加等级*1。",
+      "scroll_of_waters",
+      (type, args) => new AgilityScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  RETALIATORY_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "反击卷轴",
+      "携带后，受到接触类招式伤害时，有60%概率进行一次80威力的反击，\n取物攻和特攻较高的一项，造成对应类型伤害，系别为第一系别。",
+      "scroll_of_waters",
+      (type, args) => new RetaliatoryScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  STRENGTH_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "强力卷轴",
+      "携带后，宝可梦的物攻能力值增加等级*1。",
+      "scroll_of_waters",
+      (type, args) => new StrengthScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  INTELLECT_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "智力卷轴",
+      "携带后，宝可梦的特攻能力值增加等级*1。",
+      "scroll_of_waters",
+      (type, args) => new IntellectScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  COUNTER_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "逆击卷轴",
+      "携带后，对能力值上升的目标造成的最终伤害*1.2。",
+      "scroll_of_waters",
+      (type, args) => new CounterScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  SLOW_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "迟钝卷轴",
+      "携带后，宝可梦的速度能力值减少20%。",
+      "scroll_of_waters",
+      (type, args) => new SlowScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  TENACITY_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "坚韧卷轴",
+      "携带后，受到物理/特殊伤害时，防御/特防能力等级+1。",
+      "scroll_of_waters",
+      (type, args) => new TenacityScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  PRECISION_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "精准卷轴",
+      "携带后，造成伤害时，无视目标的防御和特防能力等级提高。",
+      "scroll_of_waters",
+      (type, args) => new PrecisionScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  LUCKY_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "幸运卷轴",
+      "携带后，受到会心一击时，受到的最终伤害*0.7。",
+      "scroll_of_waters",
+      (type, args) => new LuckyScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  INVIGORATE_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "振奋卷轴",
+      "携带后，宝可梦不会陷入冰冻、麻痹、睡眠、畏缩状态。",
+      "scroll_of_waters",
+      (type, args) => new InvigorateScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  SELF_HEAL_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "自愈卷轴",
+      "携带后，每个回合结束时，有50%概率解除自己的中毒、剧毒、灼烧、盐腌状态。",
+      "scroll_of_waters",
+      (type, args) => new SelfHealScrollModifier(type, (args[0] as Pokemon).id),
+    ),
+  QUICK_STRIKE_SCROLL: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "瞬击卷轴",
+      "携带后，出场时有70%概率立即对1个敌人进行70威力的攻击，\n取物攻和特攻较高的一项，造成对应类型伤害，系别为第一系别。",
+      "scroll_of_waters",
+      (type, args) => new QuickStrikeScrollModifier(type, (args[0] as Pokemon).id),
     ),
 
   BATON: () =>
@@ -2641,6 +3069,8 @@ export function getPlayerShopModifierTypeOptionsForWave(waveIndex: number, baseC
       new ModifierTypeOption(modifierTypeInitObj.POTION(), 0, baseCost * 0.2),
       new ModifierTypeOption(modifierTypeInitObj.ETHER(), 0, baseCost * 0.4),
       new ModifierTypeOption(modifierTypeInitObj.REVIVE(), 0, baseCost * 2),
+      // 回忆咖啡 - 售价为关卡数×20，从第1关开始出现
+      new ModifierTypeOption(modifierTypeInitObj.MEMORY_COFFEE(), 0, waveIndex * 20),
     ],
     [
       new ModifierTypeOption(modifierTypeInitObj.SUPER_POTION(), 0, baseCost * 0.45),
@@ -2663,7 +3093,7 @@ export function getPlayerShopModifierTypeOptionsForWave(waveIndex: number, baseC
     [new ModifierTypeOption(modifierTypeInitObj.SACRED_ASH(), 0, baseCost * 10)],
   ];
 
-  return options
+  const filteredOptions = options
     .slice(0, Math.ceil(Math.max(waveIndex + 10, 0) / 30))
     .flat()
     .filter(shopItem => {
@@ -2671,6 +3101,8 @@ export function getPlayerShopModifierTypeOptionsForWave(waveIndex: number, baseC
       applyChallenges(ChallengeType.SHOP_ITEM, shopItem, status);
       return status.value;
     });
+
+  return filteredOptions;
 }
 
 export function getEnemyBuffModifierForWave(
@@ -2795,11 +3227,24 @@ function getNewModifierTypeOption(
       break;
   }
   if (tier === undefined) {
-    const tierValue = randSeedInt(1024);
+    // 道具掉落权重（版本平衡调整）：
+    // 白字(COMMON) 192/487, 蓝字(GREAT) 195/487, 黄字(ULTRA) 48/487, 红字(ROGUE) 48/487, 粉字(MASTER) 4/487
+    const tierValue = randSeedInt(487);
+    if (tierValue >= 295) {
+      tier = ModifierTier.COMMON;
+    } else if (tierValue >= 100) {
+      tier = ModifierTier.GREAT;
+    } else if (tierValue >= 52) {
+      tier = ModifierTier.ULTRA;
+    } else if (tierValue >= 4) {
+      tier = ModifierTier.ROGUE;
+    } else {
+      tier = ModifierTier.MASTER;
+    }
     if (!upgradeCount) {
       upgradeCount = 0;
     }
-    if (player && tierValue && allowLuckUpgrades) {
+    if (player && allowLuckUpgrades) {
       const partyLuckValue = getPartyLuckValue(party);
       const upgradeOdds = Math.floor(128 / ((partyLuckValue + 4) / 4));
       let upgraded = false;
@@ -2809,18 +3254,6 @@ function getNewModifierTypeOption(
           upgradeCount++;
         }
       } while (upgraded);
-    }
-
-    if (tierValue > 255) {
-      tier = ModifierTier.COMMON;
-    } else if (tierValue > 60) {
-      tier = ModifierTier.GREAT;
-    } else if (tierValue > 12) {
-      tier = ModifierTier.ULTRA;
-    } else if (tierValue) {
-      tier = ModifierTier.ROGUE;
-    } else {
-      tier = ModifierTier.MASTER;
     }
 
     tier += upgradeCount;

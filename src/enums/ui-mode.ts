@@ -47,4 +47,5 @@ export enum UiMode {
   MYSTERY_ENCOUNTER,
   CHANGE_PASSWORD_FORM,
   ALERT_MODAL,
+  PVP_CODE_INPUT, // PvP base64 code input
 }

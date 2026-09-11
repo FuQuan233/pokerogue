@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   deploy:
-    if: github.repository == 'pagefaultgames/pokerogue' && github.ref_name == (vars.BETA_DEPLOY_BRANCH || 'beta')
+    if: github.repository == 'FuQuan233/pokerogue' && github.ref_name == (vars.BETA_DEPLOY_BRANCH || 'beta')
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:

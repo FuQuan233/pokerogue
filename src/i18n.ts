@@ -1,5 +1,6 @@
 import { timedEventManager } from "#app/global-event-manager";
 import { namespaceMap } from "#app/i18n-namespace-map";
+import { registerFuquanTranslations } from "#data/fuquan-translations";
 import { SUPPORTED_LANGUAGES } from "#system/supported-languages";
 import { getCachedUrl } from "#utils/fetch-utils";
 import { toKebabCase } from "#utils/strings";
@@ -202,6 +203,8 @@ await i18next
       await initFonts(localStorage.getItem("prLang") ?? undefined);
     },
   );
+
+registerFuquanTranslations(i18next);
 
 // #endregion Init
 

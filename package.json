@@ -4,6 +4,8 @@
   "version": "1.12.1.0",
   "type": "module",
   "scripts": {
+    "lint": "biome check --diagnostic-level=error",
+    "lint:fix": "biome check --write --diagnostic-level=error",
     "start:prod": "vite --mode production",
     "start:beta": "vite --mode beta",
     "start:dev": "vite --mode development",

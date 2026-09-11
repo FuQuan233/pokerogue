@@ -297,12 +297,17 @@ export class GameMode implements GameModeConfig {
     switch (modeId) {
       case GameModes.CLASSIC:
       case GameModes.CHALLENGE:
+      case GameModes.RANDOM_STATS:
         return waveIndex === 200;
       case GameModes.ENDLESS:
       case GameModes.SPLICED_ENDLESS:
         return waveIndex % 250 === 0;
       case GameModes.DAILY:
         return waveIndex === 50;
+      case GameModes.PVP:
+        return false; // PvP mode doesn't have wave-based progression
+      default:
+        return false;
     }
   }
 
@@ -402,10 +407,15 @@ export class GameMode implements GameModeConfig {
       case GameModes.CLASSIC:
       case GameModes.CHALLENGE:
       case GameModes.DAILY:
+      case GameModes.RANDOM_STATS:
         return isBoss ? 6 : 18;
       case GameModes.ENDLESS:
       case GameModes.SPLICED_ENDLESS:
         return isBoss ? 4 : 12;
+      case GameModes.PVP:
+        return 0; // No random modifiers in PvP mode
+      default:
+        return 0;
     }
   }
 
@@ -421,6 +431,10 @@ export class GameMode implements GameModeConfig {
         return i18next.t("gameMode:dailyRun");
       case GameModes.CHALLENGE:
         return i18next.t("gameMode:challenge");
+      case GameModes.RANDOM_STATS:
+        return i18next.t("gameMode:randomStats");
+      case GameModes.PVP:
+        return i18next.t("gameMode:pvpChallenge");
     }
   }
 
@@ -462,6 +476,10 @@ export class GameMode implements GameModeConfig {
         return i18next.t("gameMode:dailyRun");
       case GameModes.CHALLENGE:
         return i18next.t("gameMode:challenge");
+      case GameModes.RANDOM_STATS:
+        return i18next.t("gameMode:randomStats");
+      case GameModes.PVP:
+        return i18next.t("gameMode:pvpChallenge");
     }
   }
 }
@@ -504,5 +522,16 @@ export function getGameMode(gameMode: GameModes): GameMode {
         },
         classicFixedBattles,
       );
+    case GameModes.RANDOM_STATS:
+      return new GameMode(
+        GameModes.RANDOM_STATS,
+        { isClassic: true, hasTrainers: true, hasMysteryEncounters: true },
+        classicFixedBattles,
+      );
+    case GameModes.PVP:
+      return new GameMode(GameModes.PVP, {
+        hasTrainers: false,
+        hasNoShop: true,
+      });
   }
 }

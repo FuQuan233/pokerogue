@@ -11,6 +11,7 @@ import type { PokemonSpecies } from "#data/pokemon-species";
 import { BattleType } from "#enums/battle-type";
 import { ChallengeType } from "#enums/challenge-type";
 import { Challenges } from "#enums/challenges";
+import { GameModes } from "#enums/game-modes";
 import { PlayerGender } from "#enums/player-gender";
 import { TrainerType } from "#enums/trainer-type";
 import { UiMode } from "#enums/ui-mode";
@@ -79,6 +80,13 @@ export class GameOverPhase extends BattlePhase {
         fixedInt(3000),
       );
     } else if (this.isVictory || !settings.general.enableRetries) {
+      // Handle PvP mode separately
+      if (globalScene.gameMode.modeId === GameModes.PVP) {
+        globalScene.phaseManager.unshiftNew("PvPGameOverPhase", this.isVictory);
+        this.end();
+        return;
+      }
+
       this.handleGameOver();
     } else {
       globalScene.ui.showText(i18next.t("battle:retryBattle"), null, () => {

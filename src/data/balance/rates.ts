@@ -6,11 +6,11 @@
 
 // #region Encounterable properties
 
-/** `64/65536 -> 1/1024` */
-export const BASE_SHINY_CHANCE = 64;
+/** FuQuan base rate: `512/65536 -> 1/128`. */
+export const BASE_SHINY_CHANCE = 512;
 
-/** `1 / 256` */
-export const BASE_HIDDEN_ABILITY_RATE = 256;
+/** FuQuan hidden ability rate: `1 / 32`. */
+export const BASE_HIDDEN_ABILITY_RATE = 32;
 
 // #endregion Encounterable properties
 

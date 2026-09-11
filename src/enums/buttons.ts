@@ -17,4 +17,5 @@ export enum Button {
   SPEED_UP,
   SLOW_DOWN,
   DEV_CUSTOM,
+  DAMAGE_LOG, // 伤害日志查看（E键）
 }

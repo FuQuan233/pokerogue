@@ -75,6 +75,8 @@ export const PartyUiMode = {
    * This type of selection can be cancelled.
    */
   DISCARD: 13,
+  ABILITY_MODIFIER: 14,
+  REMEMBER_ABILITY_MODIFIER: 15,
 } as const;
 
 export type PartyUiMode = ObjectValues<typeof PartyUiMode>;

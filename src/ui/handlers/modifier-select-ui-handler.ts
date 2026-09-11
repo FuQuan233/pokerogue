@@ -3,7 +3,7 @@ import { globalScene } from "#app/global-scene";
 import { settings } from "#app/global-settings-manager";
 import { activeOverrides } from "#app/overrides";
 import { handleTutorial, Tutorial } from "#app/tutorial";
-import { allMoves } from "#data/data-lists";
+import { allAbilities, allMoves } from "#data/data-lists";
 import { getPokeballAtlasKey } from "#data/pokeball";
 import { Button } from "#enums/buttons";
 import type { PokeballType } from "#enums/pokeball";
@@ -11,7 +11,11 @@ import { ShopCursorTarget } from "#enums/shop-cursor-target";
 import { TextStyle } from "#enums/text-style";
 import { HealShopCostModifier, LockModifierTiersModifier, PokemonHeldItemModifier } from "#modifiers/modifier";
 import type { ModifierTypeOption } from "#modifiers/modifier-type";
-import { getPlayerShopModifierTypeOptionsForWave, TmModifierType } from "#modifiers/modifier-type";
+import {
+  AbilityLearnerModifierType,
+  getPlayerShopModifierTypeOptionsForWave,
+  TmModifierType,
+} from "#modifiers/modifier-type";
 import type { ModifierSelectCallback } from "#phases/select-modifier-phase";
 import { AwaitableUiHandler } from "#ui/awaitable-ui-handler";
 import { MoveInfoOverlay } from "#ui/move-info-overlay";
@@ -581,7 +585,11 @@ export class ModifierSelectUiHandler extends AwaitableUiHandler {
       const type = options[this.cursor].modifierTypeOption.type;
       if (type) {
         const messageHandler = ui.getMessageHandler();
-        ui.showText(type.getDescription());
+        ui.showText(
+          type instanceof AbilityLearnerModifierType
+            ? (allAbilities[type.abilityId]?.description ?? type.getDescription())
+            : type.getDescription(),
+        );
 
         const cost = options[this.cursor].modifierTypeOption.cost;
         if (cost > 0) {

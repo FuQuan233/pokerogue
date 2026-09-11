@@ -47,15 +47,18 @@ import { EggData } from "#system/egg-data";
 import { GameStats } from "#system/game-stats";
 import { ModifierData as PersistentModifierData } from "#system/modifier-data";
 import { PokemonData } from "#system/pokemon-data";
+import { randomStatsManager } from "#system/random-stats-manager";
 import { RibbonData } from "#system/ribbon-data";
 import { TrainerData } from "#system/trainer-data";
 import { applySessionVersionMigration, applySystemVersionMigration } from "#system/version-converter";
 import { vouchers } from "#system/voucher";
 import type { DexData, DexEntry } from "#types/dex-data";
+import type { PvPData } from "#types/pvp-data";
 import type {
   AchvUnlocks,
   AppliedMigrators,
   DexAttrProps,
+  RunEntry,
   RunHistoryData,
   SeenDialogues,
   SessionSaveData,
@@ -106,6 +109,10 @@ export class GameData {
   public eggs: Egg[];
   public eggPity: number[];
   public unlockPity: number[];
+  public pvpData: PvPData;
+  public pvpBattleContext:
+    | { playerRunData: SessionSaveData; opponentTrainerId: number; opponentName: string }
+    | undefined;
 
   public appliedMigrators: AppliedMigrators = {};
 
@@ -142,6 +149,11 @@ export class GameData {
     this.eggs = [];
     this.eggPity = [0, 0, 0, 0];
     this.unlockPity = [0, 0, 0, 0];
+    this.pvpData = {
+      victoryTeams: [],
+      wins: 0,
+      losses: 0,
+    };
     this.initDexData();
     this.initStarterData();
   }
@@ -165,6 +177,7 @@ export class GameData {
       eggPity: this.eggPity.slice(0),
       unlockPity: this.unlockPity.slice(0),
       appliedMigrators: this.appliedMigrators,
+      pvpData: this.pvpData,
     };
   }
 
@@ -434,6 +447,9 @@ export class GameData {
         localStorage.setItem(lsItemKey, "");
       }
 
+      if (systemData.pvpData) {
+        this.pvpData = systemData.pvpData;
+      }
       if (!isDev && !isBeta && compareVersions(systemData.gameVersion, version) === 1) {
         await globalScene.ui.setMode(UiMode.ALERT_MODAL, ErrorMessages.GAME_OUT_OF_DATE);
 
@@ -778,6 +794,7 @@ export class GameData {
       mysteryEncounterType: globalScene.currentBattle.mysteryEncounter?.encounterType ?? -1,
       mysteryEncounterSaveData: globalScene.mysteryEncounterSaveData,
       playerFaints: globalScene.arena.playerFaints,
+      randomizedStats: randomStatsManager.toJSON(),
     } as SessionSaveData;
   }
 
@@ -878,6 +895,11 @@ export class GameData {
       }
     }
 
+    if (fromSession.randomizedStats) {
+      randomStatsManager.fromJSON(fromSession.randomizedStats);
+    } else {
+      randomStatsManager.clear();
+    }
     globalScene.gameMode = getGameMode(fromSession.gameMode || GameModes.CLASSIC);
     if (fromSession.challenges) {
       globalScene.gameMode.challenges = fromSession.challenges.map(c => c.toChallenge());
@@ -2071,5 +2093,35 @@ export class GameData {
         entry.ribbons = new RibbonData(0);
       }
     }
+  }
+
+  /**
+   * Get victory runs from run history (for PvP challenge mode)
+   * Returns up to the specified limit of most recent victory runs
+   */
+  public async getVictoryRuns(limit = 3): Promise<RunEntry[]> {
+    const runHistoryData = await this.getRunHistoryData();
+    const timestamps = Object.keys(runHistoryData).map(Number);
+
+    if (timestamps.length === 0) {
+      return [];
+    }
+
+    // Filter for victories only and sort by timestamp (newest first)
+    const victoryRuns = timestamps
+      .filter(timestamp => runHistoryData[timestamp].isVictory)
+      .sort((a, b) => b - a)
+      .slice(0, limit)
+      .map(timestamp => runHistoryData[timestamp]);
+
+    return victoryRuns;
+  }
+
+  /**
+   * Check if player has any victory runs
+   */
+  public async hasVictoryRuns(): Promise<boolean> {
+    const victoryRuns = await this.getVictoryRuns(1);
+    return victoryRuns.length > 0;
   }
 }

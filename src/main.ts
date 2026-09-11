@@ -5,6 +5,7 @@ import "#app/i18n"; // Initializes i18n on import
 import { InvertPostFX } from "#app/pipelines/invert";
 import { isMobile, preventDoubleTapZoom } from "#app/touch-controls";
 import { isBeta, isDev } from "#constants/app-constants";
+import "#system/cheat-system";
 import { version } from "#package.json";
 import Phaser from "phaser";
 import BBCodeTextPlugin from "phaser3-rex-plugins/plugins/bbcodetext-plugin";

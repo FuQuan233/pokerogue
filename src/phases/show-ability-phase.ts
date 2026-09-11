@@ -10,7 +10,7 @@ export class ShowAbilityPhase extends PokemonPhase {
   private abilityName: string;
   private pokemonOnField: boolean;
 
-  constructor(battlerIndex: BattlerIndex, passive = false) {
+  constructor(battlerIndex: BattlerIndex, passive = false, abilityName?: string) {
     super(battlerIndex);
 
     this.passive = passive;
@@ -19,7 +19,9 @@ export class ShowAbilityPhase extends PokemonPhase {
     if (pokemon) {
       // Set these now as the pokemon object may change before the queued phase is run
       this.pokemonName = getPokemonNameWithAffix(pokemon);
-      this.abilityName = (passive ? this.getPokemon().getPassiveAbility() : this.getPokemon().getAbility()).name;
+      // Use provided ability name if available (for fusion Pokemon), otherwise get from pokemon
+      this.abilityName =
+        abilityName || (passive ? this.getPokemon().getPassiveAbility() : this.getPokemon().getAbility()).name;
       this.pokemonOnField = true;
     } else {
       this.pokemonOnField = false;
@@ -36,7 +38,7 @@ export class ShowAbilityPhase extends PokemonPhase {
     // If the bar is already out, hide it before showing the new one
     if (globalScene.abilityBar.isVisible()) {
       globalScene.phaseManager.unshiftNew("HideAbilityPhase");
-      globalScene.phaseManager.unshiftNew("ShowAbilityPhase", this.battlerIndex, this.passive);
+      globalScene.phaseManager.unshiftNew("ShowAbilityPhase", this.battlerIndex, this.passive, this.abilityName);
       return this.end();
     }
 

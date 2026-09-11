@@ -26,6 +26,7 @@ import {
   SHINY_EPIC_CHANCE,
   SHINY_VARIANT_CHANCE,
 } from "#balance/rates";
+import { DexAttr } from "#enums/dex-attr";
 import { EggSourceType } from "#enums/egg-source-types";
 import { EggTier } from "#enums/egg-type";
 import { SpeciesId } from "#enums/species-id";
@@ -157,17 +158,23 @@ export class Egg {
       //if (eggOptions.tier && eggOptions.species) throw Error("Error egg can't have species and tier as option. only choose one of them.")
 
       this._sourceType = eggOptions?.sourceType!; // TODO: is this bang correct?
+      // For UNLOCK gacha, skip tier rolling as it will be set based on species
       // Ensure _sourceType is defined before invoking rollEggTier(), as it is referenced
-      this._tier = eggOptions?.tier ?? activeOverrides.EGG_TIER_OVERRIDE ?? this.rollEggTier();
+      this._tier =
+        eggOptions?.tier
+        ?? activeOverrides.EGG_TIER_OVERRIDE
+        ?? (this._sourceType === EggSourceType.GACHA_UNLOCK ? EggTier.COMMON : this.rollEggTier());
       // If egg was pulled, check if egg pity needs to override the egg tier
-      if (eggOptions?.pulled) {
+      // Skip pity for UNLOCK gacha as tier will be set based on species
+      if (eggOptions?.pulled && this._sourceType !== EggSourceType.GACHA_UNLOCK) {
         // Needs this._tier and this._sourceType to work
         this.checkForPityTierOverrides();
       }
 
       this._id = eggOptions?.id ?? randInt(EGG_SEED, EGG_SEED * this._tier);
 
-      this._sourceType = eggOptions?.sourceType ?? undefined;
+      // Don't override _sourceType here, it was already set above
+      // this._sourceType = eggOptions?.sourceType ?? undefined;
       this._hatchWaves = eggOptions?.hatchWaves ?? this.getEggTierDefaultHatchWaves();
       this._timestamp = eggOptions?.timestamp ?? Date.now();
 
@@ -179,11 +186,11 @@ export class Egg {
       this._overrideHiddenAbility = eggOptions?.overrideHiddenAbility ?? false;
 
       // Override egg tier and hatchwaves if species was given
-      if (eggOptions?.species) {
+      if (eggOptions?.species || this._sourceType === EggSourceType.GACHA_UNLOCK) {
         this._tier = speciesDataRegistry.getEggTier(this.species);
-        this._hatchWaves = eggOptions.hatchWaves ?? this.getEggTierDefaultHatchWaves();
+        this._hatchWaves = eggOptions?.hatchWaves ?? this.getEggTierDefaultHatchWaves();
       }
-      // If species has no variant, set variantTier to common. This needs to
+      // If species has no variant, set variantTier to STANDARD. This needs to
       // be done because species with no variants get filtered at rollSpecies but if the
       // species is set via options or the legendary gacha pokemon gets choosen the check never happens
 
@@ -334,6 +341,8 @@ export class Egg {
         return this.eggDescriptor ?? i18next.t("egg:gachaTypeShiny");
       case EggSourceType.GACHA_MOVE:
         return this.eggDescriptor ?? i18next.t("egg:gachaTypeMove");
+      case EggSourceType.GACHA_UNLOCK:
+        return this.eggDescriptor ?? i18next.t("egg:gachaTypeMove");
       case EggSourceType.EVENT:
         return this.eggDescriptor ?? i18next.t("egg:eventType");
       default:
@@ -413,6 +422,11 @@ export class Egg {
     }
     if (this.tier === EggTier.LEGENDARY && this._sourceType === EggSourceType.GACHA_LEGENDARY && !randSeedInt(2)) {
       return getLegendaryGachaSpeciesForTimestamp(this.timestamp);
+    }
+
+    // UNLOCK gacha: Guaranteed unlocked species or shiny variant
+    if (this._sourceType === EggSourceType.GACHA_UNLOCK) {
+      return this.rollUnlockGachaSpecies();
     }
 
     let minStarterValue: number;
@@ -516,6 +530,11 @@ export class Egg {
    * @returns `true` if the egg is shiny
    */
   private rollShiny(): boolean {
+    // UNLOCK gacha: Always shiny (red shiny)
+    if (this._sourceType === EggSourceType.GACHA_UNLOCK) {
+      return true;
+    }
+
     let shinyChance = GACHA_DEFAULT_SHINY_RATE;
     switch (this._sourceType) {
       case EggSourceType.GACHA_SHINY:
@@ -537,6 +556,11 @@ export class Egg {
   private rollVariant(): VariantTier {
     if (!this.isShiny) {
       return VariantTier.STANDARD;
+    }
+
+    // UNLOCK gacha: Guaranteed EPIC variant (red shiny)
+    if (this._sourceType === EggSourceType.GACHA_UNLOCK) {
+      return VariantTier.EPIC;
     }
 
     const rand = randSeedInt(10);
@@ -589,7 +613,116 @@ export class Egg {
     }
   }
 
-  // #endregion Private methods
+  /**
+   * Rolls a species for UNLOCK gacha.
+   * If player hasn't unlocked all species (except ETERNATUS), returns an unlocked species.
+   * If all species are unlocked, returns a species without red shiny variant (including ETERNATUS).
+   */
+  private rollUnlockGachaSpecies(): SpeciesId {
+    const ignoredSpecies = [SpeciesId.PHIONE, SpeciesId.MANAPHY];
+
+    // Get all obtainable species except ignored ones
+    // Only include species that are available as starters (same as starter selection screen)
+    const allObtainableSpecies = speciesDataRegistry
+      .getAllSpecies()
+      .filter(
+        s =>
+          (!s.forms.every(f => f.isUnobtainable) || s.forms.length === 0)
+          && ignoredSpecies.indexOf(s.speciesId) === -1
+          && speciesDataRegistry.isStarter(s.speciesId),
+      )
+      .map(s => s.speciesId);
+
+    // Check if all species (except ETERNATUS) are caught
+    // "Uncaught" means: no NON_SHINY, no DEFAULT_VARIANT, no VARIANT_2, no VARIANT_3
+    const caughtSpecies = allObtainableSpecies.filter(speciesId => {
+      if (speciesId === SpeciesId.ETERNATUS) {
+        return false; // Always exclude ETERNATUS from caught check
+      }
+      const dexEntry = globalScene.gameData.dexData[speciesId];
+      // If dexEntry doesn't exist, species is uncaught
+      if (!dexEntry) {
+        return false;
+      }
+      const caughtAttr = dexEntry.caughtAttr ?? 0n;
+      const isNonShinyCaught = !!(caughtAttr & DexAttr.NON_SHINY);
+      const isShinyCaught = !!(caughtAttr & DexAttr.SHINY);
+      const isVariant1Caught = isShinyCaught && !!(caughtAttr & DexAttr.DEFAULT_VARIANT);
+      const isVariant2Caught = isShinyCaught && !!(caughtAttr & DexAttr.VARIANT_2);
+      const isVariant3Caught = isShinyCaught && !!(caughtAttr & DexAttr.VARIANT_3);
+      // Species is caught if any form is caught
+      return isNonShinyCaught || isVariant1Caught || isVariant2Caught || isVariant3Caught;
+    });
+
+    // If not all species are caught, return an uncaught species
+    if (caughtSpecies.length < allObtainableSpecies.length - 1) {
+      // -1 for ETERNATUS
+      const uncaughtSpecies = allObtainableSpecies.filter(speciesId => {
+        if (speciesId === SpeciesId.ETERNATUS) {
+          return false; // Exclude ETERNATUS from uncaught pool
+        }
+        const dexEntry = globalScene.gameData.dexData[speciesId];
+        // If dexEntry doesn't exist, species is uncaught
+        if (!dexEntry) {
+          return true;
+        }
+        const caughtAttr = dexEntry.caughtAttr ?? 0n;
+        const isNonShinyCaught = !!(caughtAttr & DexAttr.NON_SHINY);
+        const isShinyCaught = !!(caughtAttr & DexAttr.SHINY);
+        const isVariant1Caught = isShinyCaught && !!(caughtAttr & DexAttr.DEFAULT_VARIANT);
+        const isVariant2Caught = isShinyCaught && !!(caughtAttr & DexAttr.VARIANT_2);
+        const isVariant3Caught = isShinyCaught && !!(caughtAttr & DexAttr.VARIANT_3);
+        // Species is uncaught if no form is caught
+        const isUncaught = !isNonShinyCaught && !isVariant1Caught && !isVariant2Caught && !isVariant3Caught;
+        return isUncaught;
+      });
+
+      if (uncaughtSpecies.length > 0) {
+        // Return a random uncaught species
+        // Use this._id to ensure different eggs get different species
+        const index = ((this._id % uncaughtSpecies.length) + uncaughtSpecies.length) % uncaughtSpecies.length;
+        const selectedSpecies = uncaughtSpecies[index];
+        return selectedSpecies;
+      }
+    }
+
+    // All species are caught, return a species without red shiny variant
+    const speciesWithoutRedShiny = allObtainableSpecies.filter(speciesId => {
+      const dexEntry = globalScene.gameData.dexData[speciesId];
+      const caughtAttr = dexEntry?.caughtAttr ?? 0n;
+      const isShinyCaught = !!(caughtAttr & DexAttr.SHINY);
+      const isVariant3Caught = isShinyCaught && !!(caughtAttr & DexAttr.VARIANT_3);
+
+      // Check if species has variants
+      const species = speciesDataRegistry.getSpecies(speciesId);
+      if (!species.hasVariants()) {
+        // Species without variants: check if shiny is caught
+        return !isShinyCaught;
+      }
+
+      // Species with variants: check if red shiny (SHINY + VARIANT_3) is caught
+      // Red shiny requires both SHINY and VARIANT_3 to be set
+      return !isVariant3Caught;
+    });
+
+    if (speciesWithoutRedShiny.length > 0) {
+      // Return a random species without red shiny
+      // Use this._id to ensure different eggs get different species
+      const index =
+        ((this._id % speciesWithoutRedShiny.length) + speciesWithoutRedShiny.length) % speciesWithoutRedShiny.length;
+      return speciesWithoutRedShiny[index];
+    }
+
+    // Fallback: return a random species (shouldn't happen)
+    // Use this._id to ensure different eggs get different species
+    const index =
+      ((this._id % allObtainableSpecies.length) + allObtainableSpecies.length) % allObtainableSpecies.length;
+    return allObtainableSpecies[index];
+  }
+
+  ////
+  // #endregion
+  ////
 }
 
 export function getValidLegendaryGachaSpecies(): SpeciesId[] {

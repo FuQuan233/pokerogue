@@ -28,7 +28,8 @@ export class PlayerBattleInfo extends BattleInfo {
     this.type1Icon = globalScene.add.sprite(-139, -17, "pbinfo_player_type1").setName("icon_type_1").setOrigin(0);
     this.type2Icon = globalScene.add.sprite(-139, -1, "pbinfo_player_type2").setName("icon_type_2").setOrigin(0);
     this.type3Icon = globalScene.add.sprite(-154, -17, "pbinfo_player_type").setName("icon_type_3").setOrigin(0);
-    this.add([this.type1Icon, this.type2Icon, this.type3Icon]);
+    this.type4Icon = globalScene.add.sprite(-154, -1, "pbinfo_player_type").setName("icon_type_4").setOrigin(0);
+    this.add([this.type1Icon, this.type2Icon, this.type3Icon, this.type4Icon]);
   }
 
   constructor() {
@@ -112,7 +113,7 @@ export class PlayerBattleInfo extends BattleInfo {
     ];
     offsetElements.forEach(el => (el.y += 1.5 * (mini ? -1 : 1)));
 
-    [this.type1Icon, this.type2Icon, this.type3Icon].forEach(el => {
+    [this.type1Icon, this.type2Icon, this.type3Icon, this.type4Icon].forEach(el => {
       el.x += 4 * (mini ? 1 : -1);
       el.y += -8 * (mini ? 1 : -1);
     });

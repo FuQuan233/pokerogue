@@ -21,15 +21,22 @@ import { MoveResult } from "#enums/move-result";
 import { MoveTarget } from "#enums/move-target";
 import { isDancerCopiable, isReflected, MoveUseMode } from "#enums/move-use-mode";
 import { PokemonType } from "#enums/pokemon-type";
+import { Stat } from "#enums/stat";
 import type { Pokemon } from "#field/pokemon";
 import {
+  ComboScrollModifier,
   ContactHeldItemTransferChanceModifier,
   DamageMoneyRewardModifier,
   EnemyAttackStatusEffectChanceModifier,
   EnemyEndureChanceModifier,
+  FirecrackerModifier,
   FlinchChanceModifier,
   HitHealModifier,
+  InvigorateScrollModifier,
+  LifeOrbModifier,
   PokemonMultiHitModifier,
+  RetaliatoryScrollModifier,
+  TenacityScrollModifier,
 } from "#modifiers/modifier";
 import { applyFilteredMoveAttrs, applyMoveAttrs } from "#moves/apply-attrs";
 import type { Move, MoveAttr } from "#moves/move";
@@ -260,6 +267,18 @@ export class MoveEffectPhase extends PokemonPhase {
     if (this.firstHit && this.useMode !== MoveUseMode.DELAYED_ATTACK) {
       user.pushMoveHistory(this.moveHistoryEntry);
       applyAbAttrs("ExecutedMoveAbAttr", { pokemon: user });
+
+      // Set Choice item lock (Classic mode only)
+      if (globalScene.gameMode.isClassic && this.moveHistoryEntry.result === MoveResult.SUCCESS) {
+        const choiceItemIds = ["CHOICE_BAND", "CHOICE_SPECS", "CHOICE_SCARF"];
+        const hasChoiceItem = globalScene.findModifier(
+          m => choiceItemIds.includes(m.type.id) && "pokemonId" in m && m.pokemonId === user.id,
+          user.isPlayer(),
+        );
+        if (hasChoiceItem && user.summonData.choiceLockedMoveId === null) {
+          user.summonData.choiceLockedMoveId = this.move.id;
+        }
+      }
     }
 
     try {
@@ -678,9 +697,17 @@ export class MoveEffectPhase extends PokemonPhase {
       globalScene.applyModifiers(EnemyEndureChanceModifier, false, target);
     }
 
+    // Preserve the private server fixed-damage item before applying HP damage.
+    const damageHolder = new NumberHolder(initialDmg);
+    if (!isBlockedBySubstitute && initialDmg > 0) {
+      globalScene.applyModifiers(FirecrackerModifier, user.isPlayer(), user, damageHolder);
+      if (damageHolder.value === 2026) {
+        globalScene.phaseManager.queueMessage(`${getPokemonNameWithAffix(user)}的爆竹发动！造成2026点伤害！`);
+      }
+    }
     const finalDmg = isBlockedBySubstitute
       ? 0
-      : target.damageAndUpdate(initialDmg, {
+      : target.damageAndUpdate(damageHolder.value, {
           // Type assertion is OK as all non-damaging HitResults will have returned by now
           result: result as DamageResult,
           ignoreFaintPhase: true,
@@ -814,6 +841,74 @@ export class MoveEffectPhase extends PokemonPhase {
     if (this.move.is("AttackMove")) {
       globalScene.applyModifiers(ContactHeldItemTransferChanceModifier, this.player, user, target);
     }
+
+    // Life Orb HP cost: user loses 10% max HP when using damaging moves (Classic mode only)
+    if (globalScene.gameMode.isClassic && dealsDamage && firstTarget && !user.isFainted()) {
+      const hasLifeOrb = globalScene.findModifier(
+        m => m instanceof LifeOrbModifier && m.pokemonId === user.id,
+        user.isPlayer(),
+      );
+      if (hasLifeOrb) {
+        const hpLoss = Math.max(1, Math.floor(user.getMaxHp() * 0.1));
+        user.damageAndUpdate(hpLoss, { result: HitResult.INDIRECT });
+      }
+    }
+
+    // 坚韧卷轴 - 受到物理/特殊伤害时，防御/特防能力等级+1
+    if (dealsDamage && damage > 0 && !target.isFainted()) {
+      const moveCategory = user.getMoveCategory(target, this.move);
+      const isPhysical = moveCategory === MoveCategory.PHYSICAL;
+      const tenacityModifiers = target
+        .getHeldItems()
+        .filter(m => m instanceof TenacityScrollModifier) as TenacityScrollModifier[];
+      if (tenacityModifiers.length > 0) {
+        const statToBoost = isPhysical ? Stat.DEF : Stat.SPDEF;
+        const currentStage = target.getStatStage(statToBoost);
+        const totalStacks = tenacityModifiers.reduce((sum, m) => sum + m.getStackCount(), 0);
+        const newStage = Math.min(6, currentStage + totalStacks);
+        if (newStage > currentStage) {
+          globalScene.phaseManager.unshiftNew("StatStageChangePhase", {
+            battlerIndex: target.getBattlerIndex(),
+            sourcePokemon: target,
+            changes: [{ stat: statToBoost, stages: newStage - currentStage }],
+          });
+        }
+      }
+    }
+
+    // 反击卷轴 - 受到接触类招式伤害时60%概率反击
+    if (dealsDamage && damage > 0 && !target.isFainted() && this.move.hasFlag(MoveFlags.MAKES_CONTACT)) {
+      const triggered = new BooleanHolder(false);
+      globalScene.applyModifiers(RetaliatoryScrollModifier, target.isPlayer(), target, triggered);
+      if (triggered.value) {
+        // 计算反击伤害，比较物攻和特攻
+        const atk = target.getEffectiveStat(Stat.ATK, { opponent: user });
+        const spatk = target.getEffectiveStat(Stat.SPATK, { opponent: user });
+        const isPhysicalRetaliate = atk >= spatk;
+        const attackStat = isPhysicalRetaliate ? atk : spatk;
+        // 固定80威力的反击
+        const baseDamage = Math.floor((attackStat * 80) / 50) + 2;
+        const retaliateDamage = Math.max(1, Math.floor(baseDamage * 0.5)); // 简化伤害计算
+        user.damageAndUpdate(retaliateDamage, { result: HitResult.INDIRECT });
+        globalScene.phaseManager.queueMessage("触发了反击！");
+      }
+    }
+
+    // 连击卷轴 - 使用伤害类招式时30%概率再释放1次，造成70%伤害
+    // 检查是否已经是连击触发的额外攻击（防止递归）
+    if (dealsDamage && damage > 0 && !target.isFainted() && !user.turnData.comboScrollTriggered) {
+      const comboTriggered = new BooleanHolder(false);
+      const comboDamageMultiplier = new NumberHolder(1);
+      globalScene.applyModifiers(ComboScrollModifier, user.isPlayer(), user, comboTriggered, comboDamageMultiplier);
+      if (comboTriggered.value) {
+        // 标记已触发，防止递归
+        user.turnData.comboScrollTriggered = true;
+        // 造成原伤害70%的额外伤害
+        const comboDamage = Math.max(1, Math.floor(damage * comboDamageMultiplier.value));
+        target.damageAndUpdate(comboDamage, { result: HitResult.INDIRECT });
+        globalScene.phaseManager.queueMessage("触发了连击！");
+      }
+    }
   }
 
   /**
@@ -865,7 +960,11 @@ export class MoveEffectPhase extends PokemonPhase {
       const flinched = new BooleanHolder(false);
       globalScene.applyModifiers(FlinchChanceModifier, user.isPlayer(), user, flinched);
       if (flinched.value) {
-        target.addTag(BattlerTagType.FLINCHED, undefined, this.move.id, user.id);
+        const prevented = new BooleanHolder(false);
+        globalScene.applyModifiers(InvigorateScrollModifier, target.isPlayer(), target, null, prevented);
+        if (!prevented.value) {
+          target.addTag(BattlerTagType.FLINCHED, undefined, this.move.id, user.id);
+        }
       }
     }
   }

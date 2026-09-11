@@ -4,4 +4,6 @@ export enum GameModes {
   SPLICED_ENDLESS,
   DAILY,
   CHALLENGE,
+  RANDOM_STATS,
+  PVP,
 }

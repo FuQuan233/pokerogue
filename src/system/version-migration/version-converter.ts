@@ -65,6 +65,7 @@ const LATEST_VERSION = version;
 
 // Add migrator imports below
 
+import { migrateFuquanRandomStats } from "#system/fuquan";
 import * as v1_0_3 from "#system/v1_0_3";
 import * as v1_0_4 from "#system/v1_0_4";
 import * as v1_7_0 from "#system/v1_7_0";
@@ -100,6 +101,7 @@ const sessionMigrators: SessionSaveMigrator[] = [
   ...v1_9_0.sessionMigrators,
   ...v1_10_0.sessionMigrators,
   ...v1_12_0_0.sessionMigrators,
+  migrateFuquanRandomStats,
 ];
 
 /** All settings migrators */
@@ -171,6 +173,8 @@ export function applySessionVersionMigration(data: Record<string, unknown>): voi
     }
 
     applyMigrators(sessionMigrators, data, prevVersion);
+    // Private run-history/team-code flows can deserialize an already migrated session again.
+    data.gameVersion = LATEST_VERSION;
     console.log(`Session data successfully migrated to v${LATEST_VERSION}!`);
   }
 }

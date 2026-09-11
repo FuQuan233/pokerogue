@@ -270,6 +270,44 @@ export class Trainer extends Phaser.GameObjects.Container {
       partyTemplate = new TrainerPartyTemplate(2, partyTemplate.strength);
     }
 
+    // 特定训练家的等级加成
+    let bonusLevel = 0;
+    const trainerType = this.config.trainerType;
+
+    // 邪恶团队老大（波次115、165）+15级
+    if (
+      trainerType === TrainerType.ROCKET_BOSS_GIOVANNI_1
+      || trainerType === TrainerType.ROCKET_BOSS_GIOVANNI_2
+      || trainerType === TrainerType.MAXIE
+      || trainerType === TrainerType.MAXIE_2
+      || trainerType === TrainerType.ARCHIE
+      || trainerType === TrainerType.ARCHIE_2
+      || trainerType === TrainerType.CYRUS
+      || trainerType === TrainerType.CYRUS_2
+      || trainerType === TrainerType.GHETSIS
+      || trainerType === TrainerType.GHETSIS_2
+      || trainerType === TrainerType.LYSANDRE
+      || trainerType === TrainerType.LYSANDRE_2
+      || trainerType === TrainerType.LUSAMINE
+      || trainerType === TrainerType.LUSAMINE_2
+      || trainerType === TrainerType.GUZMA
+      || trainerType === TrainerType.GUZMA_2
+      || trainerType === TrainerType.ROSE
+      || trainerType === TrainerType.ROSE_2
+      || trainerType === TrainerType.PENNY
+      || trainerType === TrainerType.PENNY_2
+    ) {
+      bonusLevel = 15;
+    }
+    // 劲敌4、5（波次95、145）+15级
+    else if (trainerType === TrainerType.RIVAL_4 || trainerType === TrainerType.RIVAL_5) {
+      bonusLevel = 15;
+    }
+    // 劲敌6（波次195）+20级
+    else if (trainerType === TrainerType.RIVAL_6) {
+      bonusLevel = 20;
+    }
+
     for (let i = 0; i < partyTemplate.size; i++) {
       let multiplier = 1;
 
@@ -300,7 +338,8 @@ export class Trainer extends Phaser.GameObjects.Container {
         levelOffset = -Math.floor((difficultyWaveIndex / 50) * (PartyMemberStrength.STRONG - strength));
       }
 
-      const level = Math.ceil(baseLevel * multiplier) + levelOffset;
+      // 等级不设上限，允许超过100级
+      const level = Math.ceil(baseLevel * multiplier) + levelOffset + bonusLevel;
       ret.push(level);
     }
 

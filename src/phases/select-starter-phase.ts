@@ -3,6 +3,7 @@ import { globalScene } from "#app/global-scene";
 import { speciesDataRegistry } from "#app/global-species-data-registry";
 import { activeOverrides } from "#app/overrides";
 import { Phase } from "#app/phase";
+import { randomStatsManager } from "#app/system/random-stats-manager";
 import { SpeciesFormChangeMoveLearnedTrigger } from "#data/form-change-triggers";
 import { Gender } from "#data/gender";
 import { ChallengeType } from "#enums/challenge-type";
@@ -39,6 +40,9 @@ export class SelectStarterPhase extends Phase {
    * @param starters - Array of {@linkcode Starter}s with which to start the battle
    */
   initBattle(starters: Starter[]) {
+    // Clear randomized stats for new game (ensures each save slot has independent random stats)
+    randomStatsManager.clear();
+
     const party = globalScene.getPlayerParty();
     const loadPokemonAssets: Promise<void>[] = [];
     starters.forEach((starter: Starter, i: number) => {

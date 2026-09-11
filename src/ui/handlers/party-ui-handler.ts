@@ -2,9 +2,10 @@ import { globalScene } from "#app/global-scene";
 import { settings } from "#app/global-settings-manager";
 import { speciesDataRegistry } from "#app/global-species-data-registry";
 import { getPokemonNameWithAffix } from "#app/messages";
-import { allMoves } from "#data/data-lists";
+import { allAbilities, allMoves } from "#data/data-lists";
 import { SpeciesFormChangeItemTrigger } from "#data/form-change-triggers";
 import { Gender, getGenderColor, getGenderSymbol } from "#data/gender";
+import { AbilityId } from "#enums/ability-id";
 import { Button } from "#enums/buttons";
 import { ChallengeType } from "#enums/challenge-type";
 import { Challenges } from "#enums/challenges";
@@ -1321,6 +1322,171 @@ export class PartyUiHandler extends MessageUiHandler {
     }
   }
 
+  /**
+   * 获取宝可梦特性槽位的标签
+   * 使用 getAllAbilities() 确保与其他功能一致
+   * @param pokemon 目标宝可梦
+   * @returns 各槽位的特性名称数组
+   */
+  private getAbilitySlotLabels(pokemon: PlayerPokemon): string[] {
+    const abilities = pokemon.getAllAbilities();
+    const labels: string[] = [];
+    const hasPassive = pokemon.hasPassive();
+    const isFusion = pokemon.isFusion() && pokemon.fusionSpecies;
+
+    // 根据能力数组的实际顺序生成标签
+    // 顺序: [主体特性, 主体被动(如果有), 融合特性(如果有), 融合被动(如果有)]
+    let index = 0;
+
+    // 槽位 0: 主体的普通特性
+    if (abilities.length > index) {
+      labels.push(`特性: ${abilities[index].name}`);
+      index++;
+    }
+
+    // 槽位 1: 主体的被动特性（如果有）
+    if (hasPassive && abilities.length > index) {
+      labels.push(`被动: ${abilities[index].name}`);
+      index++;
+    }
+
+    // 融合宝可梦的额外槽位
+    if (isFusion) {
+      // 融合部分的普通特性
+      if (abilities.length > index) {
+        labels.push(`融合特性: ${abilities[index].name}`);
+        index++;
+      }
+
+      // 融合部分的被动特性（如果有）
+      if (hasPassive && abilities.length > index) {
+        labels.push(`融合被动: ${abilities[index].name}`);
+      }
+    }
+
+    return labels;
+  }
+
+  /**
+   * 更新特性学习器模式的选项列表
+   * 显示宝可梦当前的特性和被动列表供选择替换
+   * 槽位索引与 getAllAbilities() 返回的数组索引保持一致
+   */
+  private updateOptionsWithAbilityModifierMode(pokemon: PlayerPokemon): void {
+    // 使用 getAllAbilities() 获取特性数量，确保与显示和应用逻辑一致
+    const abilities = pokemon.getAllAbilities();
+    for (let i = 0; i < abilities.length; i++) {
+      this.options.push(i);
+    }
+  }
+
+  /**
+   * 更新回忆咖啡模式的选项列表
+   * 显示本局习得过或图鉴已解锁但现在没有的特性
+   */
+  private updateOptionsWithRememberAbilityModifierMode(pokemon: PlayerPokemon): void {
+    const recallableAbilities = this.getRecallableAbilities(pokemon);
+
+    for (let i = 0; i < recallableAbilities.length; i++) {
+      this.options.push(i);
+    }
+  }
+
+  /**
+   * 获取宝可梦可回忆的特性列表
+   * 包括：本局习得过但现在没有的特性 + 图鉴已解锁但现在没有的特性
+   * 对于融合宝可梦，还包括副将的可回忆特性
+   */
+  private getRecallableAbilities(pokemon: PlayerPokemon): AbilityId[] {
+    const currentAbilities = pokemon.getAllAbilities().map(a => a.id);
+    const recallableSet = new Set<AbilityId>();
+
+    // 1. 主将本局习得过但现在没有的特性
+    const learnedAbilities = pokemon.customPokemonData.learnedAbilities || [];
+    for (const abilityId of learnedAbilities) {
+      if (!currentAbilities.includes(abilityId)) {
+        recallableSet.add(abilityId);
+      }
+    }
+
+    // 2. 主将图鉴已解锁但现在没有的特性（基于宝可梦的根形态）
+    const rootSpeciesId = pokemon.species.getRootSpeciesId();
+    const starterData = globalScene.gameData.starterData[rootSpeciesId];
+    if (starterData) {
+      const abilityAttr = starterData.abilityAttr || 0;
+      const speciesForm = pokemon.getSpeciesForm();
+
+      // 检查 ability1 是否已解锁 (bit 0)
+      if (abilityAttr & 1) {
+        const ability1 = speciesForm.ability1;
+        if (ability1 !== AbilityId.NONE && !currentAbilities.includes(ability1)) {
+          recallableSet.add(ability1);
+        }
+      }
+
+      // 检查 ability2 是否已解锁 (bit 1)
+      if (abilityAttr & 2) {
+        const ability2 = speciesForm.ability2;
+        if (ability2 !== AbilityId.NONE && !currentAbilities.includes(ability2)) {
+          recallableSet.add(ability2);
+        }
+      }
+
+      // 检查隐藏特性是否已解锁 (bit 2)
+      if (abilityAttr & 4) {
+        const abilityHidden = speciesForm.abilityHidden;
+        if (abilityHidden !== AbilityId.NONE && !currentAbilities.includes(abilityHidden)) {
+          recallableSet.add(abilityHidden);
+        }
+      }
+    }
+
+    // 3. 对于融合宝可梦，还需要检查副将的可回忆特性
+    if (pokemon.isFusion() && pokemon.fusionSpecies) {
+      // 3.1 副将本局习得过但现在没有的特性
+      const fusionLearnedAbilities = pokemon.fusionCustomPokemonData?.learnedAbilities || [];
+      for (const abilityId of fusionLearnedAbilities) {
+        if (!currentAbilities.includes(abilityId)) {
+          recallableSet.add(abilityId);
+        }
+      }
+
+      // 3.2 副将图鉴已解锁但现在没有的特性
+      const fusionRootSpeciesId = pokemon.fusionSpecies.getRootSpeciesId();
+      const fusionStarterData = globalScene.gameData.starterData[fusionRootSpeciesId];
+      if (fusionStarterData) {
+        const fusionAbilityAttr = fusionStarterData.abilityAttr || 0;
+        const fusionSpeciesForm = pokemon.getFusionSpeciesForm();
+
+        // 检查 ability1 是否已解锁 (bit 0)
+        if (fusionAbilityAttr & 1) {
+          const ability1 = fusionSpeciesForm.ability1;
+          if (ability1 !== AbilityId.NONE && !currentAbilities.includes(ability1)) {
+            recallableSet.add(ability1);
+          }
+        }
+
+        // 检查 ability2 是否已解锁 (bit 1)
+        if (fusionAbilityAttr & 2) {
+          const ability2 = fusionSpeciesForm.ability2;
+          if (ability2 !== AbilityId.NONE && !currentAbilities.includes(ability2)) {
+            recallableSet.add(ability2);
+          }
+        }
+
+        // 检查隐藏特性是否已解锁 (bit 2)
+        if (fusionAbilityAttr & 4) {
+          const abilityHidden = fusionSpeciesForm.abilityHidden;
+          if (abilityHidden !== AbilityId.NONE && !currentAbilities.includes(abilityHidden)) {
+            recallableSet.add(abilityHidden);
+          }
+        }
+      }
+    }
+
+    return Array.from(recallableSet);
+  }
+
   private updateOptionsWithMoveModifierMode(pokemon): void {
     // MOVE_1, MOVE_2, MOVE_3, MOVE_4
     for (let m = 0; m < pokemon.moveset.length; m++) {
@@ -1397,6 +1563,12 @@ export class PartyUiHandler extends MessageUiHandler {
         break;
       case PartyUiMode.REMEMBER_MOVE_MODIFIER:
         this.updateOptionsWithRememberMoveModifierMode(pokemon);
+        break;
+      case PartyUiMode.ABILITY_MODIFIER:
+        this.updateOptionsWithAbilityModifierMode(pokemon);
+        break;
+      case PartyUiMode.REMEMBER_ABILITY_MODIFIER:
+        this.updateOptionsWithRememberAbilityModifierMode(pokemon);
         break;
       case PartyUiMode.MODIFIER_TRANSFER:
         if (this.transferMode) {
@@ -1568,6 +1740,8 @@ export class PartyUiHandler extends MessageUiHandler {
         optionName = "↓";
       } else if (
         (this.partyUiMode !== PartyUiMode.REMEMBER_MOVE_MODIFIER
+          && this.partyUiMode !== PartyUiMode.ABILITY_MODIFIER
+          && this.partyUiMode !== PartyUiMode.REMEMBER_ABILITY_MODIFIER
           && (this.partyUiMode !== PartyUiMode.MODIFIER_TRANSFER || this.transferMode)
           && this.partyUiMode !== PartyUiMode.DISCARD)
         || option === PartyOption.CANCEL
@@ -1617,6 +1791,19 @@ export class PartyUiHandler extends MessageUiHandler {
             break;
         }
         optionName = allMoves[move].name;
+      } else if (this.partyUiMode === PartyUiMode.ABILITY_MODIFIER) {
+        // 特性学习器模式：显示当前特性和被动的名称
+        const abilityLabels = this.getAbilitySlotLabels(pokemon);
+        optionName = abilityLabels[option] || `槽位 ${option + 1}`;
+      } else if (this.partyUiMode === PartyUiMode.REMEMBER_ABILITY_MODIFIER) {
+        // 回忆咖啡模式：显示可回忆的特性名称（包括本局习得过的和图鉴已解锁的）
+        const recallableAbilities = this.getRecallableAbilities(pokemon);
+        if (option < recallableAbilities.length) {
+          const ability = allAbilities[recallableAbilities[option]];
+          optionName = ability?.name || `特性 ${option + 1}`;
+        } else {
+          optionName = `特性 ${option + 1}`;
+        }
       } else if (option === PartyOption.ALL) {
         optionName = i18next.t("partyUiHandler:all");
         // add the number of items to the `all` option

@@ -32,6 +32,7 @@ export class CustomPokemonData {
   public passive: AbilityId | -1;
   public nature: Nature | -1;
   public types: (RegularPokemonType | null)[];
+  public learnedAbilities: AbilityId[] = [];
 
   constructor(data?: CustomPokemonData | Partial<CustomPokemonData>) {
     this.spriteScale = data?.spriteScale ?? -1;
@@ -39,6 +40,7 @@ export class CustomPokemonData {
     this.passive = data?.passive ?? -1;
     this.nature = data?.nature ?? -1;
     this.types = data?.types ?? [];
+    this.learnedAbilities = data?.learnedAbilities ?? [];
   }
 }
 
@@ -89,6 +91,7 @@ interface SerializedPokemonSummonData {
   illusion?: SerializedIllusionData | undefined;
   berriesEatenLast: BerryType[];
   moveHistory: TurnMove[];
+  choiceLockedMoveId?: MoveId | undefined;
 }
 
 /**
@@ -150,6 +153,12 @@ export class PokemonSummonData {
    */
   // TODO: Rework this into a sort of "global move history" that also allows checking execution order (for Fusion Bolt/Flare)
   public moveHistory: TurnMove[] = [];
+
+  /**
+   * The move ID that this Pokemon is locked into using due to Choice items.
+   * Null if not locked. Resets on switch.
+   */
+  public choiceLockedMoveId: MoveId | null = null;
 
   constructor(source?: PokemonSummonData | SerializedPokemonSummonData) {
     if (source == null) {
@@ -290,11 +299,19 @@ export class PokemonBattleData {
    * @see {@link https://bulbapedia.bulbagarden.net/wiki/Harvest_(Ability)}
    */
   public berriesEaten: BerryType[] = [];
+  /**
+   * The wave segment (0-19) during which this Pokemon last used the friendship revival.
+   * Segment is calculated as Math.floor((waveIndex - 1) / 10).
+   * -1 means friendship revival has never been used.
+   * Used to track the 10-wave cooldown for friendship revival in Classic mode.
+   */
+  public friendshipReviveUsedSegment = -1;
 
   constructor(source?: PokemonBattleData | Partial<PokemonBattleData>) {
     if (source != null) {
       this.hasEatenBerry = source.hasEatenBerry ?? false;
       this.berriesEaten = source.berriesEaten ?? [];
+      this.friendshipReviveUsedSegment = source.friendshipReviveUsedSegment ?? -1;
     }
   }
 }
@@ -381,4 +398,8 @@ export class PokemonTurnData {
    * @see {@linkcode PokemonSummonData.berriesEatenLast}
    */
   public berriesEaten: BerryType[] = [];
+  /**
+   * 连击卷轴是否已在本回合触发，防止递归触发
+   */
+  public comboScrollTriggered = false;
 }

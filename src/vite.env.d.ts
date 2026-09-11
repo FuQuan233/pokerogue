@@ -6,6 +6,8 @@ type HTTP_URL = `http${"" | "s"}://${string}`;
 // Declaration merging for vite's `import.meta.env`.
 
 interface ImportMetaEnv {
+  /** Disable the version header for private APIs with legacy CORS settings. */
+  readonly VITE_SEND_CLIENT_VERSION?: "0" | "1";
   // TODO: There doesn't appear to be a way to override Vite's definition of MODE;
   // it still shows up as "string"...
   readonly MODE: "development" | "beta" | "production" | "test" | "app";

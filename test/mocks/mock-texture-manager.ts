@@ -2,6 +2,7 @@ import type { MockGameObject } from "#test/mocks/mock-game-object";
 import { MockVideoGameObject } from "#test/mocks/mock-video-game-object";
 import { MockBBCodeText } from "#test/mocks/mocks-container/mock-bbcode-text";
 import { MockContainer } from "#test/mocks/mocks-container/mock-container";
+import { MockDomElement } from "#test/mocks/mocks-container/mock-dom-element";
 import { MockImage } from "#test/mocks/mocks-container/mock-image";
 import { MockInputText } from "#test/mocks/mocks-container/mock-input-text";
 import { MockNineslice } from "#test/mocks/mocks-container/mock-nineslice";
@@ -31,6 +32,7 @@ export class MockTextureManager {
       tileSprite: this.sprite.bind(this),
       existing: this.existing.bind(this),
       rectangle: this.rectangle.bind(this),
+      dom: (x: number, y: number, element: HTMLElement) => new MockDomElement(this, x, y, element),
       nineslice: this.nineslice.bind(this),
       image: this.image.bind(this),
       polygon: this.polygon.bind(this),

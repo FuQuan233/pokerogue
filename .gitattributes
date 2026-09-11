@@ -5,3 +5,10 @@
 # Auto detect text files and perform LF normalization
 * text=auto
 * -crlf
+*.ts text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.jsonc text eol=lf
+*.mts text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf

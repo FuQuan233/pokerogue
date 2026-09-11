@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
+import { globalScene } from "#app/global-scene";
 import { allMoves } from "#data/data-lists";
 import { ChallengeType } from "#enums/challenge-type";
 import { MoveId } from "#enums/move-id";
@@ -79,7 +80,22 @@ export class PokemonMove {
       return [false, i18next.t("battle:moveCannotUseChallenge", { moveName: move.name })];
     }
 
-    return [true, ""];
+    // Choice item lock check (Classic mode only)
+    if (usability.value && globalScene.gameMode?.isClassic) {
+      const choiceItemIds = ["CHOICE_BAND", "CHOICE_SPECS", "CHOICE_SCARF"];
+      const hasChoiceItem = globalScene.findModifier(
+        m => choiceItemIds.includes(m.type.id) && "pokemonId" in m && m.pokemonId === pokemon.id,
+        pokemon.isPlayer(),
+      );
+      if (hasChoiceItem) {
+        const lockedMoveId = pokemon.summonData?.choiceLockedMoveId;
+        if (lockedMoveId !== null && lockedMoveId !== undefined && lockedMoveId !== this.moveId) {
+          usability.value = false;
+        }
+      }
+    }
+
+    return usability.value ? [true, ""] : [false, "讲究道具锁定了其他招式！"];
   }
 
   getMove(): Move {

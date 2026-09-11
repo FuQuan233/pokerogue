@@ -2,6 +2,7 @@ export enum EggSourceType {
   GACHA_MOVE,
   GACHA_LEGENDARY,
   GACHA_SHINY,
+  GACHA_UNLOCK,
   SAME_SPECIES_EGG,
   EVENT,
 }

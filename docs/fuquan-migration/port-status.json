@@ -1,0 +1,387 @@
+[
+  {
+    "file": ".env.beta",
+    "target": ".env.beta",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": ".gitattributes",
+    "target": ".gitattributes",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": ".github/workflows/deploy-beta.yml",
+    "target": ".github/workflows/deploy-beta.yml",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "SYNC_GUIDE.md",
+    "target": "docs/fuquan-migration/README.md",
+    "status": "Legacy synchronization helper retired; original retained on backup branch"
+  },
+  {
+    "file": "check-and-push.ps1",
+    "target": "docs/fuquan-migration/README.md",
+    "status": "Legacy synchronization helper retired; original retained on backup branch"
+  },
+  {
+    "file": "check-merge-status.bat",
+    "target": "docs/fuquan-migration/README.md",
+    "status": "Legacy synchronization helper retired; original retained on backup branch"
+  },
+  {
+    "file": "docs/CHEAT_CODES.md",
+    "target": "docs/CHEAT_CODES.md",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "docs/cheats.md",
+    "target": "docs/cheats.md",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "docs/linting.md",
+    "target": "docs/linting.md",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "docs/mobile-cheat-guide.md",
+    "target": "docs/mobile-cheat-guide.md",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "docs/pvp-testing-guide.md",
+    "target": "docs/pvp-testing-guide.md",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "package.json",
+    "target": "package.json",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "push-changes.bat",
+    "target": "docs/fuquan-migration/README.md",
+    "status": "Legacy synchronization helper retired; original retained on backup branch"
+  },
+  {
+    "file": "src/@types/pvp-data.ts",
+    "target": "src/@types/pvp-data.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/@types/save-data.ts",
+    "target": "src/@types/save-data.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/battle-scene.ts",
+    "target": "src/battle-scene.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/data/abilities/ability.ts",
+    "target": "src/data/abilities/ability.ts",
+    "status": "Comment-only difference; upstream retained"
+  },
+  {
+    "file": "src/data/abilities/apply-ab-attrs.ts",
+    "target": "src/data/abilities/apply-ab-attrs.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/data/balance/egg-moves.ts",
+    "target": "src/data/balance/moves/egg-moves.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/data/balance/passives.ts",
+    "target": "src/data/balance/species/fuquan-overrides.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/data/balance/pokemon-level-moves.ts",
+    "target": "src/data/balance/species/fuquan-overrides.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/data/balance/pokemon-species.ts",
+    "target": "src/data/balance/species/fuquan-overrides.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/data/balance/rates.ts",
+    "target": "src/data/balance/rates.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/data/balance/starters.ts",
+    "target": "src/data/balance/species/fuquan-overrides.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/data/damage-calculation-log.ts",
+    "target": "src/data/damage-calculation-log.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/data/egg.ts",
+    "target": "src/data/egg.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/data/moves/move.ts",
+    "target": "src/data/moves/move.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/data/moves/pokemon-move.ts",
+    "target": "src/data/moves/pokemon-move.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/data/pokemon/pokemon-data.ts",
+    "target": "src/data/pokemon/pokemon-data.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/data/trainers/trainer-config.ts",
+    "target": "src/data/trainers/trainer-config.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/data/trainers/trainer-party-template.ts",
+    "target": "src/data/trainers/trainer-party-template.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/enums/buttons.ts",
+    "target": "src/enums/buttons.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/enums/egg-source-types.ts",
+    "target": "src/enums/egg-source-types.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/enums/gacha-types.ts",
+    "target": "src/enums/gacha-types.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/enums/game-modes.ts",
+    "target": "src/enums/game-modes.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/enums/ui-mode.ts",
+    "target": "src/enums/ui-mode.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/field/pokemon.ts",
+    "target": "src/field/pokemon.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/field/trainer.ts",
+    "target": "src/field/trainer.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/game-mode.ts",
+    "target": "src/game-mode.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/loading-scene.ts",
+    "target": "src/loading-scene.ts",
+    "status": "Upstream already removed external rex plugin"
+  },
+  {
+    "file": "src/main.ts",
+    "target": "src/main.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/modifier/init-modifier-pools.ts",
+    "target": "src/modifier/init-modifier-pools.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/modifier/modifier-type.ts",
+    "target": "src/modifier/modifier-type.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/modifier/modifier.ts",
+    "target": "src/modifier/modifier.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/phase-manager.ts",
+    "target": "src/phase-manager.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/phases/encounter-phase.ts",
+    "target": "src/phases/encounter-phase.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/phases/faint-phase.ts",
+    "target": "src/phases/faint-phase.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/phases/game-over-phase.ts",
+    "target": "src/phases/game-over-phase.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/phases/move-effect-phase.ts",
+    "target": "src/phases/move-effect-phase.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/phases/post-summon-activate-ability-phase.ts",
+    "target": "src/phases/post-summon-activate-ability-phase.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/phases/post-summon-phase.ts",
+    "target": "src/phases/post-summon-phase.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/phases/pvp-battle-phase.ts",
+    "target": "src/phases/pvp-battle-phase.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/phases/pvp-game-over-phase.ts",
+    "target": "src/phases/pvp-game-over-phase.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/phases/select-modifier-phase.ts",
+    "target": "src/phases/select-modifier-phase.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/phases/select-starter-phase.ts",
+    "target": "src/phases/select-starter-phase.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/phases/show-ability-phase.ts",
+    "target": "src/phases/show-ability-phase.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/phases/title-phase.ts",
+    "target": "src/phases/title-phase.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/phases/turn-end-phase.ts",
+    "target": "src/phases/turn-end-phase.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/plugins/api/pvp-api.ts",
+    "target": "src/api/pvp-api.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/system/cheat-system.ts",
+    "target": "src/system/cheat-system.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/system/game-data.ts",
+    "target": "src/system/game-data.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/system/random-stats-manager.ts",
+    "target": "src/system/random-stats-manager.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/ui-inputs.ts",
+    "target": "src/ui-inputs.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/ui/battle-info/battle-info.ts",
+    "target": "src/ui/battle-info/battle-info.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/ui/battle-info/enemy-battle-info.ts",
+    "target": "src/ui/battle-info/enemy-battle-info.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/ui/battle-info/player-battle-info.ts",
+    "target": "src/ui/battle-info/player-battle-info.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/ui/handlers/command-ui-handler.ts",
+    "target": "src/ui/handlers/command-ui-handler.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/ui/handlers/egg-gacha-ui-handler.ts",
+    "target": "src/ui/handlers/egg-gacha-ui-handler.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/ui/handlers/modifier-select-ui-handler.ts",
+    "target": "src/ui/handlers/modifier-select-ui-handler.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/ui/handlers/party-ui-handler.ts",
+    "target": "src/ui/handlers/party-ui-handler.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/ui/handlers/pokedex-page-ui-handler.ts",
+    "target": "src/ui/handlers/pokedex-page-ui-handler.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/ui/handlers/pvp-code-input-ui-handler.ts",
+    "target": "src/ui/handlers/pvp-code-input-ui-handler.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/ui/handlers/run-history-ui-handler.ts",
+    "target": "src/ui/handlers/run-history-ui-handler.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/ui/handlers/summary-ui-handler.ts",
+    "target": "src/ui/handlers/summary-ui-handler.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "src/ui/ui.ts",
+    "target": "src/ui/ui.ts",
+    "status": "Ported; validation scope documented in README"
+  },
+  {
+    "file": "sync-upstream-simple.bat",
+    "target": "docs/fuquan-migration/README.md",
+    "status": "Legacy synchronization helper retired; original retained on backup branch"
+  },
+  {
+    "file": "sync-upstream.ps1",
+    "target": "docs/fuquan-migration/README.md",
+    "status": "Legacy synchronization helper retired; original retained on backup branch"
+  }
+]

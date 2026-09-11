@@ -85,7 +85,8 @@ export abstract class ApiBase {
       ...config.headers,
       Authorization: getCookie(SESSION_ID_COOKIE_NAME),
       "Content-Type": config.headers?.["Content-Type"] ?? "application/json",
-      "PKR-Client-Version": version,
+      // Older private servers do not allow this header in their CORS preflight.
+      ...(import.meta.env.VITE_SEND_CLIENT_VERSION === "0" ? {} : { "PKR-Client-Version": version }),
     };
 
     // can't import `isLocal` due to circular import issues

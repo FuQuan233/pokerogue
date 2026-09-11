@@ -19,6 +19,7 @@ import type { PokemonData } from "#system/pokemon-data";
 import type { TrainerData } from "#system/trainer-data";
 import type { SerializedDailyRunConfig } from "./daily-run";
 import type { DexData } from "./dex-data";
+import type { PvPData } from "./pvp-data";
 
 export type AppliedMigrators = { [key: string]: number };
 
@@ -39,6 +40,7 @@ export interface SystemSaveData {
   eggPity: number[];
   unlockPity: number[];
   appliedMigrators: AppliedMigrators;
+  pvpData?: PvPData;
 }
 
 export interface SessionSaveData {
@@ -73,6 +75,11 @@ export interface SessionSaveData {
    * Counts the amount of pokemon fainted in your party during the current arena encounter.
    */
   playerFaints: number;
+  /**
+   * Randomized stats for Pokemon in RANDOM_STATS mode. Maps species+form key to base stats array.
+   * This ensures stats remain consistent throughout a run and are independent across different save slots.
+   */
+  randomizedStats?: [string, number[]][];
 }
 
 export interface Unlocks {

@@ -1,5 +1,6 @@
 import { defaultStarterSpecies } from "#app/constants";
 import { setSpeciesDataRegistry } from "#app/global-species-data-registry";
+import { applyFuquanSpeciesOverrides } from "#balance/fuquan-overrides";
 import { initGenerationOne } from "#balance/generation-01";
 import { initGenerationTwo } from "#balance/generation-02";
 import { initGenerationThree } from "#balance/generation-03";
@@ -48,6 +49,7 @@ export class SpeciesDataRegistry {
       initGenerationNine(),
     );
 
+    applyFuquanSpeciesOverrides(this._data);
     this.initPreEvolutions();
     this.initReverseFormChanges();
   }

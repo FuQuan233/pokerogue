@@ -9,6 +9,7 @@ import { GameSpeed } from "#enums/game-speed";
 import { UiMode } from "#enums/ui-mode";
 import { SettingsAudioUiHandler } from "#ui/audio-settings-ui-handler";
 import { GameChallengesUiHandler } from "#ui/challenges-select-ui-handler";
+import { CommandUiHandler } from "#ui/command-ui-handler";
 import { SettingsDisplayUiHandler } from "#ui/display-settings-ui-handler";
 import { SettingsGamepadUiHandler } from "#ui/gamepad-settings-ui-handler";
 import { GeneralSettingsUiHandler } from "#ui/general-settings-ui-handler";
@@ -107,6 +108,8 @@ export class UiInputs {
           import("./dev-function").then(m => m.customDevFunction());
         }
       },
+      // Damage log input is handled through CYCLE_ABILITY in CommandUiHandler.
+      [Button.DAMAGE_LOG]: () => {},
     };
     return actions;
   }
@@ -131,6 +134,7 @@ export class UiInputs {
       [Button.SPEED_UP]: () => {},
       [Button.SLOW_DOWN]: () => {},
       [Button.DEV_CUSTOM]: () => {},
+      [Button.DAMAGE_LOG]: () => {},
     };
     return actions;
   }
@@ -225,6 +229,7 @@ export class UiInputs {
       SettingsAudioUiHandler,
       SettingsGamepadUiHandler,
       SettingsKeyboardUiHandler,
+      CommandUiHandler, // 战斗命令界面 - 用于显示伤害日志
     ];
     const uiHandler = globalScene.ui?.getHandler();
     if (whitelist.some(handler => uiHandler instanceof handler)) {
