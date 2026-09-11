@@ -1,7 +1,6 @@
 import { applyAbAttrs } from "#abilities/apply-ab-attrs";
 import type { PhaseString } from "#app/@types/phase-types";
 import { globalScene } from "#app/global-scene";
-import { getPokemonNameWithAffix } from "#app/messages";
 import { EntryHazardTag } from "#data/arena-tag";
 import { MysteryEncounterPostSummonTag } from "#data/battler-tags";
 import { ArenaTagType } from "#enums/arena-tag-type";
@@ -13,7 +12,6 @@ import { StatusEffect } from "#enums/status-effect";
 import { QuickStrikeScrollModifier } from "#modifiers/modifier";
 import { PokemonPhase } from "#phases/pokemon-phase";
 import { BooleanHolder } from "#utils/common";
-import i18next from "i18next";
 
 export class PostSummonPhase extends PokemonPhase {
   public readonly phaseName = "PostSummonPhase";
@@ -67,12 +65,7 @@ export class PostSummonPhase extends PokemonPhase {
         const baseDamage = Math.floor((attackStat * 70) / 50) + 2;
         const quickStrikeDamage = Math.max(1, Math.floor(baseDamage * 0.5)); // 简化伤害计算
         targetEnemy.damageAndUpdate(quickStrikeDamage, { result: HitResult.INDIRECT });
-        globalScene.phaseManager.queueMessage(
-          i18next.t("battle:scrollQuickStrike", {
-            pokemonName: getPokemonNameWithAffix(pokemon),
-            targetName: getPokemonNameWithAffix(targetEnemy),
-          }),
-        );
+        globalScene.phaseManager.queueMessage("触发了瞬击！");
       }
     }
 

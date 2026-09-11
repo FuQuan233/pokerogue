@@ -98,6 +98,8 @@ export class UiInputs {
       [Button.CYCLE_TERA]: () => this.buttonCycleOption(Button.CYCLE_TERA),
       [Button.SPEED_UP]: () => this.buttonSpeedChange(),
       [Button.SLOW_DOWN]: () => this.buttonSpeedChange(false),
+      // Damage log input is handled through CYCLE_ABILITY in CommandUiHandler.
+      [Button.DAMAGE_LOG]: () => {},
     };
     return actions;
   }
@@ -121,6 +123,7 @@ export class UiInputs {
       [Button.CYCLE_TERA]: () => this.buttonInfo(false),
       [Button.SPEED_UP]: () => {},
       [Button.SLOW_DOWN]: () => {},
+      [Button.DAMAGE_LOG]: () => {},
     };
     return actions;
   }

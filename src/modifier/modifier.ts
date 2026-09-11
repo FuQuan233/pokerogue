@@ -1229,7 +1229,7 @@ export class ChoiceBandModifier extends StatBoosterModifier {
     return modifier instanceof ChoiceBandModifier;
   }
 
-  clone(): PersistentModifier {
+  clone(): ChoiceBandModifier {
     return new ChoiceBandModifier(this.type, this.pokemonId, this.stackCount);
   }
 
@@ -1251,7 +1251,7 @@ export class ChoiceSpecsModifier extends StatBoosterModifier {
     return modifier instanceof ChoiceSpecsModifier;
   }
 
-  clone(): PersistentModifier {
+  clone(): ChoiceSpecsModifier {
     return new ChoiceSpecsModifier(this.type, this.pokemonId, this.stackCount);
   }
 
@@ -1273,7 +1273,7 @@ export class ChoiceScarfModifier extends StatBoosterModifier {
     return modifier instanceof ChoiceScarfModifier;
   }
 
-  clone(): PersistentModifier {
+  clone(): ChoiceScarfModifier {
     return new ChoiceScarfModifier(this.type, this.pokemonId, this.stackCount);
   }
 

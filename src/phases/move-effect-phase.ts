@@ -1087,12 +1087,7 @@ export class MoveEffectPhase extends PokemonPhase {
         const baseDamage = Math.floor((attackStat * 80) / 50) + 2;
         const retaliateDamage = Math.max(1, Math.floor(baseDamage * 0.5)); // 简化伤害计算
         user.damageAndUpdate(retaliateDamage, { result: HitResult.INDIRECT });
-        globalScene.phaseManager.queueMessage(
-          i18next.t("battle:scrollRetaliate", {
-            pokemonName: getPokemonNameWithAffix(target),
-            targetName: getPokemonNameWithAffix(user),
-          }),
-        );
+        globalScene.phaseManager.queueMessage("触发了反击！");
       }
     }
 
@@ -1108,11 +1103,7 @@ export class MoveEffectPhase extends PokemonPhase {
         // 造成原伤害70%的额外伤害
         const comboDamage = Math.max(1, Math.floor(damage * comboDamageMultiplier.value));
         target.damageAndUpdate(comboDamage, { result: HitResult.INDIRECT });
-        globalScene.phaseManager.queueMessage(
-          i18next.t("battle:scrollCombo", {
-            pokemonName: getPokemonNameWithAffix(user),
-          }),
-        );
+        globalScene.phaseManager.queueMessage("触发了连击！");
       }
     }
   }

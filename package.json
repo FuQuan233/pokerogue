@@ -21,6 +21,8 @@
     "scrape-trainers": "node scripts/scrape-trainer-names/main.js",
     "typecheck": "tsc --noEmit",
     "typecheck:scripts": "tsc -p scripts/jsconfig.json",
+    "lint": "biome ci --diagnostic-level=error --no-errors-on-unmatched && pnpm exec ls-lint && pnpm depcruise && pnpm typecheck && pnpm typecheck:scripts",
+    "lint:fix": "pnpm biome:all",
     "biome": "biome check --write --changed --no-errors-on-unmatched --diagnostic-level=error",
     "biome:all": "biome check --write --no-errors-on-unmatched --diagnostic-level=error",
     "biome-ci": "biome ci --diagnostic-level=error --reporter=github --no-errors-on-unmatched",

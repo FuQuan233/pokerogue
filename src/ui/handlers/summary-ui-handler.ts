@@ -1018,7 +1018,7 @@ export class SummaryUiHandler extends UiHandler {
           } else {
             baseAbilityId = this.pokemon?.getSpeciesForm(true).getAbility(this.pokemon.abilityIndex) ?? AbilityId.NONE;
           }
-          if (baseAbilityId && baseAbilityId !== AbilityId.NONE) {
+          if (baseAbilityId !== AbilityId.NONE) {
             this.fusionAbilityContainers.baseAbility = {
               labelImage: globalScene.add.image(0, 0, getLocalizedSpriteKey("summary_profile_ability")),
               ability: allAbilities[baseAbilityId],
@@ -1035,7 +1035,7 @@ export class SummaryUiHandler extends UiHandler {
             } else {
               basePassiveId = this.pokemon.species.getPassiveAbility(this.pokemon.formIndex);
             }
-            if (basePassiveId && basePassiveId !== AbilityId.NONE) {
+            if (basePassiveId !== AbilityId.NONE) {
               this.fusionAbilityContainers.basePassive = {
                 labelImage: globalScene.add.image(0, 0, getLocalizedSpriteKey("summary_profile_passive")),
                 ability: allAbilities[basePassiveId],
@@ -1056,7 +1056,7 @@ export class SummaryUiHandler extends UiHandler {
             fusionAbilityId =
               this.pokemon?.getFusionSpeciesForm(true).getAbility(this.pokemon.fusionAbilityIndex) ?? AbilityId.NONE;
           }
-          if (fusionAbilityId && fusionAbilityId !== AbilityId.NONE) {
+          if (fusionAbilityId !== AbilityId.NONE) {
             this.fusionAbilityContainers.fusionAbility = {
               labelImage: globalScene.add.image(0, 0, getLocalizedSpriteKey("summary_profile_ability")),
               ability: allAbilities[fusionAbilityId],
@@ -1076,7 +1076,7 @@ export class SummaryUiHandler extends UiHandler {
             } else {
               fusionPassiveId = this.pokemon.fusionSpecies.getPassiveAbility(this.pokemon.fusionFormIndex);
             }
-            if (fusionPassiveId && fusionPassiveId !== AbilityId.NONE) {
+            if (fusionPassiveId !== AbilityId.NONE) {
               this.fusionAbilityContainers.fusionPassive = {
                 labelImage: globalScene.add.image(0, 0, getLocalizedSpriteKey("summary_profile_passive")),
                 ability: allAbilities[fusionPassiveId],

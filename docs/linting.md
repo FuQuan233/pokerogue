@@ -14,6 +14,13 @@ You probably installed Biome already without noticing it - it's included inside 
 
 # Using Biome
 
+## Local checks
+
+Run `pnpm lint` to check formatting, lint rules, file names, dependencies, and both application and script types.
+Run `pnpm lint:fix` to apply Biome's safe fixes, then run `pnpm lint` again.
+These commands use the versions already installed by `pnpm install`. The separate CI license compliance check is not included.
+Git keeps JavaScript, TypeScript, and JSON files in LF format on Windows to match EditorConfig and Biome.
+
 For the most part, Biome attempts to stay "out of your hair", letting you write code while enforcing a consistent formatting standard and only notifying for errors it can't automatically fix. \
 On the other hand, if Biome complains about a piece of code, **there's probably a good reason why**. Disable comments should be used sparingly or when readabilty demands it - your first instinct should be to fix the code in question, not disable the rule.
 

@@ -5,3 +5,10 @@
 # Auto detect text files and perform LF normalization
 * text=auto
 * -crlf
+
+# Match EditorConfig and Biome on Windows as well as Linux.
+*.ts text eol=lf
+*.js text eol=lf
+*.cjs text eol=lf
+*.json text eol=lf
+*.jsonc text eol=lf
