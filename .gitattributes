@@ -12,3 +12,5 @@
 *.cjs text eol=lf
 *.json text eol=lf
 *.jsonc text eol=lf
+# Public assets are excluded from Biome; retain their existing line endings.
+public/** text=auto !eol
