@@ -5,6 +5,7 @@ import "#app/i18n"; // Initializes i18n on import
 import { InvertPostFX } from "#app/pipelines/invert";
 import { isMobile, preventDoubleTapZoom } from "#app/touch-controls";
 import { isBeta, isDev } from "#constants/app-constants";
+import { waitForStartupFonts } from "#utils/startup-fonts";
 import "#system/cheat-system";
 import { version } from "#package.json";
 import Phaser from "phaser";
@@ -76,10 +77,5 @@ async function startGame(): Promise<void> {
   game.sound.pauseOnBlur = isMobile();
 }
 
-try {
-  await Promise.all([document.fonts.load("16px emerald"), document.fonts.load("10px pkmnems")]);
-} catch (err) {
-  console.error("Error loading fonts:", err);
-} finally {
-  await startGame();
-}
+await waitForStartupFonts(document.fonts);
+await startGame();

@@ -99,18 +99,15 @@ const fonts: LoadingFontFaceProperty[] = [
 
 // #region Functions
 
-async function initFonts(language: string | undefined) {
-  const results = await Promise.allSettled(
-    fonts
-      .filter(font => !font.only || font.only.some(exclude => language?.indexOf(exclude) === 0))
-      .map(font => Object.assign(font.face, font.extraOptions ?? {}).load()),
-  );
-  for (const result of results) {
-    if (result.status === "fulfilled") {
-      document.fonts?.add(result.value);
-    } else {
-      console.error(result.reason);
-    }
+function initFonts(language: string | undefined) {
+  for (const font of fonts.filter(
+    entry => !entry.only || entry.only.some(exclude => language?.indexOf(exclude) === 0),
+  )) {
+    // Register each face as it arrives; one stalled download must not hold back the others.
+    Promise.resolve()
+      .then(() => Object.assign(font.face, font.extraOptions ?? {}).load())
+      .then(face => document.fonts?.add(face))
+      .catch(err => console.error("Error loading language font:", err));
   }
 }
 
@@ -198,9 +195,9 @@ await i18next
       },
       postProcess: ["korean-postposition"],
     },
-    async () => {
+    () => {
       i18next.services.formatter?.add("money", i18nMoneyFormatter);
-      await initFonts(localStorage.getItem("prLang") ?? undefined);
+      initFonts(localStorage.getItem("prLang") ?? undefined);
     },
   );
 
