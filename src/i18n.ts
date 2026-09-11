@@ -3,6 +3,7 @@ import { namespaceMap } from "#app/i18n-namespace-map";
 import { registerFuquanTranslations } from "#data/fuquan-translations";
 import { SUPPORTED_LANGUAGES } from "#system/supported-languages";
 import { getCachedUrl } from "#utils/fetch-utils";
+import { refreshLoadedFonts } from "#utils/font-refresh";
 import { toKebabCase } from "#utils/strings";
 import i18next from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
@@ -106,7 +107,10 @@ function initFonts(language: string | undefined) {
     // Register each face as it arrives; one stalled download must not hold back the others.
     Promise.resolve()
       .then(() => Object.assign(font.face, font.extraOptions ?? {}).load())
-      .then(face => document.fonts?.add(face))
+      .then(face => {
+        document.fonts?.add(face);
+        refreshLoadedFonts();
+      })
       .catch(err => console.error("Error loading language font:", err));
   }
 }

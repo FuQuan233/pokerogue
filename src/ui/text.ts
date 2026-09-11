@@ -6,6 +6,7 @@ import { ModifierTier } from "#enums/modifier-tier";
 import { TextStyle } from "#enums/text-style";
 import { UiTheme } from "#enums/ui-theme";
 import type { TextStyleOptions } from "#types/ui-types";
+import { onFontsLoaded } from "#utils/font-refresh";
 import i18next from "i18next";
 import type Phaser from "phaser";
 import BBCodeText from "phaser3-rex-plugins/plugins/gameobjects/tagtext/bbcodetext/BBCodeText";
@@ -27,6 +28,11 @@ export function addTextObject(
   if (!(styleOptions as Phaser.Types.GameObjects.Text.TextStyle).lineSpacing) {
     ret.setLineSpacing(scale * 30);
   }
+
+  ret.once(
+    "destroy",
+    onFontsLoaded(() => ret.setStyle({})),
+  );
 
   return ret;
 }
@@ -62,6 +68,11 @@ export function addBBCodeTextObject(
   if (!(styleOptions as BBCodeText.TextStyle).lineSpacing) {
     ret.setLineSpacing(scale * 60);
   }
+
+  ret.once(
+    "destroy",
+    onFontsLoaded(() => ret.setStyle({})),
+  );
 
   return ret;
 }

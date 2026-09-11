@@ -11,6 +11,7 @@ import { CacheBustedLoaderPlugin } from "#plugins/cache-busted-loader-plugin";
 import { getWindowVariantSuffix, WindowVariant } from "#ui/ui-theme";
 import { hasAllLocalizedSprites, localPing } from "#utils/common";
 import { enumValueToKey, getEnumValues } from "#utils/enums";
+import { onFontsLoaded } from "#utils/font-refresh";
 import i18next from "i18next";
 import type { GameObjects } from "phaser";
 
@@ -451,6 +452,13 @@ export class LoadingScene extends SceneBase {
       })
       .setOrigin(0.5, 0.5);
 
+    for (const text of [percentText, assetText, disclaimerText, disclaimerDescriptionText]) {
+      text.once(
+        "destroy",
+        onFontsLoaded(() => text.setStyle({})),
+      );
+    }
+
     const loadingGraphics: (GameObjects.Image | GameObjects.Graphics | GameObjects.Text)[] = [];
     loadingGraphics.push(
       bg,
@@ -598,7 +606,11 @@ export class LoadingScene extends SceneBase {
   }
 
   private loadEggGachaImages(): this {
-    for (const gt of Object.keys(GachaType)) {
+    for (const [gt, gachaType] of Object.entries(GachaType)) {
+      // The unlock machine reuses MOVE textures in EggGachaUiHandler.
+      if (gachaType === GachaType.UNLOCK) {
+        continue;
+      }
       const key = gt.toLowerCase();
       this.loadImage(`gacha_${key}`, "egg").loadAtlas(`gacha_underlay_${key}`, "egg");
     }
