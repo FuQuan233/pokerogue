@@ -1620,10 +1620,6 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
         if (this.getTag(BattlerTagType.UNBURDEN) && this.hasAbility(AbilityId.UNBURDEN)) {
           ret *= 2;
         }
-        // Winter event: Ice-type Pokemon in Classic mode get 33% speed boost
-        if (globalScene.gameMode.isClassic && this.isOfType(PokemonType.ICE)) {
-          ret *= 1.33;
-        }
         break;
       }
     }
@@ -2998,14 +2994,6 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
       if (!simulated) {
         globalScene.phaseManager.queueMessage(i18next.t("weather:strongWindsEffectMessage"));
       }
-    }
-    if (
-      globalScene.gameMode.isClassic
-      && this.isOfType(PokemonType.ICE)
-      && multi.value > 1
-      && !this.hasAbility(AbilityId.WONDER_GUARD, false, true)
-    ) {
-      multi.value = 1;
     }
     return multi.value as TypeDamageMultiplier;
   }
