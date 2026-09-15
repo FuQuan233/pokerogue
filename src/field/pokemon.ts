@@ -6305,6 +6305,8 @@ export class PlayerPokemon extends Pokemon {
    */
   public getCompatibleTms(excludeKnown = false, excludeLevelUp = false, excludeUsedTMs = false): MoveId[] {
     const tms = new Set(this.species.getTms(this.getFormKey()));
+    tms.add(MoveId.ECLIPSE_SUN);
+    tms.add(MoveId.BRIGHT_MOON);
 
     if (this.fusionSpecies) {
       this.fusionSpecies.getTms(this.getFusionFormKey() ?? undefined).forEach(tm => tms.add(tm));

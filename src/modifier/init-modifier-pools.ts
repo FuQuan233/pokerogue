@@ -61,7 +61,7 @@ function initWildModifierPool() {
  * Initialize the common modifier pool
  */
 function initCommonModifierPool() {
-  modifierPool[ModifierTier.COMMON] = [
+  const ordinaryPool = [
     new WeightedModifierType(modifierTypes.POKEBALL, () => (hasMaximumBalls(PokeballType.POKEBALL) ? 0 : 6), 6),
     new WeightedModifierType(modifierTypes.RARE_CANDY, 2),
     new WeightedModifierType(
@@ -124,7 +124,7 @@ function initCommonModifierPool() {
       },
       3,
     ),
-    new WeightedModifierType(modifierTypes.LURE, lureWeightFunc(10, 2)),
+    new WeightedModifierType(modifierTypes.LURE, lureWeightFunc(10, 2), 2),
     new WeightedModifierType(modifierTypes.TEMP_STAT_STAGE_BOOSTER, 4),
     new WeightedModifierType(modifierTypes.BERRY, 2),
     new WeightedModifierType(modifierTypes.TM_COMMON, 2),
@@ -134,6 +134,29 @@ function initCommonModifierPool() {
       () => (globalScene.gameMode.isClassic ? 4 : 0), // 仅经典模式，权重4
       4,
     ),
+  ];
+  // Keep integer draw thresholds: ordinary items occupy 16 shares, and each new item one share.
+  // Thus each night-weather item has 1 / (16 + 4) = 5% of COMMON's current weight.
+  const nightWeight: WeightedModifierTypeWeightFunc = (party, rerollCount = 0) =>
+    ordinaryPool.reduce(
+      (sum, entry) => sum + (typeof entry.weight === "function" ? entry.weight(party, rerollCount) : entry.weight),
+      0,
+    ) / 16;
+  const nightMaxWeight = ordinaryPool.reduce((sum, entry) => sum + Number(entry.maxWeight), 0);
+  for (const entry of ordinaryPool) {
+    const originalWeight = entry.weight;
+    entry.weight =
+      typeof originalWeight === "function"
+        ? (party, rerollCount = 0) => originalWeight(party, rerollCount) * 16
+        : originalWeight * 16;
+    entry.maxWeight = Number(entry.maxWeight) * 16;
+  }
+  modifierPool[ModifierTier.COMMON] = [
+    ...ordinaryPool,
+    new WeightedModifierType(modifierTypes.ABILITY_SUN_DEVOURER, nightWeight, nightMaxWeight),
+    new WeightedModifierType(modifierTypes.ABILITY_MOON_RADIANCE, nightWeight, nightMaxWeight),
+    new WeightedModifierType(modifierTypes.TM_ECLIPSE_SUN, nightWeight, nightMaxWeight),
+    new WeightedModifierType(modifierTypes.TM_BRIGHT_MOON, nightWeight, nightMaxWeight),
   ].map(m => {
     m.setTier(ModifierTier.COMMON);
     return m;

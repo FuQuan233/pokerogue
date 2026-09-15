@@ -1377,6 +1377,9 @@ export class TmModifierType extends PokemonModifierType {
   }
 
   get name(): string {
+    if (this.moveId === MoveId.ECLIPSE_SUN || this.moveId === MoveId.BRIGHT_MOON) {
+      return `招式学习器：${allMoves[this.moveId].name}`;
+    }
     return i18next.t("modifierType:ModifierType.TmModifierType.name", {
       moveId: getTmNumber(this.moveId),
       moveName: allMoves[this.moveId].name,
@@ -1384,6 +1387,9 @@ export class TmModifierType extends PokemonModifierType {
   }
 
   getDescription(): string {
+    if (this.moveId === MoveId.ECLIPSE_SUN || this.moveId === MoveId.BRIGHT_MOON) {
+      return `让一只宝可梦学会「${allMoves[this.moveId].name}」。${allMoves[this.moveId].effect}`;
+    }
     return i18next.t(
       settings.display.enableMoveInfo
         ? "modifierType:ModifierType.TmModifierTypeWithInfo.description"
@@ -2248,6 +2254,10 @@ const modifierTypeInitObj = Object.freeze({
   TM_COMMON: () => new TmModifierTypeGenerator(ModifierTier.COMMON),
   TM_GREAT: () => new TmModifierTypeGenerator(ModifierTier.GREAT),
   TM_ULTRA: () => new TmModifierTypeGenerator(ModifierTier.ULTRA),
+  TM_ECLIPSE_SUN: () => new ModifierTypeGenerator(() => new TmModifierType(MoveId.ECLIPSE_SUN)),
+  TM_BRIGHT_MOON: () => new ModifierTypeGenerator(() => new TmModifierType(MoveId.BRIGHT_MOON)),
+  ABILITY_SUN_DEVOURER: () => new AbilityLearnerModifierType(AbilityId.SUN_DEVOURER),
+  ABILITY_MOON_RADIANCE: () => new AbilityLearnerModifierType(AbilityId.MOON_RADIANCE),
 
   MEMORY_MUSHROOM: () => new RememberMoveModifierType("modifierType:ModifierType.MEMORY_MUSHROOM", "big_mushroom"),
 

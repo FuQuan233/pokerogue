@@ -1,9 +1,10 @@
-import { allMoves } from "#data/data-lists";
+import { allMoves, modifierTypes } from "#data/data-lists";
 import { Status } from "#data/status-effect";
 import { getWeatherMultiplierForMove, getWeatherStartMessage, Weather } from "#data/weather";
 import { AbilityId } from "#enums/ability-id";
 import { ArenaTagType } from "#enums/arena-tag-type";
 import { Button } from "#enums/buttons";
+import { ModifierTier } from "#enums/modifier-tier";
 import { MoveId } from "#enums/move-id";
 import { PokemonType } from "#enums/pokemon-type";
 import { SpeciesId } from "#enums/species-id";
@@ -11,6 +12,9 @@ import { Stat } from "#enums/stat";
 import { StatusEffect } from "#enums/status-effect";
 import { UiMode } from "#enums/ui-mode";
 import { WeatherType } from "#enums/weather-type";
+import { AbilityLearnerModifier, TmModifier } from "#modifiers/modifier";
+import { modifierPool } from "#modifiers/modifier-pools";
+import type { TmModifierType } from "#modifiers/modifier-type";
 import { getWeatherMove } from "#moves/weather-moves";
 import { GameManager } from "#test/framework/game-manager";
 import { FightUiHandler } from "#ui/fight-ui-handler";
@@ -35,6 +39,69 @@ describe("FuQuan night weather", () => {
       .enemyMoveset(MoveId.SPLASH)
       .ability(AbilityId.BALL_FETCH)
       .moveset([MoveId.SLASH, MoveId.GUST, MoveId.MOONLIGHT, MoveId.BRIGHT_MOON]);
+  });
+  it.each([false, true])("keeps each night-weather item at 5 percent of COMMON weight (injured: %s)", async injured => {
+    await game.classicMode.startBattle(SpeciesId.PIKACHU, SpeciesId.SQUIRTLE, SpeciesId.CHARMANDER);
+    const party = game.scene.getPlayerParty();
+    if (injured) {
+      for (const pokemon of party) {
+        pokemon.hp = 1;
+        for (const move of pokemon.getMoveset()) {
+          move.ppUsed = move.getMovePp();
+        }
+      }
+    }
+    const pool = modifierPool[ModifierTier.COMMON];
+    const weights = pool.map(entry => (typeof entry.weight === "function" ? entry.weight(party, 0) : entry.weight));
+    const total = weights.reduce((a, b) => a + b, 0);
+    for (const id of ["ABILITY_SUN_DEVOURER", "ABILITY_MOON_RADIANCE", "TM_ECLIPSE_SUN", "TM_BRIGHT_MOON"]) {
+      const index = pool.findIndex(entry => entry.modifierType.id === id);
+      expect(index).toBeGreaterThanOrEqual(0);
+      expect(weights[index] / total).toBeCloseTo(0.05, 8);
+      expect(Number.isInteger(weights[index])).toBe(true);
+    }
+  });
+  it.each([
+    ["TM_ECLIPSE_SUN", MoveId.ECLIPSE_SUN, WeatherType.DARK_SKY],
+    ["TM_BRIGHT_MOON", MoveId.BRIGHT_MOON, WeatherType.FULL_MOON],
+  ] as const)("learns and uses the dedicated %s TM", async (key, moveId, weather) => {
+    game.override.moveset([MoveId.SPLASH]);
+    await game.classicMode.startBattle(SpeciesId.MAGIKARP);
+    const pokemon = game.field.getPlayerPokemon();
+    const type = modifierTypes[key]().generateType(game.scene.getPlayerParty()) as TmModifierType;
+    expect(type.selectFilter!(pokemon)).toBeNull();
+    expect(type.name).toContain(allMoves[moveId].name);
+    const item = type.newModifier(pokemon) as TmModifier;
+    expect(item).toBeInstanceOf(TmModifier);
+    item.apply(pokemon);
+    game.move.select(MoveId.SPLASH);
+    await game.phaseInterceptor.to("LearnMovePhase");
+    expect(pokemon.getMoveset().some(move => move.moveId === moveId)).toBe(true);
+    expect(type.selectFilter!(pokemon)).not.toBeNull();
+    await game.toNextTurn();
+    game.move.select(moveId);
+    await game.toNextTurn();
+    expect(game.scene.arena.weatherType).toBe(weather);
+    expect(pokemon.getCompatibleTms()).not.toContain(MoveId.THUNDER_CRESCENT_SLASH);
+    expect(pokemon.getCompatibleTms()).not.toContain(MoveId.MOONLIT_BLOODSTORM);
+  });
+  it.each([
+    ["ABILITY_SUN_DEVOURER", AbilityId.SUN_DEVOURER, WeatherType.DARK_SKY],
+    ["ABILITY_MOON_RADIANCE", AbilityId.MOON_RADIANCE, WeatherType.FULL_MOON],
+  ] as const)("learns %s and triggers its weather on switch-in", async (key, ability, weather) => {
+    game.override.ability(AbilityId.NONE);
+    await game.classicMode.startBattle(SpeciesId.PIKACHU, SpeciesId.SQUIRTLE);
+    const pokemon = game.scene.getPlayerParty()[1];
+    const type = modifierTypes[key]();
+    expect(type.selectFilter!(pokemon)).toBeNull();
+    const item = type.newModifier(pokemon, 0) as AbilityLearnerModifier;
+    expect(item).toBeInstanceOf(AbilityLearnerModifier);
+    item.apply(pokemon);
+    expect(pokemon.getAllAbilities().some(a => a.id === ability)).toBe(true);
+    expect(type.selectFilter!(pokemon)).not.toBeNull();
+    game.doSwitchPokemon(1);
+    await game.toNextTurn();
+    expect(game.scene.arena.weatherType).toBe(weather);
   });
   it("uses exactly five turns of darkness and unlimited full moon", () => {
     const dark = new Weather(WeatherType.DARK_SKY, 5);
