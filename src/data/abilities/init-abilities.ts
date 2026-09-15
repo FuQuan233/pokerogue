@@ -2201,6 +2201,8 @@ export function initAbilities() {
       .attr(PostDefendApplyStatusEffectAbAttr, 100, false, StatusEffect.BURN)
       .bypassFaint()
       .build(),
+    new AbBuilder(AbilityId.SUN_DEVOURER, 9).attr(PostSummonWeatherChangeAbAttr, WeatherType.DARK_SKY).build(),
+    new AbBuilder(AbilityId.MOON_RADIANCE, 9).attr(PostSummonWeatherChangeAbAttr, WeatherType.FULL_MOON).build(),
   );
 }
 

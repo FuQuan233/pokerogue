@@ -1875,4 +1875,8 @@ export enum MoveId {
   MALIGNANT_CHAIN,
   /**{@link https://bulbapedia.bulbagarden.net/wiki/Nihil_Light_(move) | Source} */
   NIHIL_LIGHT,
+  ECLIPSE_SUN,
+  BRIGHT_MOON,
+  THUNDER_CRESCENT_SLASH,
+  MOONLIT_BLOODSTORM,
 }

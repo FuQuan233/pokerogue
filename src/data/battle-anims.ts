@@ -434,6 +434,17 @@ export async function initCommonAnims(): Promise<void> {
 }
 
 export function initMoveAnim(move: MoveId): Promise<void> {
+  const customAnimation = {
+    [MoveId.ECLIPSE_SUN]: MoveId.HAZE,
+    [MoveId.BRIGHT_MOON]: MoveId.MOONLIGHT,
+    [MoveId.THUNDER_CRESCENT_SLASH]: MoveId.PSYCHO_CUT,
+    [MoveId.MOONLIT_BLOODSTORM]: MoveId.HURRICANE,
+  }[move];
+  if (customAnimation != null) {
+    return initMoveAnim(customAnimation).then(() => {
+      moveAnims.set(move, moveAnims.get(customAnimation)!);
+    });
+  }
   return new Promise(resolve => {
     if (moveAnims.has(move)) {
       if (moveAnims.get(move) === null) {

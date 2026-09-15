@@ -2,6 +2,7 @@ import { globalScene } from "#app/global-scene";
 import type { MovePhaseTimingModifier } from "#enums/move-phase-timing-modifier";
 import type { MovePriorityInBracket } from "#enums/move-priority-in-bracket";
 import type { Pokemon } from "#field/pokemon";
+import { getWeatherMove } from "#moves/weather-moves";
 import type { MovePhase } from "#phases/move-phase";
 import { DynamicPhasePriorityQueue } from "#queues/pokemon-phase-priority-queue";
 import type { PhaseConditionFunc } from "#types/phase-types";
@@ -99,7 +100,7 @@ export class MovePhasePriorityQueue extends DynamicPhasePriorityQueue<MovePhase>
  * @returns The phase's priority modifier
  */
 function getPriorityModifiersForMP(mp: MovePhase): MovePriorityInBracket {
-  const move = mp.move.getMove();
+  const move = getWeatherMove(mp.pokemon, mp.move.getMove());
   return move.getPriorityModifier(mp.pokemon, true);
 }
 
@@ -109,6 +110,6 @@ function getPriorityModifiersForMP(mp: MovePhase): MovePriorityInBracket {
  * @returns The phase's priority
  */
 function getPriorityForMP(mp: MovePhase): number {
-  const move = mp.move.getMove();
+  const move = getWeatherMove(mp.pokemon, mp.move.getMove());
   return move.getPriority(mp.pokemon, true);
 }

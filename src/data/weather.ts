@@ -3,6 +3,8 @@ import { applyAbAttrs } from "#abilities/apply-ab-attrs";
 import { globalScene } from "#app/global-scene";
 import { getPokemonNameWithAffix } from "#app/messages";
 import { CommonAnim } from "#enums/move-anims-common";
+import { MoveFlags } from "#enums/move-flags";
+import { MoveId } from "#enums/move-id";
 import { PokemonType } from "#enums/pokemon-type";
 import { WeatherType } from "#enums/weather-type";
 import type { Pokemon } from "#field/pokemon";
@@ -48,6 +50,7 @@ export class Weather {
       case WeatherType.HEAVY_RAIN:
       case WeatherType.HARSH_SUN:
       case WeatherType.STRONG_WINDS:
+      case WeatherType.FULL_MOON:
         return true;
     }
 
@@ -111,6 +114,10 @@ export class Weather {
 
 export function getWeatherStartMessage(weatherType: WeatherType): string {
   switch (weatherType) {
+    case WeatherType.DARK_SKY:
+      return "大炎的天黑了！";
+    case WeatherType.FULL_MOON:
+      return "圆月高悬！";
     case WeatherType.SUNNY:
       return i18next.t("weather:sunnyStartMessage");
     case WeatherType.RAIN:
@@ -136,6 +143,10 @@ export function getWeatherStartMessage(weatherType: WeatherType): string {
 
 export function getWeatherLapseMessage(weatherType: WeatherType): string {
   switch (weatherType) {
+    case WeatherType.DARK_SKY:
+      return "黑暗笼罩着战场。";
+    case WeatherType.FULL_MOON:
+      return "圆月照耀着战场。";
     case WeatherType.SUNNY:
       return i18next.t("weather:sunnyLapseMessage");
     case WeatherType.RAIN:
@@ -176,6 +187,10 @@ export function getWeatherDamageMessage(weatherType: WeatherType, pokemon: Pokem
 
 export function getWeatherClearMessage(weatherType: WeatherType): string {
   switch (weatherType) {
+    case WeatherType.DARK_SKY:
+      return "大黑天结束了！";
+    case WeatherType.FULL_MOON:
+      return "圆月隐去了！";
     case WeatherType.SUNNY:
       return i18next.t("weather:sunnyClearMessage");
     case WeatherType.RAIN:
@@ -201,6 +216,10 @@ export function getWeatherClearMessage(weatherType: WeatherType): string {
 
 export function getLegendaryWeatherContinuesMessage(weatherType: WeatherType): string {
   switch (weatherType) {
+    case WeatherType.DARK_SKY:
+      return "黑暗仍然笼罩着战场！";
+    case WeatherType.FULL_MOON:
+      return "圆月依然高悬！";
     case WeatherType.HARSH_SUN:
       return i18next.t("weather:harshSunContinueMessage");
     case WeatherType.HEAVY_RAIN:
@@ -269,6 +288,14 @@ export function getWeatherMultiplierForMove(user: Pokemon, move: Move): number {
   }
 
   switch (weatherType) {
+    case WeatherType.DARK_SKY: {
+      const typeBoost = [PokemonType.GHOST, PokemonType.DARK, PokemonType.BUG].includes(attackType) ? 1.2 : 1;
+      const moveBoost = DARK_SKY_BOOSTED_MOVES.has(move.id) ? 1.2 : 1;
+      return typeBoost * moveBoost;
+    }
+    case WeatherType.FULL_MOON:
+      return move.id === MoveId.MOONBLAST || move.id === MoveId.BLOOD_MOON ? 2 : 1;
+
     case WeatherType.SUNNY:
     case WeatherType.HARSH_SUN:
       if (attackType === PokemonType.FIRE) {
@@ -298,5 +325,65 @@ export function getWeatherMultiplierForMove(user: Pokemon, move: Move): number {
  * @returns The {@linkcode CommonAnim} for the given weather
  */
 export function getWeatherAnim(weatherType: WeatherType): CommonAnim {
+  if (weatherType === WeatherType.DARK_SKY) {
+    return (CommonAnim.SUNNY + WeatherType.FOG - 1) as CommonAnim;
+  }
+  if (weatherType === WeatherType.FULL_MOON) {
+    return CommonAnim.SUNNY;
+  }
   return (CommonAnim.SUNNY + (weatherType - 1)) as CommonAnim;
+}
+
+/** Additional named-move bonus stacks with Dark Sky's type bonus. */
+export const DARK_SKY_BOOSTED_MOVES = new Set<MoveId>([
+  MoveId.NIGHT_SLASH,
+  MoveId.NIGHT_DAZE,
+  MoveId.WICKED_BLOW,
+  MoveId.WICKED_TORQUE,
+  MoveId.SHADOW_BALL,
+  MoveId.SHADOW_PUNCH,
+  MoveId.SHADOW_CLAW,
+  MoveId.SHADOW_SNEAK,
+  MoveId.SHADOW_FORCE,
+  MoveId.SPIRIT_SHACKLE,
+  MoveId.SHADOW_BONE,
+  MoveId.SPECTRAL_THIEF,
+  MoveId.PHANTOM_FORCE,
+]);
+
+export const SUNLIGHT_MOVES = new Set<MoveId>([
+  MoveId.MORNING_SUN,
+  MoveId.SYNTHESIS,
+  MoveId.SOLAR_BEAM,
+  MoveId.SOLAR_BLADE,
+]);
+export const MOONLIGHT_MOVES = new Set<MoveId>([
+  MoveId.MOONLIGHT,
+  MoveId.MOONBLAST,
+  MoveId.LUNAR_DANCE,
+  MoveId.LUNAR_BLESSING,
+  MoveId.BLOOD_MOON,
+]);
+export function isMoveDarkened(weather: WeatherType, move: MoveId): boolean {
+  return (
+    (weather === WeatherType.DARK_SKY && (SUNLIGHT_MOVES.has(move) || MOONLIGHT_MOVES.has(move)))
+    || (weather === WeatherType.FULL_MOON && SUNLIGHT_MOVES.has(move))
+  );
+}
+
+/** Shared by target selection and previews; avoids importing move constructors into targeting utilities. */
+export function getWeatherMoveId(user: Pokemon, move: Move): MoveId {
+  const weather = getEffectiveWeatherForMove(user);
+  if (isMoveDarkened(weather, move.id)) {
+    return MoveId.SPLASH;
+  }
+  if (weather === WeatherType.FULL_MOON) {
+    if (move.hasFlag(MoveFlags.SLICING_MOVE)) {
+      return MoveId.THUNDER_CRESCENT_SLASH;
+    }
+    if (move.hasFlag(MoveFlags.WIND_MOVE)) {
+      return MoveId.MOONLIT_BLOODSTORM;
+    }
+  }
+  return move.id;
 }

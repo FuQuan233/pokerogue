@@ -3679,6 +3679,21 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
 
     globalScene.applyModifiers(TempStatStageBoosterModifier, this.isPlayer(), Stat.ACC, userAccStage);
 
+    if (
+      getEffectiveWeatherForMove(this) === WeatherType.DARK_SKY
+      && ![PokemonType.GHOST, PokemonType.DARK, PokemonType.BUG].some(type => this.isOfType(type))
+    ) {
+      const cancelledStats = new Set<BattleStat>();
+      applyAbAttrs("ProtectStatAbAttr", {
+        pokemon: this,
+        changes: [{ stat: Stat.ACC, stages: -1 }],
+        cancelledStats,
+        simulated: true,
+      });
+      if (!cancelledStats.has(Stat.ACC)) {
+        userAccStage.value = Math.max(-6, userAccStage.value - 1);
+      }
+    }
     userAccStage.value = ignoreAccStatStage.value ? 0 : Math.min(userAccStage.value, 6);
     targetEvaStage.value = ignoreEvaStatStage.value ? 0 : targetEvaStage.value;
 

@@ -9,4 +9,6 @@ export enum WeatherType {
   HEAVY_RAIN,
   HARSH_SUN,
   STRONG_WINDS,
+  DARK_SKY,
+  FULL_MOON,
 }

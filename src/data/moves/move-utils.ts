@@ -1,4 +1,5 @@
 import { allMoves } from "#data/data-lists";
+import { getWeatherMoveId } from "#data/weather";
 import { BattlerIndex } from "#enums/battler-index";
 import { MoveCategory, type MoveDamageCategory } from "#enums/move-category";
 import type { MoveId } from "#enums/move-id";
@@ -53,8 +54,9 @@ export function isSpreadMove(move: Move): boolean {
 }
 
 export function getMoveTargets(user: Pokemon, move: MoveId, replaceTarget?: MoveTarget): MoveTargetSet {
-  const variableTarget = new ValueHolder(replaceTarget ?? allMoves[move].moveTarget);
-  user.getOpponents(false).forEach(p => applyMoveAttrs("VariableTargetAttr", user, p, allMoves[move], variableTarget));
+  const resolvedMove = allMoves[getWeatherMoveId(user, allMoves[move])];
+  const variableTarget = new ValueHolder(replaceTarget ?? resolvedMove.moveTarget);
+  user.getOpponents(false).forEach(p => applyMoveAttrs("VariableTargetAttr", user, p, resolvedMove, variableTarget));
 
   const moveTarget: MoveTarget = variableTarget.value;
   const opponents = user.getOpponents(false);

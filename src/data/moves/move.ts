@@ -1046,6 +1046,24 @@ export abstract class Move implements Localizable {
     return score;
   }
 
+  /** Sleep-inducing moves retain their status immunities even when accuracy is bypassed. */
+  canCauseSleep(): boolean {
+    if (this.id === MoveId.YAWN) {
+      return true;
+    }
+    if (this.hasAttr("SecretPowerAttr")) {
+      const effect = this.getAttrs("SecretPowerAttr")[0].getSecondaryEffect();
+      return effect instanceof StatusEffectAttr && effect.effect === StatusEffect.SLEEP;
+    }
+    return this.getAttrs("StatusEffectAttr").some(
+      attr =>
+        !attr.selfTarget
+        && (attr instanceof MultiStatusEffectAttr
+          ? attr.effects.includes(StatusEffect.SLEEP)
+          : attr.effect === StatusEffect.SLEEP),
+    );
+  }
+
   /**
    * Calculates the accuracy of a move in battle based on various conditions and attributes.
    *
@@ -1054,6 +1072,9 @@ export abstract class Move implements Localizable {
    * @returns The calculated accuracy of the move.
    */
   calculateBattleAccuracy(user: Pokemon, target: Pokemon, simulated = false) {
+    if (getEffectiveWeatherForMove(user) === WeatherType.DARK_SKY && this.canCauseSleep()) {
+      return -1;
+    }
     const moveAccuracy = new NumberHolder(this.accuracy);
 
     applyMoveAttrs("VariableAccuracyAttr", user, target, this, moveAccuracy);
@@ -1767,6 +1788,15 @@ export class MoveEffectAttr extends MoveAttr {
    */
   getMoveChance(user: Pokemon, target: Pokemon, move: Move, selfEffect?: boolean, showAbility?: boolean): number {
     const moveChance = new NumberHolder(this.effectChanceOverride ?? move.chance);
+    if (
+      this instanceof StatusEffectAttr
+      && this.effect === StatusEffect.SLEEP
+      && !this.selfTarget
+      && getEffectiveWeatherForMove(user) === WeatherType.DARK_SKY
+      && moveChance.value > 0
+    ) {
+      moveChance.value = Math.min(100, moveChance.value * 2);
+    }
 
     applyAbAttrs("MoveEffectChanceMultiplierAbAttr", {
       pokemon: user,
@@ -2485,7 +2515,11 @@ export class HealAttr extends MoveEffectAttr {
       return false;
     }
 
-    const healRatio = new ValueHolder(this.healRatio);
+    const healRatio = new ValueHolder(
+      move.id === MoveId.LUNAR_BLESSING && getEffectiveWeatherForMove(user) === WeatherType.FULL_MOON
+        ? 1
+        : this.healRatio,
+    );
     applyAbAttrs("MoveHealBoostAbAttr", { pokemon: user, opponent: target, move, healRatio });
     this.addHealPhase(this.selfTarget ? user : target, healRatio.value);
     return true;
@@ -3580,7 +3614,8 @@ export class WeatherChangeAttr extends MoveEffectAttr {
   getCondition(): MoveConditionFunc {
     return (_user, _target, _move) =>
       !globalScene.arena.weather
-      || (globalScene.arena.weather.weatherType !== this.weatherType && !globalScene.arena.weather.isImmutable());
+      || (globalScene.arena.weather.weatherType !== this.weatherType
+        && (this.weatherType === WeatherType.FULL_MOON || !globalScene.arena.weather.isImmutable()));
   }
 }
 
@@ -4131,6 +4166,10 @@ export class SecretPowerAttr extends MoveEffectAttr {
     if (!super.apply(user, target, move, args)) {
       return false;
     }
+    return this.getSecondaryEffect().apply(user, target, move, []);
+  }
+
+  getSecondaryEffect(): MoveEffectAttr {
     let secondaryEffect: MoveEffectAttr;
     const terrain = globalScene.arena.terrainType;
     if (terrain === TerrainType.NONE) {
@@ -4139,7 +4178,7 @@ export class SecretPowerAttr extends MoveEffectAttr {
     } else {
       secondaryEffect = this.determineTerrainEffect(terrain);
     }
-    return secondaryEffect.apply(user, target, move, []);
+    return secondaryEffect;
   }
 
   /**
@@ -9024,6 +9063,10 @@ const attackedByItemMessageFunc: MoveMessageFunc = (_user, target) => {
 const sunnyHealRatioFunc = (user: Pokemon): number => {
   const weatherType = getEffectiveWeatherForMove(user);
   switch (weatherType) {
+    case WeatherType.FULL_MOON:
+      return 1;
+    case WeatherType.DARK_SKY:
+      return 1 / 4;
     case WeatherType.SUNNY:
     case WeatherType.HARSH_SUN:
       return 2 / 3;
@@ -12667,5 +12710,22 @@ export function initMoves() {
       .attr(NihilLightAttr)
       .target(MoveTarget.ALL_NEAR_ENEMIES)
       .edgeCase(), // Needs to replace the user's Core Enforcer if mega evolved (Zygarde-Complete to Mega Zygarde)
+    new SelfStatusMove(MoveId.ECLIPSE_SUN, PokemonType.DARK, -1, 10, -1, 0, 9).attr(
+      WeatherChangeAttr,
+      WeatherType.DARK_SKY,
+    ),
+    new SelfStatusMove(MoveId.BRIGHT_MOON, PokemonType.FAIRY, -1, 5, -1, 0, 9).attr(
+      WeatherChangeAttr,
+      WeatherType.FULL_MOON,
+    ),
+    new AttackMove(MoveId.THUNDER_CRESCENT_SLASH, PokemonType.ELECTRIC, MoveCategory.PHYSICAL, 150, 100, 5, 50, 0, 9)
+      .target(MoveTarget.ALL_NEAR_ENEMIES)
+      .attr(HitHealAttr, 0.5)
+      .attr(StatusEffectAttr, StatusEffect.PARALYSIS)
+      .slicingMove(),
+    new AttackMove(MoveId.MOONLIT_BLOODSTORM, PokemonType.GHOST, MoveCategory.SPECIAL, 300, 100, 5, 100, 0, 9)
+      .target(MoveTarget.ALL_NEAR_ENEMIES)
+      .attr(ConfuseAttr)
+      .windMove(),
   );
 }

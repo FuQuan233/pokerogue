@@ -13,6 +13,7 @@ import { TypeHints } from "#enums/type-hints";
 import { UiMode } from "#enums/ui-mode";
 import type { EnemyPokemon, Pokemon } from "#field/pokemon";
 import type { PokemonMove } from "#moves/pokemon-move";
+import { getWeatherMove } from "#moves/weather-moves";
 import type { CommandPhase } from "#phases/command-phase";
 import { MoveInfoOverlay } from "#ui/move-info-overlay";
 import { addTextObject, getTextColor } from "#ui/text";
@@ -262,14 +263,14 @@ export class FightUiHandler extends UiHandler implements InfoToggle {
     }
 
     const pokemonMove = moveset[cursor];
-    const moveType = pokemon.getMoveType(pokemonMove.getMove());
+    const moveType = pokemon.getMoveType(getWeatherMove(pokemon, pokemonMove.getMove()));
     const textureKey = getLocalizedSpriteKey("types");
     this.typeIcon.setTexture(textureKey, PokemonType[moveType].toLowerCase()).setScale(0.8);
 
-    const moveCategory = pokemonMove.getMove().category;
+    const moveCategory = getWeatherMove(pokemon, pokemonMove.getMove()).category;
     this.moveCategoryIcon.setTexture("categories", MoveCategory[moveCategory].toLowerCase()).setScale(1.0);
-    const power = pokemonMove.getMove().power;
-    const accuracy = pokemonMove.getMove().accuracy;
+    const power = getWeatherMove(pokemon, pokemonMove.getMove()).power;
+    const accuracy = getWeatherMove(pokemon, pokemonMove.getMove()).accuracy;
     const maxPP = pokemonMove.getMovePp();
     const pp = maxPP - pokemonMove.ppUsed;
 
@@ -283,7 +284,7 @@ export class FightUiHandler extends UiHandler implements InfoToggle {
 
     // Changes the text color and shadow according to the determined TextStyle
     this.ppText.setColor(getTextColor(ppColorStyle, false)).setShadowColor(getTextColor(ppColorStyle, true));
-    this.moveInfoOverlay.show(pokemonMove.getMove());
+    this.moveInfoOverlay.show(getWeatherMove(pokemon, pokemonMove.getMove()));
 
     pokemon.getOpponents().forEach(opponent => {
       (opponent as EnemyPokemon).updateEffectiveness(this.getEffectivenessText(pokemon, opponent, pokemonMove));
@@ -323,13 +324,13 @@ export class FightUiHandler extends UiHandler implements InfoToggle {
   private getEffectivenessText(pokemon: Pokemon, opponent: Pokemon, pokemonMove: PokemonMove): string | undefined {
     const effectiveness = opponent.getMoveEffectiveness(
       pokemon,
-      pokemonMove.getMove(),
+      getWeatherMove(pokemon, pokemonMove.getMove()),
       !opponent.waveData.abilityRevealed,
       undefined,
       undefined,
       true,
     );
-    if (pokemonMove.getMove().category === MoveCategory.STATUS) {
+    if (getWeatherMove(pokemon, pokemonMove.getMove()).category === MoveCategory.STATUS) {
       if (effectiveness === 0) {
         return i18next.t("fightUiHandler:effectiveness000");
       }
@@ -354,8 +355,8 @@ export class FightUiHandler extends UiHandler implements InfoToggle {
       if (moveIndex < moveset.length) {
         const pokemonMove = moveset[moveIndex]!; // TODO is the bang correct?
         moveText
-          .setText(pokemonMove.getName())
-          .setName(pokemonMove.getName())
+          .setText(getWeatherMove(pokemon, pokemonMove.getMove()).name)
+          .setName(getWeatherMove(pokemon, pokemonMove.getMove()).name)
           .setColor(this.getMoveColor(pokemon, pokemonMove) ?? moveText.style.color);
       }
 
@@ -382,7 +383,7 @@ export class FightUiHandler extends UiHandler implements InfoToggle {
       .map(opponent =>
         opponent.getMoveEffectiveness(
           pokemon,
-          pokemonMove.getMove(),
+          getWeatherMove(pokemon, pokemonMove.getMove()),
           !opponent.waveData.abilityRevealed,
           undefined,
           undefined,
@@ -391,7 +392,7 @@ export class FightUiHandler extends UiHandler implements InfoToggle {
       )
       .sort((a, b) => b - a)
       .map(effectiveness => {
-        if (pokemonMove.getMove().category === MoveCategory.STATUS && effectiveness !== 0) {
+        if (getWeatherMove(pokemon, pokemonMove.getMove()).category === MoveCategory.STATUS && effectiveness !== 0) {
           // biome-ignore lint/complexity/noUselessUndefined: intentional
           return undefined;
         }

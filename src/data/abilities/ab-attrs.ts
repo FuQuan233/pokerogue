@@ -2583,6 +2583,7 @@ export class PostSummonWeatherChangeAbAttr extends PostSummonAbAttr {
     const weatherReplaceable =
       this.weatherType === WeatherType.HEAVY_RAIN
       || this.weatherType === WeatherType.HARSH_SUN
+      || this.weatherType === WeatherType.FULL_MOON
       || this.weatherType === WeatherType.STRONG_WINDS
       || this.weatherType === WeatherType.NONE
       || !globalScene.arena.weather?.isImmutable();

@@ -4,6 +4,36 @@ import type { i18n } from "i18next";
 /** Private-server text stays outside the upstream locales submodule. */
 export function registerFuquanTranslations(instance: i18n): void {
   for (const language of SUPPORTED_LANGUAGES) {
+    instance.addResourceBundle(
+      language,
+      "move",
+      {
+        eclipseSun: { name: "蔽日", effect: "将天气变为大黑天，持续5回合。" },
+        brightMoon: { name: "明月", effect: "将天气变为月圆之夜，持续时间无限。" },
+        thunderCrescentSlash: {
+          name: "雷霆半月斩",
+          effect: "攻击所有敌方目标，回复实际伤害一半的HP，有50%的概率使目标麻痹。",
+        },
+        moonlitBloodstorm: {
+          name: "月色血风暴",
+          effect: "攻击所有敌方目标并使其混乱。使用后消耗自身最大HP的一半，并结束月圆之夜。",
+        },
+      },
+      true,
+      true,
+    );
+    instance.addResourceBundle(
+      language,
+      "ability",
+      {
+        sunDevourer: { name: "吞日", description: "出场时将天气变为大黑天，持续5回合。" },
+        moonRadiance: { name: "皎月", description: "出场时将天气变为月圆之夜，持续时间无限。" },
+      },
+      true,
+      true,
+    );
+    instance.addResourceBundle(language, "arenaFlyout", { darkSky: "大黑天", fullMoon: "月圆之夜" }, true, true);
+
     instance.addResourceBundle(language, "menu", { pvpChallenge: "队伍挑战" }, true, true);
     instance.addResourceBundle(
       language,

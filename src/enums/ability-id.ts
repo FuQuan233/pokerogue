@@ -637,4 +637,6 @@ export enum AbilityId {
   ABILITY_317,
   /** {@link https://bulbapedia.bulbagarden.net/wiki/Spicy_Spray_(Ability) | Source} */
   SPICY_SPRAY,
+  SUN_DEVOURER,
+  MOON_RADIANCE,
 }

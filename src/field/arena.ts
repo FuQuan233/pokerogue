@@ -278,7 +278,13 @@ export class Arena {
 
     if (
       this.weather?.isImmutable()
-      && ![WeatherType.HARSH_SUN, WeatherType.HEAVY_RAIN, WeatherType.STRONG_WINDS, WeatherType.NONE].includes(weather)
+      && ![
+        WeatherType.HARSH_SUN,
+        WeatherType.HEAVY_RAIN,
+        WeatherType.STRONG_WINDS,
+        WeatherType.FULL_MOON,
+        WeatherType.NONE,
+      ].includes(weather)
     ) {
       globalScene.phaseManager.unshiftNew("CommonAnimPhase", undefined, undefined, getWeatherAnim(oldWeatherType));
       globalScene.phaseManager.queueMessage(getLegendaryWeatherContinuesMessage(oldWeatherType));
@@ -290,6 +296,10 @@ export class Arena {
     if (user != null) {
       weatherDuration.value = 5;
       globalScene.applyModifier(FieldEffectModifier, user.isPlayer(), user, weatherDuration);
+    }
+
+    if (weather === WeatherType.DARK_SKY) {
+      weatherDuration.value = 5;
     }
 
     if (weather === WeatherType.NONE) {

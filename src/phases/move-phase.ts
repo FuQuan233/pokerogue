@@ -20,6 +20,7 @@ import { MoveFlags } from "#enums/move-flags";
 import { MoveId } from "#enums/move-id";
 import { MovePhaseTimingModifier } from "#enums/move-phase-timing-modifier";
 import { MoveResult } from "#enums/move-result";
+import { MoveTarget } from "#enums/move-target";
 import { isIgnorePP, isIgnoreStatus, isReflected, isVirtual, MoveUseMode } from "#enums/move-use-mode";
 import { PokemonType } from "#enums/pokemon-type";
 import { StatusEffect } from "#enums/status-effect";
@@ -27,6 +28,7 @@ import { MoveUsedEvent } from "#events/battle-scene";
 import type { Pokemon } from "#field/pokemon";
 import { applyMoveAttrs } from "#moves/apply-attrs";
 import type { PokemonMove } from "#moves/pokemon-move";
+import { getWeatherMove } from "#moves/weather-moves";
 import { PokemonPhase } from "#phases/pokemon-phase";
 import type { Move, PreUseInterruptAttr } from "#types/move-types";
 import type { TurnMove } from "#types/turn-move";
@@ -51,6 +53,7 @@ export class MovePhase extends PokemonPhase {
   public timingModifier: MovePhaseTimingModifier;
   /** Whether the current move should fail but still use PP. */
   protected failed = false;
+  private executedMoveId = MoveId.NONE;
   /** Whether the current move should fail and retain PP. */
   protected cancelled = false;
 
@@ -146,6 +149,28 @@ export class MovePhase extends PokemonPhase {
     const override = encoreTag?.tryOverrideMove(user);
     if (override) {
       [this.move, this.targets] = override;
+    }
+
+    const original = this.move;
+    const effective = getWeatherMove(user, original.getMove());
+    if (effective !== original.getMove()) {
+      // Keep PP and restrictions attached to the original learned move.
+      this.move = new Proxy(original, {
+        get(target, property, receiver) {
+          if (property === "getMove") {
+            return () => effective;
+          }
+          if (["usePp", "getMovePp", "isOutOfPp", "getPpRatio"].includes(String(property))) {
+            return Reflect.get(target, property).bind(target);
+          }
+          return Reflect.get(target, property, receiver);
+        },
+      });
+      if (effective.moveTarget === MoveTarget.ALL_NEAR_ENEMIES) {
+        this.targets = user.getOpponents().map(p => p.getBattlerIndex());
+      } else if (effective.moveTarget === MoveTarget.USER) {
+        this.targets = [user.getBattlerIndex()];
+      }
     }
 
     // For the purposes of payback and kin, the pokemon is considered to have acted
@@ -880,6 +905,10 @@ export class MovePhase extends PokemonPhase {
     const { pokemon: user, targets } = this;
     const move = this.move.getMove();
 
+    this.executedMoveId = move.id;
+    if (move.id >= MoveId.ECLIPSE_SUN) {
+      globalScene.phaseManager.unshiftNew("LoadMoveAnimPhase", move.id);
+    }
     globalScene.phaseManager.unshiftNew("MoveEffectPhase", user.getBattlerIndex(), targets, move, this.useMode);
   }
 
@@ -905,6 +934,7 @@ export class MovePhase extends PokemonPhase {
       this.pokemon.getBattlerIndex(),
       this.getActiveTargetPokemon(),
       isVirtual(this.useMode),
+      this.executedMoveId,
     );
 
     super.end();

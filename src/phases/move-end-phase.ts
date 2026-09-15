@@ -2,8 +2,12 @@ import { applyAbAttrs } from "#abilities/apply-ab-attrs";
 import { globalScene } from "#app/global-scene";
 import type { BattlerIndex } from "#enums/battler-index";
 import { BattlerTagLapseType } from "#enums/battler-tag-lapse-type";
+import { HitResult } from "#enums/hit-result";
+import { MoveId } from "#enums/move-id";
+import { WeatherType } from "#enums/weather-type";
 import type { Pokemon } from "#field/pokemon";
 import { PokemonPhase } from "#phases/pokemon-phase";
+import { toDmgValue } from "#utils/common";
 
 export class MoveEndPhase extends PokemonPhase {
   public readonly phaseName = "MoveEndPhase";
@@ -15,7 +19,12 @@ export class MoveEndPhase extends PokemonPhase {
 
   /** Targets from the preceding MovePhase */
   private readonly targets: Pokemon[];
-  constructor(battlerIndex: BattlerIndex, targets: Pokemon[], wasFollowUp = false) {
+  constructor(
+    battlerIndex: BattlerIndex,
+    targets: Pokemon[],
+    wasFollowUp = false,
+    private readonly executedMoveId = MoveId.NONE,
+  ) {
     super(battlerIndex);
 
     this.targets = targets;
@@ -26,6 +35,19 @@ export class MoveEndPhase extends PokemonPhase {
     super.start();
 
     const pokemon = this.getPokemon();
+
+    if (this.executedMoveId === MoveId.MOONLIT_BLOODSTORM) {
+      // Once per use, after every target and hit has resolved. This is a cost, not recoil.
+      if (pokemon?.isActive(true)) {
+        pokemon.damageAndUpdate(toDmgValue(pokemon.getMaxHp() / 2), {
+          result: HitResult.INDIRECT,
+          ignoreSegments: true,
+        });
+      }
+      if (globalScene.arena.weatherType === WeatherType.FULL_MOON) {
+        globalScene.arena.trySetWeather(WeatherType.NONE, pokemon);
+      }
+    }
 
     // Reset hit-related temporary data.
     // TODO: These properties should be stored inside a "move in flight" object,
