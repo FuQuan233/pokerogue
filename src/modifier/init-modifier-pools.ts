@@ -135,21 +135,22 @@ function initCommonModifierPool() {
       4,
     ),
   ];
-  // Keep integer draw thresholds: ordinary items occupy 16 shares, and each new item one share.
-  // Thus each night-weather item has 1 / (16 + 4) = 5% of COMMON's current weight.
+  // Keep integer draw thresholds: ordinary items occupy 196 shares, and each new item one share.
+  // Thus each night-weather item has 1 / (196 + 4) = 0.5% of COMMON's current weight.
+  const ordinaryWeightScale = 196;
   const nightWeight: WeightedModifierTypeWeightFunc = (party, rerollCount = 0) =>
     ordinaryPool.reduce(
       (sum, entry) => sum + (typeof entry.weight === "function" ? entry.weight(party, rerollCount) : entry.weight),
       0,
-    ) / 16;
+    ) / ordinaryWeightScale;
   const nightMaxWeight = ordinaryPool.reduce((sum, entry) => sum + Number(entry.maxWeight), 0);
   for (const entry of ordinaryPool) {
     const originalWeight = entry.weight;
     entry.weight =
       typeof originalWeight === "function"
-        ? (party, rerollCount = 0) => originalWeight(party, rerollCount) * 16
-        : originalWeight * 16;
-    entry.maxWeight = Number(entry.maxWeight) * 16;
+        ? (party, rerollCount = 0) => originalWeight(party, rerollCount) * ordinaryWeightScale
+        : originalWeight * ordinaryWeightScale;
+    entry.maxWeight = Number(entry.maxWeight) * ordinaryWeightScale;
   }
   modifierPool[ModifierTier.COMMON] = [
     ...ordinaryPool,

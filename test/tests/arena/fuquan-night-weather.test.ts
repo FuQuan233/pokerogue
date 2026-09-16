@@ -40,7 +40,10 @@ describe("FuQuan night weather", () => {
       .ability(AbilityId.BALL_FETCH)
       .moveset([MoveId.SLASH, MoveId.GUST, MoveId.MOONLIGHT, MoveId.BRIGHT_MOON]);
   });
-  it.each([false, true])("keeps each night-weather item at 5 percent of COMMON weight (injured: %s)", async injured => {
+  it.each([
+    false,
+    true,
+  ])("keeps each night-weather item at 0.5 percent of COMMON weight (injured: %s)", async injured => {
     await game.classicMode.startBattle(SpeciesId.PIKACHU, SpeciesId.SQUIRTLE, SpeciesId.CHARMANDER);
     const party = game.scene.getPlayerParty();
     if (injured) {
@@ -57,7 +60,7 @@ describe("FuQuan night weather", () => {
     for (const id of ["ABILITY_SUN_DEVOURER", "ABILITY_MOON_RADIANCE", "TM_ECLIPSE_SUN", "TM_BRIGHT_MOON"]) {
       const index = pool.findIndex(entry => entry.modifierType.id === id);
       expect(index).toBeGreaterThanOrEqual(0);
-      expect(weights[index] / total).toBeCloseTo(0.05, 8);
+      expect(weights[index] / total).toBeCloseTo(0.005, 8);
       expect(Number.isInteger(weights[index])).toBe(true);
     }
   });

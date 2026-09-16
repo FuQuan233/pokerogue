@@ -1,0 +1,1259 @@
+{
+  "move": {
+    "peck": {
+      "effect": "用尖锐的喙或角刺向对手进行攻击"
+    },
+    "counter": {
+      "effect": "从对手那里受到物理攻击的伤害将以２倍返还给同一个对手"
+    },
+    "absorb": {
+      "effect": "吸取对手的养分进行攻击。可以回复给予对手伤害的一半HP"
+    },
+    "megaDrain": {
+      "effect": "吸取对手的养分进行攻击。可以回复给予对手伤害的一半HP"
+    },
+    "sleepPowder": {
+      "effect": "撒出催眠粉，从而让对手陷入睡眠状态"
+    },
+    "petalDance": {
+      "effect": "在２～３回合内，散落花瓣攻击对手。之后自己会陷入混乱"
+    },
+    "stringShot": {
+      "effect": "用口中吐出的丝缠绕对手，从而大幅降低对手的速度"
+    },
+    "rockThrow": {
+      "effect": "拿起小岩石，投掷对手进行攻击"
+    },
+    "dig": {
+      "effect": "第１回合钻入地底，第２回合攻击对手"
+    },
+    "hypnosis": {
+      "effect": "施以诱导睡意的暗示，让对手陷入睡眠状态"
+    },
+    "meditate": {
+      "effect": "唤醒身体深处沉睡的力量，从而提高自己的攻击"
+    },
+    "agility": {
+      "effect": "让身体放松变得轻盈，以便高速移动。大幅提高自己的速度"
+    },
+    "quickAttack": {
+      "effect": "以迅雷不及掩耳之势扑向对手。必定能够先制攻击"
+    },
+    "teleport": {
+      "effect": "后手行动，并与后备宝可梦交换。野生宝可梦使用时会逃走。"
+    },
+    "mimic": {
+      "effect": "可以将对手最后使用的招式，在战斗内变成自己的招式"
+    },
+    "doubleTeam": {
+      "effect": "通过快速移动来制造分身，扰乱对手，从而提高闪避率"
+    },
+    "recover": {
+      "effect": "让细胞再生，从而回复自己最大HP的一半"
+    },
+    "harden": {
+      "effect": "全身使劲，让身体变硬，从而提高自己的防御"
+    },
+    "confuseRay": {
+      "effect": "显示奇怪的光，扰乱对手。使对手混乱"
+    },
+    "withdraw": {
+      "effect": "缩入壳里保护身体，从而提高自己的防御"
+    },
+    "defenseCurl": {
+      "effect": "蜷起身体，提高自己的防御。之后使用滚动或冰球时，威力翻倍。"
+    },
+    "lightScreen": {
+      "effect": "在5回合内使我方受到的特殊招式伤害减半。双打时改为减少三分之一。"
+    },
+    "reflect": {
+      "effect": "在5回合内使我方受到的物理招式伤害减半。双打时改为减少三分之一。"
+    },
+    "focusEnergy": {
+      "effect": "集中精神，使自己的击中要害率提高2级。"
+    },
+    "bide": {
+      "effect": "在２回合内忍受攻击，受到的伤害会２倍返还给对手"
+    },
+    "mirrorMove": {
+      "effect": "模仿对手使用的招式，自己也使用相同招式"
+    },
+    "spikeCannon": {
+      "effect": "向对手发射锐针进行攻击。连续攻击２～５次"
+    },
+    "amnesia": {
+      "effect": "将头脑清空，瞬间忘记某事，从而大幅提高自己的特防"
+    },
+    "softBoiled": {
+      "effect": "回复自己最大HP的一半"
+    },
+    "glare": {
+      "effect": "用腹部的花纹使对手害怕，从而让其陷入麻痹状态"
+    },
+    "dreamEater": {
+      "effect": "吃掉正在睡觉的对手的梦进行攻击。回复对手所受到伤害的一半HP"
+    },
+    "poisonGas": {
+      "effect": "将毒瓦斯吹到对手的脸上，从而让对手陷入中毒状态"
+    },
+    "barrage": {
+      "effect": "向对手投掷圆形物体进行攻击。连续攻击２～５次"
+    },
+    "leechLife": {
+      "effect": "吸取血液攻击对手。可以回复给予对手伤害的一半HP"
+    },
+    "lovelyKiss": {
+      "effect": "用恐怖的脸强吻对手。让对手陷入睡眠状态"
+    },
+    "acidArmor": {
+      "effect": "通过细胞的变化进行液化，从而大幅提高自己的防御"
+    },
+    "crabhammer": {
+      "effect": "用大钳子敲打对手进行攻击。容易击中要害"
+    },
+    "furySwipes": {
+      "effect": "用爪子或镰刀等抓对手进行攻击。连续攻击２～５次"
+    },
+    "bonemerang": {
+      "effect": "用手中的骨头投掷对手，来回连续２次给予伤害"
+    },
+    "superFang": {
+      "effect": "用锋利的门牙猛烈地咬住对手进行攻击。对手的HP减半"
+    },
+    "slash": {
+      "effect": "用爪子或镰刀等劈开对手进行攻击。容易击中要害"
+    },
+    "sketch": {
+      "effect": "将对手使用的招式变成自己的招式。使用１次后写生消失"
+    },
+    "spiderWeb": {
+      "effect": "将黏糊糊的细丝一层一层缠住对手，使其不能从战斗中逃走"
+    },
+    "conversion2": {
+      "effect": "为了可以抵抗对手最后使用的招式，从而使自己的属性发生变化"
+    },
+    "aeroblast": {
+      "effect": "发射空气旋涡进行攻击。容易击中要害"
+    },
+    "cottonSpore": {
+      "effect": "将棉花般柔软的孢子紧贴对手，从而大幅降低对手的速度"
+    },
+    "zapCannon": {
+      "effect": "发射大炮一样的电流进行攻击。让对手陷入麻痹状态"
+    },
+    "boneRush": {
+      "effect": "用坚硬的骨头殴打对手进行攻击。连续攻击２～５次"
+    },
+    "lockOn": {
+      "effect": "紧紧瞄准对手，下次攻击必定会打中"
+    },
+    "outrage": {
+      "effect": "在２～３回合内，乱打一气地进行攻击。大闹一番后自己会陷入混乱"
+    },
+    "gigaDrain": {
+      "effect": "吸取对手的养分进行攻击。可以回复给予对手伤害的一半HP"
+    },
+    "swagger": {
+      "effect": "激怒对手，使其混乱。因为愤怒，对手的攻击会大幅提高"
+    },
+    "milkDrink": {
+      "effect": "回复自己最大HP的一半"
+    },
+    "meanLook": {
+      "effect": "用好似要勾人心魂的黑色目光一动不动地凝视对手，使其不能从战斗中逃走"
+    },
+    "sleepTalk": {
+      "effect": "从自己已学会的招式中任意使出１个。只能在自己睡觉时使用"
+    },
+    "healBell": {
+      "effect": "让同伴听舒适的铃音，从而治愈我方全员的异常状态"
+    },
+    "safeguard": {
+      "effect": "在５回合内被神奇的力量守护，从而不会陷入异常状态"
+    },
+    "dynamicPunch": {
+      "effect": "使出浑身力气出拳进行攻击。必定会使对手混乱"
+    },
+    "batonPass": {
+      "effect": "与后备宝可梦交换，将自身的能力变化、替身等效果传递给上场的宝可梦。"
+    },
+    "encore": {
+      "effect": "让对手接受再来一次，连续３次使出最后使用的招式"
+    },
+    "rapidSpin": {
+      "effect": "旋转攻击并提高自己的速度，同时解除自身的束缚、寄生种子和我方场地上的入场陷阱。"
+    },
+    "sweetScent": {
+      "effect": "用香气大幅降低对手的闪避率"
+    },
+    "crossChop": {
+      "effect": "用两手呈十字劈打对手进行攻击。容易击中要害"
+    },
+    "mirrorCoat": {
+      "effect": "从对手那里受到特殊攻击的伤害将以２倍返还给同一个对手"
+    },
+    "futureSight": {
+      "effect": "在使用招式２回合后，向对手发送一团念力进行攻击"
+    },
+    "fakeOut": {
+      "effect": "进行先制攻击，使对手畏缩。要在出场后立刻使出才能成功"
+    },
+    "uproar": {
+      "effect": "在３回合内大吵大闹攻击对手。在此期间谁都不能入眠"
+    },
+    "stockpile": {
+      "effect": "积蓄力量，提高自己的防御和特防。最多积蓄３次"
+    },
+    "flatter": {
+      "effect": "吹捧对手，使其混乱。同时还会提高对手的特攻"
+    },
+    "memento": {
+      "effect": "虽然会使自己陷入昏厥，但是能够大幅降低对手的攻击和特攻"
+    },
+    "focusPunch": {
+      "effect": "集中精神出拳。在招式使出前若受到攻击则会失败"
+    },
+    "followMe": {
+      "effect": "引起对手的注意，将对手的攻击全部转移到自己身上"
+    },
+    "naturePower": {
+      "effect": "用自然之力进行攻击。根据所使用场所的不同，使出的招式也会有所变化"
+    },
+    "charge": {
+      "effect": "提高自己的特防，并使下次使用的电属性招式威力翻倍。"
+    },
+    "taunt": {
+      "effect": "使对手愤怒。在３回合内让对手只能使出给予伤害的招式"
+    },
+    "trick": {
+      "effect": "抓住对手的空隙，交换自己和对手的持有物"
+    },
+    "wish": {
+      "effect": "下一回合结束时，回复自己或该位置替换上场宝可梦的HP，回复量为使用者最大HP的一半。"
+    },
+    "ingrain": {
+      "effect": "在大地上扎根，每回合回复自己的HP。因为扎根了，所以不能替换宝可梦"
+    },
+    "superpower": {
+      "effect": "发挥惊人的力量攻击对手。自己的攻击和防御会降低"
+    },
+    "magicCoat": {
+      "effect": "当对手使出会变成异常状态的招式或寄生种子等时，会将对手的招式反射回去"
+    },
+    "secretPower": {
+      "effect": "根据使用场所不同，该招式的追加效果也会有所变化"
+    },
+    "dive": {
+      "effect": "第１回合潜入水中，第２回合浮上来进行攻击"
+    },
+    "armThrust": {
+      "effect": "用张开着的双手猛推对手进行攻击。连续攻击２～５次"
+    },
+    "camouflage": {
+      "effect": "根据所在场所不同，如水边、草丛和洞窟等，可以改变自己的属性"
+    },
+    "tailGlow": {
+      "effect": "凝视闪烁的光芒，集中自己的精神，从而巨幅提高特攻"
+    },
+    "teeterDance": {
+      "effect": "摇摇晃晃地跳起舞蹈，让自己周围的宝可梦陷入混乱状态"
+    },
+    "mudSport": {
+      "effect": "一旦使用此招式，周围就会弄得到处是泥。在５回合内减弱电属性的招式"
+    },
+    "slackOff": {
+      "effect": "偷懒休息。回复自己最大HP的一半"
+    },
+    "hyperVoice": {
+      "effect": "给予对手又吵又响的巨大震动进行攻击"
+    },
+    "weatherBall": {
+      "effect": "根据使用时的天气，招式属性和威力会改变"
+    },
+    "fakeTears": {
+      "effect": "装哭流泪。使对手不知所措，从而大幅降低对手的特防"
+    },
+    "airCutter": {
+      "effect": "用锐利的风切斩对手进行攻击。容易击中要害"
+    },
+    "overheat": {
+      "effect": "使出全部力量攻击对手。使用之后会因为反作用力，自己的特攻大幅降低"
+    },
+    "rockTomb": {
+      "effect": "投掷岩石进行攻击。封住对手的行动，从而降低速度"
+    },
+    "tickle": {
+      "effect": "给对手挠痒，使其发笑，从而降低对手的攻击和防御"
+    },
+    "cosmicPower": {
+      "effect": "汲取宇宙中神秘的力量，从而提高自己的防御和特防"
+    },
+    "sandTomb": {
+      "effect": "将对手困在铺天盖地的沙暴中，在４～５回合内进行攻击"
+    },
+    "bulletSeed": {
+      "effect": "向对手猛烈地发射种子进行攻击。连续攻击２～５次"
+    },
+    "icicleSpear": {
+      "effect": "向对手发射锋利的冰柱进行攻击。连续攻击２～５次"
+    },
+    "ironDefense": {
+      "effect": "将皮肤变得坚硬如铁，从而大幅提高自己的防御"
+    },
+    "block": {
+      "effect": "张开双手进行阻挡，封住对手的退路，使其不能逃走"
+    },
+    "howl": {
+      "effect": "大声吼叫提高气势，从而提高自己和同伴的攻击"
+    },
+    "dragonClaw": {
+      "effect": "用尖锐的巨爪劈开对手进行攻击"
+    },
+    "bulkUp": {
+      "effect": "使出全身力气绷紧肌肉，从而提高自己的攻击和防御"
+    },
+    "waterSport": {
+      "effect": "用水湿透周围。在５回合内减弱火属性的招式"
+    },
+    "calmMind": {
+      "effect": "静心凝神，从而提高自己的特攻和特防"
+    },
+    "leafBlade": {
+      "effect": "像用剑一般操纵叶片切斩对手进行攻击。容易击中要害"
+    },
+    "dragonDance": {
+      "effect": "激烈地跳起神秘且强有力的舞蹈。从而提高自己的攻击和速度"
+    },
+    "rockBlast": {
+      "effect": "向对手发射坚硬的岩石进行攻击。连续攻击２～５次"
+    },
+    "doomDesire": {
+      "effect": "使用招式２回合后，会用无数道光束攻击对手"
+    },
+    "psychoBoost": {
+      "effect": "使出全部力量攻击对手。使用之后会因为反作用力，自己的特攻大幅降低"
+    },
+    "roost": {
+      "effect": "回复自己最大HP的一半。飞行属性的使用者会在本回合失去飞行属性。"
+    },
+    "gravity": {
+      "effect": "在5回合内提高招式命中率约67%，使飞行属性、飘浮等宝可梦落地。无法使用飞向空中的招式。"
+    },
+    "hammerArm": {
+      "effect": "挥舞强力而沉重的拳头，给予对手伤害。自己的速度会降低"
+    },
+    "naturalGift": {
+      "effect": "从树果上获得力量进行攻击。根据携带的树果，招式属性和威力会改变"
+    },
+    "feint": {
+      "effect": "能够攻击正在使用守住或看穿等招式的对手。解除其守护效果"
+    },
+    "pluck": {
+      "effect": "用喙进行攻击。当对手携带树果时，可以食用并获得其效果"
+    },
+    "tailwind": {
+      "effect": "在4回合内使自己及同伴的速度翻倍。"
+    },
+    "closeCombat": {
+      "effect": "放弃守护，向对手的怀里突击。自己的防御和特防会降低"
+    },
+    "payback": {
+      "effect": "蓄力攻击。如果能在对手之后攻击，招式的威力会变成２倍"
+    },
+    "assurance": {
+      "effect": "如果此回合内对手已经受到伤害的话，招式威力会变成２倍"
+    },
+    "embargo": {
+      "effect": "让对手在５回合内不能使用宝可梦携带的道具。训练家也不能给那只宝可梦使用道具"
+    },
+    "fling": {
+      "effect": "快速投掷携带的道具进行攻击。根据道具不同，威力和效果会改变"
+    },
+    "healBlock": {
+      "effect": "在５回合内无法通过招式、特性或携带的道具来回复HP"
+    },
+    "luckyChant": {
+      "effect": "向天许愿，从而在５回合内不会被对手的攻击打中要害"
+    },
+    "copycat": {
+      "effect": "模仿场上最后使用的招式。尚未有招式使用，或该招式无法复制时失败。"
+    },
+    "toxicSpikes": {
+      "effect": "在对手的脚下撒毒菱。使对手替换出场的宝可梦中毒"
+    },
+    "magnetRise": {
+      "effect": "利用电气产生的磁力浮在空中。在５回合内可以飘浮"
+    },
+    "auraSphere": {
+      "effect": "从体内产生出波导之力，然后向对手发出。攻击必定会命中"
+    },
+    "rockPolish": {
+      "effect": "打磨自己的身体，减少空气阻力。可以大幅提高自己的速度"
+    },
+    "nightSlash": {
+      "effect": "抓住瞬间的空隙切斩对手。容易击中要害"
+    },
+    "seedBomb": {
+      "effect": "将外壳坚硬的大种子，从上方砸下攻击对手"
+    },
+    "xScissor": {
+      "effect": "将镰刀或爪子像剪刀般地交叉，顺势劈开对手"
+    },
+    "drainPunch": {
+      "effect": "用拳头吸取对手的力量。可以回复给予对手伤害的一半HP"
+    },
+    "switcheroo": {
+      "effect": "用一闪而过的速度交换自己和对手的持有物"
+    },
+    "nastyPlot": {
+      "effect": "谋划诡计，激活头脑。大幅提高自己的特攻"
+    },
+    "avalanche": {
+      "effect": "如果受到对手的招式攻击，就能给予该对手２倍威力的攻击"
+    },
+    "shadowClaw": {
+      "effect": "以影子做成的锐爪，劈开对手。容易击中要害"
+    },
+    "psychoCut": {
+      "effect": "用实体化的心之利刃劈开对手。容易击中要害"
+    },
+    "defog": {
+      "effect": "降低目标的闪避率，并清除光墙、反射壁、极光幕、神秘守护等屏障，以及场上的入场陷阱、场地和浓雾。"
+    },
+    "trickRoom": {
+      "effect": "后手制造奇异空间，使速度慢的宝可梦在5回合内先行动。"
+    },
+    "dracoMeteor": {
+      "effect": "从天空中向对手落下陨石。使用之后因为反作用力，自己的特攻会大幅降低"
+    },
+    "leafStorm": {
+      "effect": "用尖尖的叶片向对手卷起风暴。使用之后因为反作用力自己的特攻会大幅降低"
+    },
+    "powerWhip": {
+      "effect": "激烈地挥舞青藤或触手摔打对手进行攻击"
+    },
+    "stoneEdge": {
+      "effect": "用尖尖的岩石刺入对手进行攻击。容易击中要害"
+    },
+    "chatter": {
+      "effect": "用非常烦人的，喋喋不休的音波攻击对手。使对手混乱"
+    },
+    "judgment": {
+      "effect": "放出无数光弹攻击目标。使用者拥有多属性或AR系统特性时，招式属性随携带的石板或存储碟改变。"
+    },
+    "bugBite": {
+      "effect": "咬住进行攻击。当对手携带树果时，可以食用并获得其效果"
+    },
+    "aquaJet": {
+      "effect": "以迅雷不及掩耳之势扑向对手。必定能够先制攻击"
+    },
+    "attackOrder": {
+      "effect": "召唤手下，让其朝对手发起攻击。容易击中要害"
+    },
+    "defendOrder": {
+      "effect": "召唤手下，让其附在自己的身体上。可以提高自己的防御和特防"
+    },
+    "healOrder": {
+      "effect": "召唤手下疗伤。回复自己最大HP的一半"
+    },
+    "doubleHit": {
+      "effect": "使用尾巴等拍打对手进行攻击。连续２次给予伤害"
+    },
+    "spacialRend": {
+      "effect": "将对手连同周围的空间一起撕裂并给予伤害。容易击中要害"
+    },
+    "lunarDance": {
+      "effect": "使用者倒下，使之后替换上场的宝可梦恢复全部HP、PP并解除异常状态。"
+    },
+    "magmaStorm": {
+      "effect": "将对手困在熊熊燃烧的火焰中，在４～５回合内进行攻击"
+    },
+    "darkVoid": {
+      "effect": "将对手强制拖入黑暗的世界，从而让对手陷入睡眠状态"
+    },
+    "shadowForce": {
+      "effect": "第１回合消失踪影，第２回合攻击对手。即使对手正受保护，也能击中"
+    },
+    "wideGuard": {
+      "effect": "在１回合内防住击打我方全员的攻击"
+    },
+    "guardSplit": {
+      "effect": "利用超能力将自己和对手的防御和特防相加，再进行平分"
+    },
+    "powerSplit": {
+      "effect": "利用超能力将自己和对手的攻击和特攻相加，再进行平分"
+    },
+    "wonderRoom": {
+      "effect": "制造出离奇的空间。在５回合内互换所有宝可梦的防御和特防"
+    },
+    "psyshock": {
+      "effect": "将神奇的念波实体化攻击对手。给予物理伤害"
+    },
+    "venoshock": {
+      "effect": "将特殊的毒液泼向对手。对处于中毒状态的对手，威力会变成２倍"
+    },
+    "autotomize": {
+      "effect": "削掉身体上没用的部分。大幅提高自己的速度，同时体重也会变轻"
+    },
+    "ragePowder": {
+      "effect": "将令人烦躁的粉末撒在自己身上，用以吸引对手的注意。使对手的攻击全部指向自己"
+    },
+    "telekinesis": {
+      "effect": "使目标浮空3回合，期间免疫地面属性招式。除一击必杀招式外，对其使用的招式必定命中。"
+    },
+    "magicRoom": {
+      "effect": "制造出离奇的空间。在５回合内所有宝可梦携带道具的效果都会消失"
+    },
+    "stormThrow": {
+      "effect": "向对手使出强烈的一击。攻击必定会击中要害"
+    },
+    "flameBurst": {
+      "effect": "以爆裂火焰攻击目标，并使目标身旁的宝可梦损失最大HP的十六分之一。"
+    },
+    "soak": {
+      "effect": "将大量的水泼向对手，从而使其变成水属性"
+    },
+    "flameCharge": {
+      "effect": "让火焰覆盖全身，攻击对手。积蓄力量来提高自己的速度"
+    },
+    "coil": {
+      "effect": "盘蜷着集中精神。提高自己的攻击、防御和命中率"
+    },
+    "acidSpray": {
+      "effect": "喷出能溶化对手的液体进行攻击。会大幅降低对手的特防"
+    },
+    "foulPlay": {
+      "effect": "利用对手的力量进行攻击。正和自己战斗的对手，其攻击越高，伤害越大"
+    },
+    "simpleBeam": {
+      "effect": "向对手发送谜之念波。接收到念波的对手，其特性会变为单纯"
+    },
+    "round": {
+      "effect": "用歌声攻击对手。大家一起轮唱便可以接连使出，威力也会提高"
+    },
+    "chipAway": {
+      "effect": "看准机会稳步攻击。无视对手的能力变化，直接给予伤害"
+    },
+    "clearSmog": {
+      "effect": "向对手投掷特殊的泥块进行攻击。使其能力变回原点"
+    },
+    "shellSmash": {
+      "effect": "打破外壳，降低自己的防御和特防，但大幅提高攻击、特攻和速度"
+    },
+    "healPulse": {
+      "effect": "放出治愈波动，从而回复对手最大HP的一半"
+    },
+    "shiftGear": {
+      "effect": "转动齿轮，不仅提高自己的攻击，还会大幅提高速度"
+    },
+    "circleThrow": {
+      "effect": "扔飞对手，强制拉后备宝可梦上场。如果对手为野生宝可梦，战斗将直接结束"
+    },
+    "reflectType": {
+      "effect": "反射对手的属性，让自己也变成一样的属性"
+    },
+    "retaliate": {
+      "effect": "为倒下的同伴报仇。如果上一回合有同伴倒下，威力就会提高"
+    },
+    "finalGambit": {
+      "effect": "拼命攻击对手。虽然自己陷入昏厥，但会给予对手和自己目前HP等量的伤害"
+    },
+    "bestow": {
+      "effect": "将自己携带的一件道具交给目标。"
+    },
+    "struggleBug": {
+      "effect": "抵抗并攻击对手。会降低对手的特攻"
+    },
+    "frostBreath": {
+      "effect": "将冰冷的气息吹向对手进行攻击。必定会击中要害"
+    },
+    "dragonTail": {
+      "effect": "弹飞对手，强制拉后备宝可梦上场。如果对手为野生宝可梦，战斗将直接结束"
+    },
+    "workUp": {
+      "effect": "激励自己，从而提高攻击和特攻"
+    },
+    "electroweb": {
+      "effect": "用电网捉住对手进行攻击。会降低对手的速度"
+    },
+    "wildCharge": {
+      "effect": "让电流覆盖全身撞向目标，自己受到相当于所造成伤害四分之一的反作用伤害。"
+    },
+    "drillRun": {
+      "effect": "像钢钻一样，一边旋转身体一边撞击对手。容易击中要害"
+    },
+    "hornLeech": {
+      "effect": "将角刺入，吸取对手的养分。可以回复给予对手伤害的一半HP"
+    },
+    "sacredSword": {
+      "effect": "用剑切斩对手进行攻击。无视对手的能力变化，直接给予伤害"
+    },
+    "cottonGuard": {
+      "effect": "用软绵绵的绒毛包裹住自己的身体进行守护。巨幅提高自己的防御"
+    },
+    "psystrike": {
+      "effect": "将神奇的念波实体化攻击对手。给予物理伤害"
+    },
+    "tailSlap": {
+      "effect": "用坚硬的尾巴拍打对手进行攻击。连续攻击２～５次"
+    },
+    "gearGrind": {
+      "effect": "向对手投掷钢铁齿轮进行攻击。连续２次给予伤害"
+    },
+    "technoBlast": {
+      "effect": "向对手放出光弹。属性会根据自己携带的卡带不同而改变"
+    },
+    "glaciate": {
+      "effect": "将冰冻的冷气吹向对手进行攻击。会降低对手的速度"
+    },
+    "snarl": {
+      "effect": "没完没了地大声斥责，从而降低对手的特攻"
+    },
+    "vCreate": {
+      "effect": "从前额产生灼热的火焰，舍身撞击对手。防御、特防和速度会降低"
+    },
+    "fusionFlare": {
+      "effect": "释放出巨大的火焰。受到巨大的闪电影响时，招式威力会提高"
+    },
+    "fusionBolt": {
+      "effect": "释放出巨大的闪电。受到巨大的火焰影响时，招式威力会提高"
+    },
+    "rototiller": {
+      "effect": "翻耕土地，使草木更容易成长。会提高草属性宝可梦的攻击和特攻"
+    },
+    "fellStinger": {
+      "effect": "如果使用此招式打倒对手，攻击会巨幅提高"
+    },
+    "phantomForce": {
+      "effect": "第１回合消失在某处，第２回合攻击对手。可以无视守护进行攻击"
+    },
+    "trickOrTreat": {
+      "effect": "邀请对手参加万圣夜。使对手被追加幽灵属性"
+    },
+    "nobleRoar": {
+      "effect": "发出战吼威吓对手，从而降低对手的攻击和特攻"
+    },
+    "parabolicCharge": {
+      "effect": "给周围全体宝可梦造成伤害。可以回复给予伤害的一半HP"
+    },
+    "forestsCurse": {
+      "effect": "向对手施加森林咒术。中了咒术的对手会被追加草属性"
+    },
+    "petalBlizzard": {
+      "effect": "猛烈地刮起飞雪般的落花，攻击周围所有的宝可梦，并给予伤害"
+    },
+    "freezeDry": {
+      "effect": "急剧冷冻对手，有时会让对手陷入冰冻状态。对于水属性宝可梦也是效果绝佳"
+    },
+    "partingShot": {
+      "effect": "抛下狠话威吓对手，降低攻击和特攻后，和后备宝可梦进行替换"
+    },
+    "flowerShield": {
+      "effect": "使用神奇的力量提高在场的所有草属性宝可梦的防御"
+    },
+    "mistyTerrain": {
+      "effect": "在５回合内，地面上的宝可梦不会陷入异常状态。龙属性招式的伤害也会减半"
+    },
+    "electrify": {
+      "effect": "对手使出招式前，如果输电，则该回合对手的招式变成电属性"
+    },
+    "fairyWind": {
+      "effect": "刮起妖精之风，吹向对手进行攻击"
+    },
+    "boomburst": {
+      "effect": "通过震耳欲聋的爆炸声产生的破坏力，攻击自己周围所有的宝可梦"
+    },
+    "fairyLock": {
+      "effect": "通过封锁，下一回合所有的宝可梦都无法逃走"
+    },
+    "mysticalFire": {
+      "effect": "从口中喷出特别灼热的火焰进行攻击。降低对手的特攻"
+    },
+    "aromaticMist": {
+      "effect": "通过神奇的芳香，提高我方宝可梦的特防"
+    },
+    "geomancy": {
+      "effect": "第１回合吸收能量，第２回合大幅提高特攻、特防和速度"
+    },
+    "magneticFlux": {
+      "effect": "通过操控磁场，会提高特性为正电和负电的宝可梦的防御和特防"
+    },
+    "electricTerrain": {
+      "effect": "在５回合内变成电气场地。地面上的宝可梦将无法入眠。电属性的招式威力还会提高"
+    },
+    "nuzzle": {
+      "effect": "将带电的脸颊蹭蹭对手进行攻击。让对手陷入麻痹状态"
+    },
+    "infestation": {
+      "effect": "在４～５回合内死缠烂打地进行攻击。在此期间对手将无法逃走"
+    },
+    "powerUpPunch": {
+      "effect": "通过反复击打对手，使自己的拳头慢慢变硬。打中对手攻击就会提高"
+    },
+    "thousandArrows": {
+      "effect": "可以击中浮在空中的宝可梦。空中的对手被击落后，会掉到地面"
+    },
+    "thousandWaves": {
+      "effect": "从地面掀起波浪进行攻击。被掀入波浪中的对手，将无法从战斗中逃走"
+    },
+    "landsWrath": {
+      "effect": "聚集大地的力量，将此力量集中攻击对手，并给予伤害"
+    },
+    "lightOfRuin": {
+      "effect": "借用永恒之花的力量，发射出强力光线。自己也会受到非常大的伤害"
+    },
+    "dragonAscent": {
+      "effect": "从天空中急速下降攻击对手。自己的防御和特防会降低"
+    },
+    "hyperspaceFury": {
+      "effect": "用许多手臂，无视对手的守住或看穿等招式进行连续攻击，自己的防御会降低"
+    },
+    "shoreUp": {
+      "effect": "回复自己最大HP的一半；沙暴中改为回复三分之二。"
+    },
+    "spiritShackle": {
+      "effect": "攻击的同时，缝住对手的影子，使其无法逃走"
+    },
+    "darkestLariat": {
+      "effect": "旋转双臂打向对手。无视对手的能力变化，直接给予伤害"
+    },
+    "sparklingAria": {
+      "effect": "随着唱歌会放出很多气球。受到此招式攻击时，灼伤会被治愈"
+    },
+    "iceHammer": {
+      "effect": "挥舞强力而沉重的拳头，给予对手伤害。自己的速度会降低"
+    },
+    "floralHealing": {
+      "effect": "回复目标最大HP的一半；青草场地中改为回复三分之二。"
+    },
+    "strengthSap": {
+      "effect": "给自己回复和对手攻击力相同数值的HP，然后降低对手的攻击"
+    },
+    "toxicThread": {
+      "effect": "使目标中毒，并大幅降低其速度。"
+    },
+    "gearUp": {
+      "effect": "启动齿轮，提高特性为正电和负电的宝可梦的攻击和特攻"
+    },
+    "throatChop": {
+      "effect": "受到此招式攻击的对手，会因为地狱般的痛苦，在２回合内，变得无法使出声音类招式"
+    },
+    "pollenPuff": {
+      "effect": "以会爆炸的花粉团攻击对手；对同伴使用时，改为回复其最大HP的一半。"
+    },
+    "anchorShot": {
+      "effect": "将锚缠住对手进行攻击。使对手无法逃走"
+    },
+    "psychicTerrain": {
+      "effect": "在５回合内，地面上的宝可梦不会受到先制招式的攻击。超能力属性的招式威力会提高"
+    },
+    "purify": {
+      "effect": "治愈对手的异常状态。治愈后可以回复自己的HP"
+    },
+    "revelationDance": {
+      "effect": "全力跳舞进行攻击。此招式的属性将变得和自己的属性相同"
+    },
+    "coreEnforcer": {
+      "effect": "如果给予过伤害的对手已经结束行动，其特性就会被消除"
+    },
+    "instruct": {
+      "effect": "向对手下达指示，让其再次使出刚才的招式"
+    },
+    "beakBlast": {
+      "effect": "先加热鸟嘴后再进行攻击。鸟嘴在加热时对手触碰的话，就会使其灼伤"
+    },
+    "clangingScales": {
+      "effect": "摩擦全身鳞片，发出响亮的声音进行攻击。攻击后自己的防御会降低"
+    },
+    "dragonHammer": {
+      "effect": "将身体当作锤子，向对手发动袭击，给予伤害"
+    },
+    "auroraVeil": {
+      "effect": "在５回合内减弱物理和特殊的伤害。只有下雪时才能使出"
+    },
+    "fleurCannon": {
+      "effect": "放出强力光束后，自己的特攻会大幅降低"
+    },
+    "psychicFangs": {
+      "effect": "利用精神力量咬住对手进行攻击。还可以破坏光墙和反射壁等"
+    },
+    "stompingTantrum": {
+      "effect": "化悔恨为力量进行攻击。如果上一回合招式没有打中，威力就会翻倍"
+    },
+    "shadowBone": {
+      "effect": "用附有灵魂的骨头殴打对手进行攻击。有时会降低对手的防御"
+    },
+    "sunsteelStrike": {
+      "effect": "以流星般的气势猛撞对手。可以无视对手的特性进行攻击"
+    },
+    "moongeistBeam": {
+      "effect": "放出奇怪的光线攻击对手。可以无视对手的特性进行攻击"
+    },
+    "tearfulLook": {
+      "effect": "变得泪眼汪汪，让对手丧失斗志。从而降低对手的攻击和特攻"
+    },
+    "tenMillionVoltThunderbolt": {
+      "effect": "戴着帽子的皮卡丘将通过Ｚ力量增强的电击全力释放给对手。容易击中要害"
+    },
+    "mindBlown": {
+      "effect": "让自己的头爆炸，来攻击周围的一切。自己也会受到伤害"
+    },
+    "photonGeyser": {
+      "effect": "用光柱来进行攻击。比较自己的攻击和特攻，用数值相对较高的一项给予对方伤害"
+    },
+    "lightThatBurnsTheSky": {
+      "effect": "奈克洛兹玛会无视对手的特性效果，在攻击和特攻之间，用数值相对较高的一项给予对方伤害"
+    },
+    "searingSunrazeSmash": {
+      "effect": "得到Ｚ力量的索尔迦雷欧将全力进行攻击。可以无视对手的特性效果"
+    },
+    "menacingMoonrazeMaelstrom": {
+      "effect": "得到Ｚ力量的露奈雅拉将全力进行攻击。可以无视对手的特性效果"
+    },
+    "bouncyBubble": {
+      "effect": "投掷水球进行攻击。吸水后能回复等同于造成的伤害的HP"
+    },
+    "buzzyBuzz": {
+      "effect": "放出电击攻击对手。让对手陷入麻痹状态"
+    },
+    "sizzlySlide": {
+      "effect": "用燃起大火的身体猛烈地冲撞对手。让对手陷入灼伤状态"
+    },
+    "glitzyGlow": {
+      "effect": "利用念力强攻，粉碎对方信心。制造一道能减弱对手特殊攻击的神奇墙壁"
+    },
+    "sappySeed": {
+      "effect": "长出巨大的藤蔓，播撒种子进行攻击。种子每回合都会吸取对手的HP"
+    },
+    "sparklySwirl": {
+      "effect": "利用芬芳刺鼻的龙卷风吞噬对方。能治愈我方宝可梦的异常状态"
+    },
+    "dynamaxCannon": {
+      "effect": "将凝缩在体内的能量从核心放出进行攻击，对手等级比当前波次的等级上限越高，造成的伤害越高，最多两倍。"
+    },
+    "snipeShot": {
+      "effect": "能无视具有吸引对手招式效果的特性或招式的影响。可以向选定的对手进行攻击"
+    },
+    "stuffCheeks": {
+      "effect": "吃掉携带的树果，大幅提高防御"
+    },
+    "noRetreat": {
+      "effect": "提高自己的所有能力，但无法替换或逃走"
+    },
+    "tarShot": {
+      "effect": "泼洒黏糊糊的沥青，降低对手的速度。火属性会变成对手的弱点"
+    },
+    "magicPowder": {
+      "effect": "向对手喷洒魔法粉，使对手变为超能力属性"
+    },
+    "dragonDarts": {
+      "effect": "让多龙梅西亚进行２次攻击。如果对手有２只宝可梦，则对它们各进行１次攻击"
+    },
+    "teatime": {
+      "effect": "举办一场茶会，场上的所有宝可梦都会吃掉自己携带的树果"
+    },
+    "octolock": {
+      "effect": "让对手无法逃走。对手被固定后，每回合都会降低防御和特防"
+    },
+    "boltBeak": {
+      "effect": "用带电的喙啄刺对手。如果比对手先出手攻击，招式的威力会变成２倍"
+    },
+    "fishiousRend": {
+      "effect": "用坚硬的腮咬住对手。如果比对手先出手攻击，招式的威力会变成２倍"
+    },
+    "maxFlare": {
+      "effect": "极巨化宝可梦使出的火属性攻击。可在５回合内让日照变得强烈"
+    },
+    "maxLightning": {
+      "effect": "极巨化宝可梦使出的电属性攻击。可在５回合内将脚下变成电气场地"
+    },
+    "maxKnuckle": {
+      "effect": "极巨化宝可梦使出的格斗属性攻击。会提高我方的攻击"
+    },
+    "maxHailstorm": {
+      "effect": "极巨化宝可梦使出的冰属性攻击。在５回合内会下雪"
+    },
+    "maxOoze": {
+      "effect": "极巨化宝可梦使出的毒属性攻击。会提高我方的特攻"
+    },
+    "maxGeyser": {
+      "effect": "极巨化宝可梦使出的水属性攻击。可在５回合内降下大雨"
+    },
+    "maxAirstream": {
+      "effect": "极巨化宝可梦使出的飞行属性攻击。会提高我方的速度"
+    },
+    "maxStarfall": {
+      "effect": "极巨化宝可梦使出的妖精属性攻击。可在５回合内将脚下变成薄雾场地"
+    },
+    "maxMindstorm": {
+      "effect": "极巨化宝可梦使出的超能力属性攻击。可在５回合内将脚下变成精神场地"
+    },
+    "maxRockfall": {
+      "effect": "极巨化宝可梦使出的岩石属性攻击。可在５回合内卷起沙暴"
+    },
+    "maxQuake": {
+      "effect": "极巨化宝可梦使出的地面属性攻击。会提高我方的特防"
+    },
+    "maxOvergrowth": {
+      "effect": "极巨化宝可梦使出的草属性攻击。可在５回合内将脚下变成青草场地"
+    },
+    "maxSteelspike": {
+      "effect": "极巨化宝可梦使出的钢属性攻击。会提高我方的防御"
+    },
+    "clangorousSoul": {
+      "effect": "削减少许自己的HP，使所有能力都提高"
+    },
+    "bodyPress": {
+      "effect": "用身体撞向对手进行攻击。防御越高，给予的伤害就越高"
+    },
+    "decorate": {
+      "effect": "通过装饰，大幅提高对方的攻击和特攻"
+    },
+    "snapTrap": {
+      "effect": "使用捕兽夹，在４～５回合内，夹住对手进行攻击"
+    },
+    "auraWheel": {
+      "effect": "用储存在颊囊里的能量进行攻击，并提高自己的速度。如果由莫鲁贝可使用，其属性会随着它的样子而改变"
+    },
+    "overdrive": {
+      "effect": "奏响吉他和贝斯，释放出发出巨响的剧烈震动攻击对手"
+    },
+    "lifeDew": {
+      "effect": "回复自己和场上同伴各自最大HP的四分之一。"
+    },
+    "meteorAssault": {
+      "effect": "大力挥舞粗壮的茎进行攻击。但同时自己也会被晃晕，下一回合自己将无法动弹"
+    },
+    "steelBeam": {
+      "effect": "发射钢铁光束攻击目标。攻击后自身损失最大HP的一半。"
+    },
+    "steelRoller": {
+      "effect": "在破坏场地的同时攻击对手。如果脚下没有任何场地状态存在，使出此招式时便会失败"
+    },
+    "scaleShot": {
+      "effect": "发射鳞片进行攻击。连续攻击２～５次。速度会提高但防御会降低"
+    },
+    "meteorBeam": {
+      "effect": "第１回合聚集宇宙之力提高特攻，第２回合攻击对手"
+    },
+    "grassyGlide": {
+      "effect": "仿佛在地面上滑行般地攻击对手。在青草场地上，必定能够先制攻击"
+    },
+    "risingVoltage": {
+      "effect": "用从地面升腾而起的电击进行攻击。当对手处于电气场地上时，招式威力会变成２倍"
+    },
+    "terrainPulse": {
+      "effect": "借助场地的力量进行攻击。视使出招式时场地状态不同，招式的属性和威力会有所变化"
+    },
+    "poltergeist": {
+      "effect": "操纵对手的持有物进行攻击。当对手没有携带道具时，使出此招式时便会失败"
+    },
+    "corrosiveGas": {
+      "effect": "用具有强酸性的气体包裹住自己周围所有的宝可梦，并融化其所携带的道具"
+    },
+    "dualWingbeat": {
+      "effect": "将翅膀撞向对手进行攻击。连续２次给予伤害"
+    },
+    "jungleHealing": {
+      "effect": "回复自己和场上同伴各自最大HP的四分之一，并解除异常状态。"
+    },
+    "wickedBlow": {
+      "effect": "将恶之流派修炼至大成的猛烈一击。必定会击中要害"
+    },
+    "surgingStrikes": {
+      "effect": "将水之流派修炼至大成的仿若行云流水般的３次连击。必定会击中要害"
+    },
+    "thunderCage": {
+      "effect": "将对手困在电流四溅的囚笼中，在４～５回合内进行攻击"
+    },
+    "fieryWrath": {
+      "effect": "将愤怒转化为火焰般的气场进行攻击。有时会使对手畏缩"
+    },
+    "eerieSpell": {
+      "effect": "用强大的精神力量攻击。让对手最后使用的招式减少３PP"
+    },
+    "direClaw": {
+      "effect": "以破灭之爪进行攻击。有时还会让对手陷入中毒、麻痹、睡眠之中的一种状态"
+    },
+    "stoneAxe": {
+      "effect": "用岩石之斧进行攻击。散落的岩石碎片会飘浮在对手周围"
+    },
+    "springtideStorm": {
+      "effect": "用交织着爱与恨的烈风席卷对手进行攻击。有时会降低对手的攻击"
+    },
+    "ragingFury": {
+      "effect": "在２～３回合内，一边放出火焰，一边疯狂乱打。大闹一番后自己会陷入混乱"
+    },
+    "waveCrash": {
+      "effect": "让水覆盖全身后撞向对手。自己也会受到不少伤害"
+    },
+    "chloroblast": {
+      "effect": "释放凝聚的叶绿素攻击目标。攻击后自身损失最大HP的一半。"
+    },
+    "mountainGale": {
+      "effect": "将冰山般巨大的冰块砸向对手进行攻击。有时会使对手畏缩"
+    },
+    "barbBarrage": {
+      "effect": "用无数的毒针进行攻击。有时还会让对手陷入中毒状态。攻击处于中毒状态的对手时，威力会变成２倍"
+    },
+    "esperWing": {
+      "effect": "用经过气场强化的翅膀撕裂对手。容易击中要害。会提高自己的速度"
+    },
+    "tripleArrows": {
+      "effect": "使出一记腿技后同时发射３箭。有时会降低对手的防御或使对手畏缩。容易击中要害"
+    },
+    "infernalParade": {
+      "effect": "用无数的火球进行攻击。有时会让对手陷入灼伤状态。攻击处于异常状态的对手时，威力会变成２倍"
+    },
+    "ceaselessEdge": {
+      "effect": "用贝壳之剑进行攻击。散落的贝壳碎片会散落在对手脚下成为撒菱"
+    },
+    "bleakwindStorm": {
+      "effect": "用足以让身心都止不住颤抖的冰冷狂风进行攻击。有时会降低对手的速度"
+    },
+    "wildboltStorm": {
+      "effect": "呼唤雷云引起风暴，用雷与风进行激烈的攻击。有时会让对手陷入麻痹状态"
+    },
+    "sandsearStorm": {
+      "effect": "用灼热的沙子和强烈的风席卷对手进行攻击。有时会让对手陷入灼伤状态"
+    },
+    "lunarBlessing": {
+      "effect": "回复自己和场上同伴各自最大HP的四分之一，并解除异常状态。"
+    },
+    "gMaxWildfire": {
+      "effect": "超极巨化的喷火龙使出的火属性攻击。可在４回合内给予对手伤害"
+    },
+    "gMaxChiStrike": {
+      "effect": "超极巨化的怪力使出的格斗属性攻击。会变得容易击中要害"
+    },
+    "gMaxResonance": {
+      "effect": "超极巨化的拉普拉斯使出的冰属性攻击。可在５回合内减弱受到的伤害"
+    },
+    "gMaxReplenish": {
+      "effect": "超极巨化的卡比兽使出的一般属性攻击。会让吃掉的树果再生"
+    },
+    "gMaxStonesurge": {
+      "effect": "超极巨化的暴噬龟使出的水属性攻击。会发射无数锐利的岩石"
+    },
+    "gMaxWindRage": {
+      "effect": "超极巨化的钢铠鸦使出的飞行属性攻击。可消除反射壁和光墙"
+    },
+    "gMaxFinale": {
+      "effect": "超极巨化的霜奶仙使出的妖精属性攻击。可回复我方的HP"
+    },
+    "gMaxDepletion": {
+      "effect": "超极巨化的铝钢龙使出的龙属性攻击。可减少对手最后使用的招式的PP"
+    },
+    "gMaxVolcalith": {
+      "effect": "超极巨化的巨炭山使出的岩石属性攻击。可在４回合内给予对手伤害"
+    },
+    "gMaxSandblast": {
+      "effect": "超极巨化的沙螺蟒使出的地面属性攻击。在４～５回合内会狂刮沙暴"
+    },
+    "gMaxCentiferno": {
+      "effect": "超极巨化的焚焰蚣使出的火属性攻击。可在４～５回合内将对手困在火焰中"
+    },
+    "gMaxVineLash": {
+      "effect": "超极巨化的妙蛙花使出的草属性攻击。可在４回合内给予对手伤害"
+    },
+    "gMaxCannonade": {
+      "effect": "超极巨化的水箭龟使出的水属性攻击。可在４回合内给予对手伤害"
+    },
+    "gMaxDrumSolo": {
+      "effect": "超极巨化的轰擂金刚猩使出的草属性攻击。不会受到对手特性的干扰"
+    },
+    "gMaxFireball": {
+      "effect": "超极巨化的闪焰王牌使出的火属性攻击。不会受到对手特性的干扰"
+    },
+    "gMaxHydrosnipe": {
+      "effect": "超极巨化的千面避役使出的水属性攻击。不会受到对手特性的干扰"
+    },
+    "gMaxOneBlow": {
+      "effect": "超极巨化的武道熊师使出的恶属性攻击。是可以无视极巨防壁的一击"
+    },
+    "gMaxRapidFlow": {
+      "effect": "超极巨化的武道熊师使出的水属性攻击。是可以无视极巨防壁的连击"
+    },
+    "silkTrap": {
+      "effect": "用丝设置陷阱。防住对方攻击的同时，能够降低所接触到的对手的速度"
+    },
+    "orderUp": {
+      "effect": "以潇洒的身手进行攻击。若口中有米立龙，会按其样子提高能力"
+    },
+    "populationBomb": {
+      "effect": "连续攻击1至10次，中途未命中时停止攻击。"
+    },
+    "saltCure": {
+      "effect": "使对手陷入盐腌状态，每回合给予对手伤害。对手为钢或水属性时会更痛苦"
+    },
+    "tripleDive": {
+      "effect": "以默契的跳跃溅起水花击向对手。连续３次给予伤害"
+    },
+    "mortalSpin": {
+      "effect": "旋转攻击对手并使其中毒，同时解除自身的束缚、寄生种子和我方场地上的入场陷阱。"
+    },
+    "filletAway": {
+      "effect": "消耗自身最大HP的一半，大幅提高攻击、特攻和速度。剩余HP不足时使用失败。"
+    },
+    "ragingBull": {
+      "effect": "狂怒暴牛的猛烈冲撞。招式的属性随形态改变，光墙和反射壁等招式也能破坏"
+    },
+    "makeItRain": {
+      "effect": "投掷大量硬币攻击所有对手，大幅降低自己的特攻。成功击中目标后可在战斗结束时获得金钱。"
+    },
+    "ruination": {
+      "effect": "引发毁灭性的灾厄，使对手的HP减半"
+    },
+    "shedTail": {
+      "effect": "消耗自身最大HP的一半制造替身，然后与后备宝可梦交换。"
+    },
+    "chillyReception": {
+      "effect": "留下冷场的冷笑话后，和后备宝可梦进行替换。在５回合内会下雪"
+    },
+    "snowscape": {
+      "effect": "在５回合内会下雪。冰属性的防御会提高"
+    },
+    "rageFist": {
+      "effect": "每次受到招式伤害后，威力增加50，最高为350。离场后威力恢复原值。"
+    },
+    "armorCannon": {
+      "effect": "熊熊燃烧自己的铠甲，将其做成炮弹射出攻击。自己的防御和特防会降低"
+    },
+    "bitterBlade": {
+      "effect": "将对世间的留恋聚集于剑尖，并斩击对手。可以回复给予对手伤害的一半HP"
+    },
+    "doubleShock": {
+      "effect": "将全身所有的电力放出，给予对手大大的伤害。自己的电属性将会消失"
+    },
+    "comeuppance": {
+      "effect": "向本回合最后以招式伤害自己的对手，返还所受伤害的1.5倍。"
+    },
+    "aquaCutter": {
+      "effect": "如刀刃般喷射出加压的水切开对手。容易击中要害"
+    },
+    "blazingTorque": {
+      "effect": "攻击目标造成伤害，有30%的几率使目标陷入灼伤状态。"
+    },
+    "noxiousTorque": {
+      "effect": "攻击目标造成伤害，有30%的几率使目标陷入中毒状态。"
+    },
+    "combatTorque": {
+      "effect": "攻击目标造成伤害，有30%的几率使目标陷入麻痹状态。"
+    },
+    "magicalTorque": {
+      "effect": "攻击目标造成伤害，有30%的几率使目标陷入混乱状态。"
+    },
+    "syrupBomb": {
+      "effect": "使粘稠的麦芽糖浆爆炸，让对手陷入满身糖状态，在３回合内持续降低其速度"
+    },
+    "ivyCudgel": {
+      "effect": "用缠有藤蔓的棍棒殴打。属性会随所戴的面具而改变。容易击中要害"
+    },
+    "teraStarstorm": {
+      "effect": "照射出结晶的力量来驱逐敌人。太乐巴戈斯在星晶形态下使出时，能对所有对手造成伤害"
+    },
+    "burningBulwark": {
+      "effect": "用超高温的体毛防住对手攻击的同时，让接触到自己的对手灼伤"
+    },
+    "mightyCleave": {
+      "effect": "用积蓄在头部的光来斩切对手。可以无视守护进行攻击"
+    },
+    "dragonCheer": {
+      "effect": "鼓舞场上同伴，提高其击中要害率；龙属性提高2级，其他属性提高1级。"
+    },
+    "supercellSlam": {
+      "effect": "让身体带电撞击目标。未命中或失败时，自身损失最大HP的一半。目标使用过变小时，此招式威力翻倍且必定命中。"
+    },
+    "psychicNoise": {
+      "effect": "用令对手不舒服的音波进行攻击。让对手在２回合内无法通过招式、特性或携带的道具回复HP"
+    }
+  },
+  "challenges": {
+    "category": {
+      "randomizer": "随机化",
+      "challenge": "挑战",
+      "nuzlocke": "硬核挑战",
+      "misc": "其他"
+    },
+    "abilityRandomizer": {
+      "name": "随机特性",
+      "desc": {
+        "0": "随机分配各宝可梦种类的特性，也可包含被动特性。\n\n启用后无法获得其他挑战的成就。",
+        "1": "随机分配各宝可梦种类的特性。\n\n启用后无法获得其他挑战的成就。",
+        "2": "随机分配各宝可梦种类的特性和被动特性。\n\n启用后无法获得其他挑战的成就。"
+      },
+      "value": {
+        "0": "关闭",
+        "1": "仅特性",
+        "2": "全部"
+      }
+    }
+  },
+  "gameData": {
+    "failedSaveValidation": "检测到数据丢失，已中止保存。\n即将从服务器重新下载你的数据……",
+    "gameOutOfDate": "游戏版本已过期。\n请清除缓存并重新加载页面。"
+  },
+  "menuUiHandler": {
+    "clearLocalData": "清除本地数据",
+    "clearLocalDataWarning": "将清除本地数据并从服务器重新加载。是否继续？"
+  },
+  "menu": {
+    "serverErrorGenerateSalt": "无法安全处理密码。",
+    "serverErrorGenerateToken": "无法生成身份验证令牌。",
+    "serverErrorAddSession": "无法创建会话。",
+    "serverErrorGenerateUuid": "无法生成用户编号。",
+    "serverErrorRemoveSessions": "无法更新活动会话。",
+    "serverErrorUpdateAccount": "无法更新账号信息。",
+    "pleaseTryAgainLater": "请稍后重试。"
+  },
+  "migrators": {
+    "eggCompensation": "由于 v1.12.0.0 版本的错误，你的存档可能丢失了异色宝可梦。\n作为补偿，你获得了 {{eggCount}} 个必定孵出异色宝可梦的蛋。"
+  },
+  "partyUiHandler": {
+    "noFaintedPokemon": "无法选择已倒下的宝可梦！"
+  },
+  "pokedexUiHandler": {
+    "prevoRelearnMove": "从 {{level}} 级起可以回忆此招式。",
+    "tmMove": "可通过招式学习器 {{number}}（{{tier}}）学习"
+  },
+  "pokemonForm": {
+    "appendForm": {
+      "battle": "牵绊变身 {{pokemonName}}"
+    }
+  },
+  "settings": {
+    "highContrast": "高对比度",
+    "configure": "配置",
+    "buttonDevCustom": "自定义开发功能",
+    "dexForDevs": "完全解锁图鉴（开发用）"
+  },
+  "bgmName": {
+    "swamp": "Faces in the Clouds - 揭秘者"
+  },
+  "splashMessages": {
+    "featuringYourFriendMalamar": "你的朋友乌贼王登场！",
+    "gottaHatchEmAll": "把它们全部孵出来！",
+    "whatsYourFavorite": "你最喜欢哪一只？",
+    "askYourDoctor": "请咨询医生，宝可梦肉鸽是否适合你。",
+    "oneBattleAfterAnother": "一场接一场的战斗！",
+    "onlyUnfairWhenILose": "只有我输的时候才不公平！",
+    "twoPlusTwoNotFish": "2+2 不是鲤鱼王",
+    "itsBeenTotalRuns": "已经挑战 {{cycleCountNoOrdinal}} 局了……",
+    "letsGetHumid": "让这里湿润起来！",
+    "genericEvent": {
+      "wEvent": "精彩活动"
+    },
+    "aprilFools": {
+      "forgetYourPassword": "忘掉你的密码吧。",
+      "notARealEvent": "这活动真糟糕！",
+      "dataLossImminent": "数据即将丢失",
+      "alwaysUnfair": "总是不公平！",
+      "internalBattery": "内部电池已耗尽。游戏仍可正常游玩，但与时间有关的事件将不再发生。",
+      "lEvent": "糟糕活动"
+    },
+    "prideMonth": {
+      "happyPrideMonth": "骄傲月快乐！",
+      "alwaysPridefulHere": "在这里，永远骄傲！"
+    }
+  }
+}

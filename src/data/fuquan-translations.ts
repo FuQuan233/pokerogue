@@ -1,8 +1,37 @@
 import { SUPPORTED_LANGUAGES } from "#system/supported-languages";
 import type { i18n } from "i18next";
+import chineseFallbacks from "./fuquan-zh-fallbacks.json";
+
+function fillChineseFallbacks(
+  instance: i18n,
+  language: string,
+  namespace: string,
+  resources: Record<string, unknown>,
+  prefix = "",
+): void {
+  for (const [key, value] of Object.entries(resources)) {
+    const path = prefix ? `${prefix}.${key}` : key;
+    if (typeof value === "string") {
+      const current = instance.getResource(language, namespace, path);
+      if (!current || current === instance.getResource("en", namespace, path)) {
+        instance.addResource(language, namespace, path, value);
+      }
+    } else if (value && typeof value === "object") {
+      fillChineseFallbacks(instance, language, namespace, value as Record<string, unknown>, path);
+    }
+  }
+}
 
 /** Private-server text stays outside the upstream locales submodule. */
 export function registerFuquanTranslations(instance: i18n): void {
+  // The pinned upstream locale omits hundreds of move effects. Keep a shipped Chinese
+  // fallback in the main repo; never depend on an untracked legacy locales directory.
+  // Existing upstream translations win, including future translation updates.
+  for (const language of ["zh-Hans", "zh-Hant"]) {
+    for (const [namespace, resources] of Object.entries(chineseFallbacks)) {
+      fillChineseFallbacks(instance, language, namespace, resources);
+    }
+  }
   for (const language of SUPPORTED_LANGUAGES) {
     instance.addResourceBundle(
       language,
