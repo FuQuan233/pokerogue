@@ -632,6 +632,7 @@ function initUltraModifierPool() {
 
 function initRogueModifierPool() {
   modifierPool[ModifierTier.ROGUE] = [
+    new WeightedModifierType(modifierTypes.PENSION_INSURANCE, 24),
     new WeightedModifierType(modifierTypes.ROGUE_BALL, () => (hasMaximumBalls(PokeballType.ROGUE_BALL) ? 0 : 16), 16),
     new WeightedModifierType(modifierTypes.FIRECRACKER, 4),
     new WeightedModifierType(modifierTypes.RELIC_GOLD, skipInLastClassicWaveOrDefault(2)),
@@ -693,6 +694,9 @@ function initRogueModifierPool() {
  */
 function initMasterModifierPool() {
   modifierPool[ModifierTier.MASTER] = [
+    new WeightedModifierType(modifierTypes.LABOR_LAW, 24),
+    new WeightedModifierType(modifierTypes.FIVE_YEAR_PLAN, 24),
+    new WeightedModifierType(modifierTypes.PEOPLE_POWER, 24),
     new WeightedModifierType(modifierTypes.MASTER_BALL, () => (hasMaximumBalls(PokeballType.MASTER_BALL) ? 0 : 24), 24),
     new WeightedModifierType(modifierTypes.SHINY_CHARM, 14),
     new WeightedModifierType(modifierTypes.HEALING_CHARM, 18),

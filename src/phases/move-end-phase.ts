@@ -1,5 +1,6 @@
 import { applyAbAttrs } from "#abilities/apply-ab-attrs";
 import { globalScene } from "#app/global-scene";
+import { repeatFiveYearPlanMove } from "#data/policy-items";
 import type { BattlerIndex } from "#enums/battler-index";
 import { BattlerTagLapseType } from "#enums/battler-tag-lapse-type";
 import { HitResult } from "#enums/hit-result";
@@ -66,6 +67,10 @@ export class MoveEndPhase extends PokemonPhase {
       if (target) {
         applyAbAttrs("PostSummonRemoveEffectAbAttr", { pokemon: target });
       }
+    }
+
+    if (!this.wasFollowUp && pokemon) {
+      repeatFiveYearPlanMove(pokemon, this.executedMoveId, this.targets);
     }
 
     this.end();

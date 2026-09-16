@@ -1,4 +1,5 @@
 import { globalScene } from "#app/global-scene";
+import { hasFiveYearPlan, isFiveYearPlanTurn } from "#data/policy-items";
 import { BattlerIndex } from "#enums/battler-index";
 import { TurnInitEvent } from "#events/battle-scene";
 import type { PlayerPokemon } from "#field/pokemon";
@@ -45,6 +46,10 @@ export class TurnInitPhase extends FieldPhase {
         }
       }
     });
+
+    if (isFiveYearPlanTurn() && globalScene.getPlayerField().some(p => p?.isActive(true) && hasFiveYearPlan(p))) {
+      globalScene.phaseManager.queueMessage("五年之期已至！");
+    }
 
     globalScene.eventTarget.dispatchEvent(new TurnInitEvent());
 

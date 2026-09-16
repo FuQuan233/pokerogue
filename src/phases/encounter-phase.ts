@@ -9,6 +9,7 @@ import { handleTutorial, Tutorial } from "#app/tutorial";
 import { initEncounterAnims, loadEncounterAnimAssets } from "#data/battle-anims";
 import { getCharVariantFromDialogue } from "#data/dialogue";
 import { getNatureName } from "#data/nature";
+import { applyLaborLaw } from "#data/policy-items";
 import { BattleType } from "#enums/battle-type";
 import { BattlerIndex } from "#enums/battler-index";
 import { BiomeId } from "#enums/biome-id";
@@ -451,7 +452,13 @@ export class EncounterPhase extends BattlePhase {
         globalScene.pbTrayEnemy.showPbTray(globalScene.getEnemyParty());
         const doTrainerSummon = () => {
           this.hideEnemyTrainer();
+          applyLaborLaw();
           const availablePartyMembers = globalScene.getEnemyParty().filter(p => !p.isFainted()).length;
+          if (availablePartyMembers === 0) {
+            globalScene.phaseManager.unshiftNew("VictoryPhase", BattlerIndex.ENEMY);
+            this.end();
+            return;
+          }
           globalScene.phaseManager.unshiftNew("SummonPhase", 0, false);
           if (globalScene.currentBattle.double && availablePartyMembers > 1) {
             globalScene.phaseManager.unshiftNew("SummonPhase", 1, false);

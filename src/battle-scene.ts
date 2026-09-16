@@ -79,10 +79,12 @@ import {
   DoubleBattleChanceBoosterModifier,
   ExpBalanceModifier,
   ExpShareModifier,
+  FiveYearPlanModifier,
   FusePokemonModifier,
   HealingBoosterModifier,
   ModifierBar,
   MultipleParticipantExpBonusModifier,
+  PeoplePowerModifier,
   PersistentModifier,
   PokemonExpBoosterModifier,
   PokemonFormChangeItemModifier,
@@ -2394,6 +2396,9 @@ export class BattleScene extends SceneBase {
     const modifiersToRemove: PersistentModifier[] = [];
     if (modifier instanceof PersistentModifier) {
       if ((modifier as PersistentModifier).add(this.modifiers, !!virtual)) {
+        if (modifier instanceof PeoplePowerModifier && !virtual && !ignoreUpdate) {
+          modifier.apply();
+        }
         if (modifier instanceof PokemonFormChangeItemModifier) {
           const pokemon = this.getPokemonById(modifier.pokemonId);
           if (pokemon) {
@@ -2512,6 +2517,9 @@ export class BattleScene extends SceneBase {
     ignoreUpdate?: boolean,
     itemLost = true,
   ): boolean {
+    if (itemModifier instanceof FiveYearPlanModifier && !target.isPlayer()) {
+      return false;
+    }
     const source = itemModifier.pokemonId ? itemModifier.getPokemon() : null;
     const cancelled = new BooleanHolder(false);
 
@@ -2597,6 +2605,9 @@ export class BattleScene extends SceneBase {
   }
 
   canTransferHeldItemModifier(itemModifier: PokemonHeldItemModifier, target: Pokemon, transferQuantity = 1): boolean {
+    if (itemModifier instanceof FiveYearPlanModifier && !target.isPlayer()) {
+      return false;
+    }
     const mod = itemModifier.clone() as PokemonHeldItemModifier;
     const source = mod.pokemonId ? mod.getPokemon() : null;
     const cancelled = new BooleanHolder(false);

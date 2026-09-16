@@ -1,6 +1,6 @@
 import { globalScene } from "#app/global-scene";
 import { ArenaTagType } from "#enums/arena-tag-type";
-import { MoneyMultiplierModifier } from "#modifiers/modifier";
+import { MoneyMultiplierModifier, PensionInsuranceModifier } from "#modifiers/modifier";
 import { BattlePhase } from "#phases/battle-phase";
 import { NumberHolder } from "#utils/common";
 import i18next from "i18next";
@@ -24,6 +24,7 @@ export class MoneyRewardPhase extends BattlePhase {
       moneyAmount.value *= 2;
     }
 
+    globalScene.applyModifiers(PensionInsuranceModifier, true, moneyAmount);
     globalScene.addMoney(moneyAmount.value);
 
     const userLocale = navigator.language || "en-US";

@@ -130,6 +130,7 @@ import {
   IntellectScrollModifier,
   InvigorateScrollModifier,
   LuckyScrollModifier,
+  PeoplePowerModifier,
   PhysicalCritScrollModifier,
   PokemonBaseStatFlatModifier,
   PokemonBaseStatTotalModifier,
@@ -4291,7 +4292,42 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
   // TODO: Remove uses of this outside of the `Pokemon` class and subclasses and change to `protected`
   // Known violators: Pain Split, Status effect code
   // biome-ignore lint/correctness/noUnusedFunctionParameters: param used by subclass
-  damage(damage: number, ignoreSegments = false, preventEndure = false, ignoreFaintPhase = false): number {
+  damage(
+    damage: number,
+    ignoreSegments = false,
+    preventEndure = false,
+    ignoreFaintPhase = false,
+    shared = false,
+  ): number {
+    if (
+      !shared
+      && damage > 0
+      && this.isPlayer()
+      && this.isOnField()
+      && !this.isFainted()
+      && globalScene.findModifier(m => m instanceof PeoplePowerModifier)
+    ) {
+      const party = [this, ...globalScene.getPlayerParty().filter(p => p !== this && !p.isFainted())];
+      const total = Math.max(0, Math.floor(damage));
+      const base = Math.floor(total / party.length);
+      const remainder = total % party.length;
+      let dealt = 0;
+      for (const [index, pokemon] of party.entries()) {
+        const onField = pokemon.isOnField();
+        dealt += pokemon.damage(
+          base + (index < remainder ? 1 : 0),
+          ignoreSegments,
+          preventEndure,
+          ignoreFaintPhase || !onField,
+          true,
+        );
+        if (!onField && pokemon.isFainted()) {
+          pokemon.doSetStatus(StatusEffect.FAINT);
+        }
+        pokemon.updateInfo();
+      }
+      return dealt;
+    }
     if (this.isFainted()) {
       return 0;
     }

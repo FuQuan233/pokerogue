@@ -18,7 +18,7 @@ import { TrainerType } from "#enums/trainer-type";
 import { TrainerVariant } from "#enums/trainer-variant";
 import type { EnemyPokemon, PlayerPokemon, Pokemon } from "#field/pokemon";
 import { Trainer } from "#field/trainer";
-import { MoneyMultiplierModifier, type PokemonHeldItemModifier } from "#modifiers/modifier";
+import { MoneyMultiplierModifier, PensionInsuranceModifier, type PokemonHeldItemModifier } from "#modifiers/modifier";
 import type { CustomModifierSettings } from "#modifiers/modifier-type";
 import type { MysteryEncounter } from "#mystery-encounters/mystery-encounter";
 import { trainerConfigs } from "#trainers/trainer-config";
@@ -209,6 +209,7 @@ export class Battle {
       moneyAmount.value *= 2;
     }
 
+    globalScene.applyModifiers(PensionInsuranceModifier, true, moneyAmount);
     globalScene.addMoney(moneyAmount.value);
 
     const userLocale = navigator.language || "en-US";

@@ -35,6 +35,34 @@ export function registerFuquanTranslations(instance: i18n): void {
   for (const language of SUPPORTED_LANGUAGES) {
     instance.addResourceBundle(
       language,
+      "modifierType",
+      {
+        ModifierType: {
+          LABOR_LAW: {
+            name: "《劳动法》",
+            description: "NPC训练家战斗开始时，对方每只宝可梦独立有28.57%的概率无法出战。最多持有1个。",
+          },
+          PENSION_INSURANCE: {
+            name: "养老保险",
+            description: "每层使第1至100关战斗后的金币减少10%，第101关起增加20%。最多持有5个。",
+          },
+          FIVE_YEAR_PLAN: {
+            name: "五年规划",
+            description: "本场战斗第5、10、15…回合，携带者的招式额外使用1次，不消耗额外PP。每只最多携带1个。",
+          },
+          PEOPLE_POWER: {
+            name: "人民万岁",
+            description:
+              "获得时恢复全队HP、PP和异常状态（含倒下者）。出战宝可梦受到的所有伤害由存活队员均摊。最多持有1个。",
+          },
+        },
+      },
+      true,
+      true,
+    );
+
+    instance.addResourceBundle(
+      language,
       "move",
       {
         eclipseSun: { name: "蔽日", effect: "将天气变为大黑天，持续5回合。" },

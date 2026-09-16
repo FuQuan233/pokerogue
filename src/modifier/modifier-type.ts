@@ -72,6 +72,7 @@ import {
   ExtraModifierModifier,
   FieldEffectModifier,
   FirecrackerModifier,
+  FiveYearPlanModifier,
   FlinchChanceModifier,
   FusePokemonModifier,
   GigantamaxAccessModifier,
@@ -82,6 +83,7 @@ import {
   IntellectScrollModifier,
   InvigorateScrollModifier,
   IvScannerModifier,
+  LaborLawModifier,
   LevelIncrementBoosterModifier,
   LifeOrbModifier,
   LockModifierTiersModifier,
@@ -93,6 +95,8 @@ import {
   MoneyMultiplierModifier,
   MoneyRewardModifier,
   MultipleParticipantExpBonusModifier,
+  PensionInsuranceModifier,
+  PeoplePowerModifier,
   type PersistentModifier,
   PhysicalCritScrollModifier,
   PokemonAllMovePpRestoreModifier,
@@ -2085,6 +2089,21 @@ const modifierTypeInitObj = Object.freeze({
   GREAT_BALL: () => new AddPokeballModifierType("gb", PokeballType.GREAT_BALL, 5),
   ULTRA_BALL: () => new AddPokeballModifierType("ub", PokeballType.ULTRA_BALL, 5),
   ROGUE_BALL: () => new AddPokeballModifierType("rb", PokeballType.ROGUE_BALL, 5),
+  LABOR_LAW: () => new ModifierType("modifierType:ModifierType.LABOR_LAW", "map", type => new LaborLawModifier(type)),
+  PENSION_INSURANCE: () =>
+    new ModifierType(
+      "modifierType:ModifierType.PENSION_INSURANCE",
+      "amulet_coin",
+      type => new PensionInsuranceModifier(type),
+    ),
+  FIVE_YEAR_PLAN: () =>
+    new PokemonHeldItemModifierType(
+      "modifierType:ModifierType.FIVE_YEAR_PLAN",
+      "multi_lens",
+      (type, args) => new FiveYearPlanModifier(type, (args[0] as Pokemon).id),
+    ),
+  PEOPLE_POWER: () =>
+    new ModifierType("modifierType:ModifierType.PEOPLE_POWER", "sacred_ash", type => new PeoplePowerModifier(type)),
   MASTER_BALL: () => new AddPokeballModifierType("mb", PokeballType.MASTER_BALL, 1),
 
   RARE_CANDY: () => new PokemonLevelIncrementModifierType("modifierType:ModifierType.RARE_CANDY", "rare_candy"),

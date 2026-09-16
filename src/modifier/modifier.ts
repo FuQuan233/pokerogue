@@ -4700,7 +4700,93 @@ export function overrideHeldItems(pokemon: Pokemon, isPlayer = true): void {
  * Used for {@linkcode Modifier.is} to check if a modifier is of a certain type without
  * requiring modifier types to be imported in every file.
  */
+/** Player-only global battle-start item. The seed marker survives save/load. */
+export class LaborLawModifier extends PersistentModifier {
+  constructor(
+    type: ModifierType,
+    public lastBattleSeed = "",
+    stackCount = 1,
+  ) {
+    super(type, stackCount);
+  }
+  match(modifier: Modifier): boolean {
+    return modifier instanceof LaborLawModifier;
+  }
+  clone(): LaborLawModifier {
+    return new LaborLawModifier(this.type, this.lastBattleSeed, this.stackCount);
+  }
+  getArgs(): any[] {
+    return [this.lastBattleSeed];
+  }
+  getMaxStackCount(): number {
+    return 1;
+  }
+  apply(): boolean {
+    return false;
+  }
+}
+
+export class PensionInsuranceModifier extends PersistentModifier {
+  match(modifier: Modifier): boolean {
+    return modifier instanceof PensionInsuranceModifier;
+  }
+  clone(): PensionInsuranceModifier {
+    return new PensionInsuranceModifier(this.type, this.stackCount);
+  }
+  getMaxStackCount(): number {
+    return 5;
+  }
+  override apply(amount: NumberHolder): boolean {
+    const rate = globalScene.currentBattle.waveIndex <= 100 ? -0.1 : 0.2;
+    amount.value = Math.floor(amount.value * (1 + rate * this.getStackCount()));
+    return true;
+  }
+}
+
+export class FiveYearPlanModifier extends PokemonHeldItemModifier {
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof FiveYearPlanModifier;
+  }
+  clone(): FiveYearPlanModifier {
+    return new FiveYearPlanModifier(this.type, this.pokemonId, this.stackCount);
+  }
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 1;
+  }
+  apply(): boolean {
+    return false;
+  }
+}
+
+export class PeoplePowerModifier extends PersistentModifier {
+  match(modifier: Modifier): boolean {
+    return modifier instanceof PeoplePowerModifier;
+  }
+  clone(): PeoplePowerModifier {
+    return new PeoplePowerModifier(this.type, this.stackCount);
+  }
+  getMaxStackCount(): number {
+    return 1;
+  }
+  apply(): boolean {
+    for (const pokemon of globalScene.getPlayerParty()) {
+      pokemon.hp = pokemon.getMaxHp();
+      pokemon.resetStatus(true, true, false, false);
+      pokemon.removeTag(BattlerTagType.INFATUATED);
+      for (const move of pokemon.getMoveset()) {
+        move.ppUsed = 0;
+      }
+      pokemon.updateInfo();
+    }
+    return true;
+  }
+}
+
 const ModifierClassMap = Object.freeze({
+  LaborLawModifier,
+  PensionInsuranceModifier,
+  FiveYearPlanModifier,
+  PeoplePowerModifier,
   PersistentModifier,
   ConsumableModifier,
   AddPokeballModifier,
