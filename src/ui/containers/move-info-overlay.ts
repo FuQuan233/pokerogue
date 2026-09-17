@@ -82,6 +82,7 @@ export class MoveInfoOverlay extends Phaser.GameObjects.Container implements Inf
       TextStyle.BATTLE_INFO,
       {
         wordWrap: {
+          useAdvancedWrap: true,
           width: (width - (BORDER - 2) * 2 - (options?.onSide ? EFF_WIDTH : 0)) * GLOBAL_SCALE,
         },
       },

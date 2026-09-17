@@ -1167,7 +1167,7 @@ export class SummaryUiHandler extends UiHandler {
             profileContainer.add(container.nameText);
 
             container.descriptionText = addTextObject(7, 71, container.ability?.description!, TextStyle.WINDOW_ALT, {
-              wordWrap: { width: 1224 },
+              wordWrap: { width: 1224, useAdvancedWrap: true },
             });
             container.descriptionText.setOrigin(0, 0);
             container.descriptionText.setVisible(false); // Initially hidden
@@ -1221,7 +1221,7 @@ export class SummaryUiHandler extends UiHandler {
               abilityInfo.ability?.description!,
               TextStyle.WINDOW_ALT,
               {
-                wordWrap: { width: 1224 },
+                wordWrap: { width: 1224, useAdvancedWrap: true },
               },
             ); // TODO: is this bang correct?
             abilityInfo.descriptionText.setOrigin(0, 0);
@@ -1559,7 +1559,9 @@ export class SummaryUiHandler extends UiHandler {
           moveRowContainer.add(ppText);
         }
 
-        this.moveDescriptionText = addTextObject(1, 84, "", TextStyle.WINDOW_ALT, { wordWrap: { width: 1252 } });
+        this.moveDescriptionText = addTextObject(1, 84, "", TextStyle.WINDOW_ALT, {
+          wordWrap: { width: 1224, useAdvancedWrap: true },
+        });
         this.movesContainer.add(this.moveDescriptionText);
 
         const moveDescriptionTextMaskRect = globalScene.make.graphics({});
