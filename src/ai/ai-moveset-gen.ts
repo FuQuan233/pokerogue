@@ -217,7 +217,7 @@ function getAndWeightTmMoves(
   getTmPoolForSpecies(pokemon.species.speciesId, level, form, currentPool, eggPool, tmPool, allowedTiers);
   const fusionFormKey = pokemon.getFusionFormKey();
   const fusionSpecies = pokemon.fusionSpecies?.speciesId;
-  if (fusionSpecies != null && fusionFormKey != null && fusionFormKey !== "") {
+  if (fusionSpecies != null && fusionFormKey != null) {
     getTmPoolForSpecies(fusionSpecies, level, fusionFormKey, currentPool, eggPool, tmPool, allowedTiers);
   }
 }
@@ -455,8 +455,16 @@ function adjustDamageMoveWeights(pool: Map<MoveId, number>, pokemon: Pokemon, wi
     }
   }
 
-  const atk = pokemon.getStat(Stat.ATK);
-  const spAtk = pokemon.getStat(Stat.SPATK);
+  // Generated trainer fusions already carry their learned abilities before move selection.
+  const fusionAbilities = pokemon.hasTrainer() && pokemon.isFusion() ? pokemon.getAllAbilities().map(a => a.id) : [];
+  const atk = pokemon.getStat(Stat.ATK) * (fusionAbilities.includes(AbilityId.HUGE_POWER) ? 2 : 1);
+  const spAtk =
+    pokemon.getStat(Stat.SPATK)
+    * (fusionAbilities.includes(AbilityId.HADRON_ENGINE)
+      ? 4 / 3
+      : fusionAbilities.includes(AbilityId.SOLAR_POWER)
+        ? 1.5
+        : 1);
   const lowerStat = Math.min(atk, spAtk);
   const higherStat = Math.max(atk, spAtk);
   const worseCategory = atk > spAtk ? MoveCategory.SPECIAL : MoveCategory.PHYSICAL;

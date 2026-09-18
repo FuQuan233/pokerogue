@@ -1,4 +1,5 @@
 import { globalScene } from "#app/global-scene";
+import { AbilityId } from "#enums/ability-id";
 import { BattleType } from "#enums/battle-type";
 import { MoveCategory } from "#enums/move-category";
 import { Nature } from "#enums/nature";
@@ -27,7 +28,14 @@ export function getTrainerStrength() {
 }
 
 export function getTrainerRole(pokemon: Pokemon): "fast" | "breaker" | "tank" {
-  const stats = pokemon.getSpeciesForm().baseStats;
+  const stats = getTrainerBaseStats(pokemon);
+  if (
+    pokemon.isFusion()
+    && pokemon.getAllAbilities().some(a => a.id === AbilityId.REGENERATOR)
+    && pokemon.getAllAbilities().some(a => a.id === AbilityId.UNAWARE)
+  ) {
+    return "tank";
+  }
   if ((stats[Stat.DEF] + stats[Stat.SPDEF]) / 2 >= Math.max(stats[Stat.ATK], stats[Stat.SPATK])) {
     return "tank";
   }
@@ -35,7 +43,16 @@ export function getTrainerRole(pokemon: Pokemon): "fast" | "breaker" | "tank" {
 }
 
 export function getTrainerOffensiveStat(pokemon: Pokemon): Stat.ATK | Stat.SPATK {
-  const stats = pokemon.getSpeciesForm().baseStats;
+  const stats = getTrainerBaseStats(pokemon);
+  if (pokemon.isFusion()) {
+    const abilities = pokemon.getAllAbilities().map(a => a.id);
+    if (abilities.includes(AbilityId.HUGE_POWER)) {
+      return Stat.ATK;
+    }
+    if (abilities.includes(AbilityId.HADRON_ENGINE) || abilities.includes(AbilityId.SOLAR_POWER)) {
+      return Stat.SPATK;
+    }
+  }
   const attacks = pokemon
     .getMoveset()
     .map(m => m.getMove())
@@ -49,6 +66,12 @@ export function getTrainerOffensiveStat(pokemon: Pokemon): Stat.ATK | Stat.SPATK
   return stats[Stat.ATK] >= stats[Stat.SPATK] ? Stat.ATK : Stat.SPATK;
 }
 
+/** Raw fusion stats, before vitamins, so role selection is stable while equipment is being assigned. */
+export function getTrainerBaseStats(pokemon: Pokemon): readonly number[] {
+  const base = pokemon.getSpeciesForm().baseStats;
+  return pokemon.isFusion() ? base.map((v, i) => Math.max(v, pokemon.getFusionSpeciesForm().baseStats[i])) : base;
+}
+
 /** Called after custom party member functions, once, before the encounter is saved. */
 export function strengthenTrainerPokemon(pokemon: EnemyPokemon, index: number, partySize: number): void {
   const profile = getTrainerStrength();
@@ -58,7 +81,7 @@ export function strengthenTrainerPokemon(pokemon: EnemyPokemon, index: number, p
   pokemon.ivs = pokemon.ivs.map(iv => Math.max(iv, profile.ivFloor));
   const physical = getTrainerOffensiveStat(pokemon) === Stat.ATK;
   const role = getTrainerRole(pokemon);
-  const stats = pokemon.getSpeciesForm().baseStats;
+  const stats = getTrainerBaseStats(pokemon);
   const nature =
     role === "fast"
       ? physical

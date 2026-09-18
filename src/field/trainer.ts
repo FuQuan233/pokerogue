@@ -4,6 +4,7 @@ import { speciesDataRegistry } from "#app/global-species-data-registry";
 import { signatureSpecies } from "#balance/signature-species";
 import { EntryHazardTag } from "#data/arena-tag";
 import type { PokemonSpecies } from "#data/pokemon-species";
+import { applyTrainerFusion } from "#data/trainer-fusion";
 import { getTrainerStrength, strengthenTrainerPokemon } from "#data/trainer-strength";
 import { ArenaTagSide } from "#enums/arena-tag-side";
 import { PartyMemberStrength } from "#enums/party-member-strength";
@@ -478,7 +479,10 @@ export class Trainer extends Phaser.GameObjects.Container {
         + (this.config.getDerivedType() << 10)
         + (((this.config.useSameSeedForAllMembers ? 0 : index) + 1) << 8);
 
-    globalScene.executeWithSeedOffset(genMon, seedOffset);
+    globalScene.executeWithSeedOffset(() => {
+      genMon();
+      applyTrainerFusion(ret, this, index);
+    }, seedOffset);
 
     strengthenTrainerPokemon(ret, index, this.getPartyTemplate().size);
 

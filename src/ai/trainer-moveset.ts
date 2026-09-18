@@ -1,9 +1,10 @@
 import { allMoves } from "#data/data-lists";
-import { getTrainerRole, getTrainerStrength } from "#data/trainer-strength";
+import { getTrainerOffensiveStat, getTrainerRole, getTrainerStrength } from "#data/trainer-strength";
 import { getTypeDamageMultiplier } from "#data/type";
 import { MoveCategory } from "#enums/move-category";
 import { MoveId } from "#enums/move-id";
 import { PokemonType } from "#enums/pokemon-type";
+import { Stat } from "#enums/stat";
 import type { Pokemon } from "#field/pokemon";
 
 const RECOVERY = new Set([
@@ -61,6 +62,12 @@ export function chooseTrainerMovesetSlot(pokemon: Pokemon, pool: [MoveId, number
   const score = ([id, weight]: [MoveId, number]) => {
     const move = allMoves[id];
     let value = Math.log1p(weight);
+    if (pokemon.isFusion() && move.category !== MoveCategory.STATUS && !move.hasAttr("DefAtkAttr")) {
+      const preferred = getTrainerOffensiveStat(pokemon) === Stat.ATK ? MoveCategory.PHYSICAL : MoveCategory.SPECIAL;
+      if (move.category === preferred) {
+        value += 50;
+      }
+    }
     if (move.category === MoveCategory.STATUS) {
       if (statuses >= (role === "tank" ? 2 : 1)) {
         return value - 200;
