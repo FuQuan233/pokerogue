@@ -124,6 +124,7 @@ import {
   RememberMoveModifier,
   ResetNegativeStatStageModifier,
   RetaliatoryScrollModifier,
+  RocketTeamBadgeModifier,
   SelfHealScrollModifier,
   ShinyRateBoosterModifier,
   SlowScrollModifier,
@@ -2090,6 +2091,12 @@ const modifierTypeInitObj = Object.freeze({
   ULTRA_BALL: () => new AddPokeballModifierType("ub", PokeballType.ULTRA_BALL, 5),
   ROGUE_BALL: () => new AddPokeballModifierType("rb", PokeballType.ROGUE_BALL, 5),
   LABOR_LAW: () => new ModifierType("modifierType:ModifierType.LABOR_LAW", "map", type => new LaborLawModifier(type)),
+  ROCKET_TEAM_BADGE: () =>
+    new ModifierType(
+      "modifierType:ModifierType.ROCKET_TEAM_BADGE",
+      "coin_case",
+      type => new RocketTeamBadgeModifier(type),
+    ),
   PENSION_INSURANCE: () =>
     new ModifierType(
       "modifierType:ModifierType.PENSION_INSURANCE",

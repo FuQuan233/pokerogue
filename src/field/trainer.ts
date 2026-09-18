@@ -1,8 +1,10 @@
+import { getTrainerMatchupMultiplier } from "#ai/trainer-tactics";
 import { globalScene } from "#app/global-scene";
 import { speciesDataRegistry } from "#app/global-species-data-registry";
 import { signatureSpecies } from "#balance/signature-species";
 import { EntryHazardTag } from "#data/arena-tag";
 import type { PokemonSpecies } from "#data/pokemon-species";
+import { getTrainerStrength, strengthenTrainerPokemon } from "#data/trainer-strength";
 import { ArenaTagSide } from "#enums/arena-tag-side";
 import { PartyMemberStrength } from "#enums/party-member-strength";
 import { SpeciesId } from "#enums/species-id";
@@ -340,7 +342,7 @@ export class Trainer extends Phaser.GameObjects.Container {
 
       // 等级不设上限，允许超过100级
       const level = Math.ceil(baseLevel * multiplier) + levelOffset + bonusLevel;
-      ret.push(level);
+      ret.push(globalScene.gameMode.isClassic ? Math.ceil(level * (this.config.isBoss ? 1.1 : 1.05)) : level);
     }
 
     return ret;
@@ -478,6 +480,8 @@ export class Trainer extends Phaser.GameObjects.Container {
 
     globalScene.executeWithSeedOffset(genMon, seedOffset);
 
+    strengthenTrainerPokemon(ret, index, this.getPartyTemplate().size);
+
     return ret;
   }
 
@@ -603,7 +607,9 @@ export class Trainer extends Phaser.GameObjects.Container {
 
       if (playerField.length > 0) {
         for (const playerPokemon of playerField) {
-          score += p.getMatchupScore(playerPokemon);
+          score +=
+            p.getMatchupScore(playerPokemon)
+            * (getTrainerStrength() ? getTrainerMatchupMultiplier(p, playerPokemon) : 1);
           if (playerPokemon.species.legendary) {
             score /= 2;
           }

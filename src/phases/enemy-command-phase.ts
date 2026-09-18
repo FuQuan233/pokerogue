@@ -1,4 +1,6 @@
+import { getKnownIncomingDamage, getTrainerMatchupMultiplier, trainerCanFinishOpponent } from "#ai/trainer-tactics";
 import { globalScene } from "#app/global-scene";
+import { getTrainerStrength } from "#data/trainer-strength";
 import { AbilityId } from "#enums/ability-id";
 import { BattlerIndex } from "#enums/battler-index";
 import { BattlerTagType } from "#enums/battler-tag-type";
@@ -58,18 +60,24 @@ export class EnemyCommandPhase extends FieldPhase {
     if (trainer && enemyPokemon.getMoveQueue().length === 0) {
       const opponents = enemyPokemon.getOpponents();
 
-      if (!enemyPokemon.isTrapped()) {
+      const strength = getTrainerStrength();
+      if (!enemyPokemon.isTrapped() && !(strength && trainerCanFinishOpponent(enemyPokemon))) {
         const partyMemberScores = trainer.getPartyMemberMatchupScores(enemyPokemon.trainerSlot, true);
 
         if (partyMemberScores.length > 0) {
-          const matchupScores = opponents.map(opp => enemyPokemon.getMatchupScore(opp));
+          const matchupScores = opponents.map(
+            opp => enemyPokemon.getMatchupScore(opp) * (strength ? getTrainerMatchupMultiplier(enemyPokemon, opp) : 1),
+          );
           const matchupScore = matchupScores.reduce((total, score) => (total += score), 0) / matchupScores.length;
 
           const sortedPartyMemberScores = trainer.getSortedPartyMemberMatchupScores(partyMemberScores);
 
           const switchMultiplier = 1 - (battle.enemySwitchCounter ? Math.pow(0.1, 1 / battle.enemySwitchCounter) : 0);
 
-          if (sortedPartyMemberScores[0][1] * switchMultiplier >= matchupScore * (trainer.config.isBoss ? 2 : 3)) {
+          const candidate = globalScene.getEnemyParty()[sortedPartyMemberScores[0][0]];
+          const safeSwitch = !strength || getKnownIncomingDamage(candidate) < candidate.hp;
+          const threshold = strength ? (trainer.config.isBoss ? 1.5 : 2) : trainer.config.isBoss ? 2 : 3;
+          if (safeSwitch && sortedPartyMemberScores[0][1] * switchMultiplier >= matchupScore * threshold) {
             const index = trainer.getNextSummonIndex(enemyPokemon.trainerSlot, partyMemberScores);
 
             battle.turnCommands[this.fieldIndex + BattlerIndex.ENEMY] = {

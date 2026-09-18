@@ -6,6 +6,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
+import { chooseTrainerMovesetSlot } from "#ai/trainer-moveset";
 import { EVOLVE_MOVE, RELEARN_MOVE } from "#app/constants";
 import { globalScene } from "#app/global-scene";
 import { speciesDataRegistry } from "#app/global-species-data-registry";
@@ -42,6 +43,7 @@ import { SUPERCEDED_MOVES } from "#balance/superceded-moves";
 import { tmPoolTiers } from "#balance/tm-pool-tiers";
 import { IS_TEST, isBeta, isDev } from "#constants/app-constants";
 import { allMoves } from "#data/data-lists";
+import { getTrainerStrength } from "#data/trainer-strength";
 import { AbilityId } from "#enums/ability-id";
 import { BattlerTagType } from "#enums/battler-tag-type";
 import { ModifierTier } from "#enums/modifier-tier";
@@ -294,11 +296,16 @@ function getAndWeightEggMoves(
   eggPool: Map<MoveId, number>,
 ): void {
   const level = pokemon.level;
-  if (level < EGG_MOVE_LEVEL_REQUIREMENT || !globalScene.currentBattle?.trainer?.config.allowEggMoves) {
+  const strength = pokemon.hasTrainer() ? getTrainerStrength() : null;
+  if (
+    strength
+      ? level < strength.eggLevel
+      : level < EGG_MOVE_LEVEL_REQUIREMENT || !globalScene.currentBattle?.trainer?.config.allowEggMoves
+  ) {
     return;
   }
   const isBoss = pokemon.isBoss();
-  const excludeRare = isBoss || level < RARE_EGG_MOVE_LEVEL_REQUIREMENT;
+  const excludeRare = strength ? level < strength.rareEggLevel : isBoss || level < RARE_EGG_MOVE_LEVEL_REQUIREMENT;
   const eggMoveWeight = getEggMoveWeight(levelPool, level, false, isBoss);
   let rareEggMoveWeight: number | undefined;
   if (!excludeRare) {
@@ -1157,7 +1164,14 @@ function fillInRemainingMovesetSlots(
   remainingPool: [id: MoveId, weight: number][],
 ): void {
   const tmCap = getMaxTmCount(pokemon.level);
-  const eggCap = getMaxEggMoveCount(pokemon.level);
+  const strength = pokemon.hasTrainer() ? getTrainerStrength() : null;
+  const eggCap = strength
+    ? pokemon.level >= strength.rareEggLevel
+      ? 3
+      : pokemon.level >= strength.eggLevel
+        ? 2
+        : 0
+    : getMaxEggMoveCount(pokemon.level);
   const remainingPoolWeight = new NumberHolder(0);
   while (pokemon.moveset.length < 4) {
     const nonLevelMoveCount = tmCount.value + eggMoveCount.value;
@@ -1186,7 +1200,7 @@ function fillInRemainingMovesetSlots(
     while (rand > remainingPool[index][1]) {
       rand -= remainingPool[index++][1];
     }
-    const selectedMoveId = remainingPool[index][0];
+    const selectedMoveId = chooseTrainerMovesetSlot(pokemon, remainingPool, remainingPool[index][0]);
     baseWeights.delete(selectedMoveId);
     if (tmPool.has(selectedMoveId)) {
       tmCount.value++;

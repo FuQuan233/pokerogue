@@ -38,6 +38,10 @@ export function registerFuquanTranslations(instance: i18n): void {
       "modifierType",
       {
         ModifierType: {
+          ROCKET_TEAM_BADGE: {
+            name: "火箭队工牌",
+            description: "我们是穿梭在银河的火箭队！白洞，白色的明天在等着我们！！就是这样~喵~~~~",
+          },
           LABOR_LAW: {
             name: "《劳动法》",
             description: "NPC训练家战斗开始时，对方每只宝可梦独立有28.57%的概率无法出战。最多持有1个。",

@@ -6,6 +6,7 @@ import { getPokemonNameWithAffix } from "#app/messages";
 import { TrappedTag } from "#data/battler-tags";
 import { getDailyEventSeedBoss } from "#data/daily-run";
 import { isDailyFinalBoss } from "#data/daily-seed-utils";
+import { canCaptureTrainerPokemon } from "#data/trainer-capture";
 import { AbilityId } from "#enums/ability-id";
 import { ArenaTagSide } from "#enums/arena-tag-side";
 import { ArenaTagType } from "#enums/arena-tag-type";
@@ -388,6 +389,9 @@ export class CommandPhase extends FieldPhase {
         return true;
       }
     } else if (battleType === BattleType.TRAINER) {
+      if (canCaptureTrainerPokemon()) {
+        return true;
+      }
       this.queueShowText("battle:noPokeballTrainer");
     } else if (currentBattle.isBattleMysteryEncounter() && !currentBattle.mysteryEncounter!.catchAllowed) {
       this.queueShowText("battle:noPokeballMysteryEncounter");

@@ -4700,6 +4700,22 @@ export function overrideHeldItems(pokemon: Pokemon, isPlayer = true): void {
  * Used for {@linkcode Modifier.is} to check if a modifier is of a certain type without
  * requiring modifier types to be imported in every file.
  */
+/** Player-only permission to capture non-rival trainer Pokemon. */
+export class RocketTeamBadgeModifier extends PersistentModifier {
+  match(modifier: Modifier): boolean {
+    return modifier instanceof RocketTeamBadgeModifier;
+  }
+  clone(): RocketTeamBadgeModifier {
+    return new RocketTeamBadgeModifier(this.type, this.stackCount);
+  }
+  getMaxStackCount(): number {
+    return 1;
+  }
+  apply(): boolean {
+    return false;
+  }
+}
+
 /** Player-only global battle-start item. The seed marker survives save/load. */
 export class LaborLawModifier extends PersistentModifier {
   constructor(
@@ -4783,6 +4799,7 @@ export class PeoplePowerModifier extends PersistentModifier {
 }
 
 const ModifierClassMap = Object.freeze({
+  RocketTeamBadgeModifier,
   LaborLawModifier,
   PensionInsuranceModifier,
   FiveYearPlanModifier,

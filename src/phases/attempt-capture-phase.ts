@@ -13,11 +13,14 @@ import {
   getPokeballTintColor,
 } from "#data/pokeball";
 import { getStatusEffectCatchRateMultiplier } from "#data/status-effect";
+import { canCaptureTrainerPokemon } from "#data/trainer-capture";
+import { BattleType } from "#enums/battle-type";
 import { BattlerIndex } from "#enums/battler-index";
 import { ChallengeType } from "#enums/challenge-type";
 import { PartyUiMode } from "#enums/party-ui-mode";
 import type { PokeballType } from "#enums/pokeball";
 import { StatusEffect } from "#enums/status-effect";
+import { SwitchType } from "#enums/switch-type";
 import { UiMode } from "#enums/ui-mode";
 import type { EnemyPokemon } from "#field/pokemon";
 import { PokemonHeldItemModifier } from "#modifiers/modifier";
@@ -48,6 +51,9 @@ export class AttemptCapturePhase extends PokemonPhase {
     const pokemon = this.getPokemon() as EnemyPokemon;
 
     if (!pokemon?.hp) {
+      return this.end();
+    }
+    if (globalScene.currentBattle.battleType === BattleType.TRAINER && !canCaptureTrainerPokemon()) {
       return this.end();
     }
 
@@ -280,6 +286,14 @@ export class AttemptCapturePhase extends PokemonPhase {
       () => {
         const end = () => {
           globalScene.phaseManager.unshiftNew("VictoryPhase", this.battlerIndex);
+          if (
+            globalScene.currentBattle.battleType === BattleType.TRAINER
+            && globalScene
+              .getEnemyParty()
+              .some(p => p.isActive() && !p.isOnField() && p.trainerSlot === pokemon.trainerSlot)
+          ) {
+            globalScene.phaseManager.pushNew("SwitchSummonPhase", SwitchType.SWITCH, this.fieldIndex, -1, false, false);
+          }
           globalScene.pokemonInfoContainer.hide();
           this.removePb();
           this.end();
@@ -288,12 +302,15 @@ export class AttemptCapturePhase extends PokemonPhase {
           globalScene.addFaintedEnemyScore(pokemon);
           pokemon.hp = 0;
           pokemon.doSetStatus(StatusEffect.FAINT);
-          globalScene.clearEnemyHeldItemModifiers();
+          globalScene.clearEnemyHeldItemModifiers(pokemon);
           pokemon.leaveField(true, true, true);
         };
         const addToParty = (slotIndex?: number) => {
           const newPokemon = pokemon.addToParty(this.pokeballType, slotIndex);
-          const modifiers = globalScene.findModifiers(m => m instanceof PokemonHeldItemModifier, false);
+          const modifiers = globalScene.findModifiers(
+            m => m instanceof PokemonHeldItemModifier && m.pokemonId === pokemon.id,
+            false,
+          );
           if (globalScene.getPlayerParty().filter(p => p.isShiny()).length === PLAYER_PARTY_MAX_SIZE) {
             globalScene.validateAchv(achvs.SHINY_PARTY);
           }

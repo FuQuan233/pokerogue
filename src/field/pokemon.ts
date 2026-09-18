@@ -2,6 +2,7 @@ import type { PreAttackModifyDamageAbAttrParams, UngroundedAbAttr } from "#abili
 import type { Ability } from "#abilities/ability";
 import { applyAbAttrs, applyOnGainAbAttrs, applyOnLoseAbAttrs } from "#abilities/apply-ab-attrs";
 import { generateMoveset } from "#ai/ai-moveset-gen";
+import { chooseTrainerMove } from "#ai/trainer-tactics";
 import type { Battle } from "#app/battle";
 import type { BattleScene } from "#app/battle-scene";
 import { PLAYER_PARTY_MAX_SIZE, RARE_CANDY_FRIENDSHIP_CAP } from "#app/constants";
@@ -7092,6 +7093,10 @@ export class EnemyPokemon extends Pokemon {
             useMode: MoveUseMode.NORMAL,
           };
         }
+      }
+      const trainerMove = this.hasTrainer() ? chooseTrainerMove(this, movePool) : null;
+      if (trainerMove) {
+        return trainerMove;
       }
       switch (this.aiType) {
         // No enemy should spawn with this AI type in-game

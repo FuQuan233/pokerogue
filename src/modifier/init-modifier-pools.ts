@@ -695,6 +695,7 @@ function initRogueModifierPool() {
 function initMasterModifierPool() {
   modifierPool[ModifierTier.MASTER] = [
     new WeightedModifierType(modifierTypes.LABOR_LAW, 24),
+    new WeightedModifierType(modifierTypes.ROCKET_TEAM_BADGE, 24),
     new WeightedModifierType(modifierTypes.FIVE_YEAR_PLAN, 24),
     new WeightedModifierType(modifierTypes.PEOPLE_POWER, 24),
     new WeightedModifierType(modifierTypes.MASTER_BALL, () => (hasMaximumBalls(PokeballType.MASTER_BALL) ? 0 : 24), 24),
@@ -756,7 +757,6 @@ function initTrainerModifierPool() {
   });
   trainerModifierPool[ModifierTier.ROGUE] = [
     new WeightedModifierType(modifierTypes.FOCUS_BAND, 2),
-    new WeightedModifierType(modifierTypes.LUCKY_EGG, 4),
     new WeightedModifierType(modifierTypes.QUICK_CLAW, 1),
     new WeightedModifierType(modifierTypes.GRIP_CLAW, 1),
     new WeightedModifierType(modifierTypes.WIDE_LENS, 1),

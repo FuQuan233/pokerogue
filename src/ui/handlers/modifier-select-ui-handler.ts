@@ -40,6 +40,7 @@ export class ModifierSelectUiHandler extends AwaitableUiHandler {
   private lockRarityButtonText: Phaser.GameObjects.Text;
   private moveInfoOverlay: MoveInfoOverlay;
   private moveInfoOverlayActive = false;
+  private descriptionTimer: Phaser.Time.TimerEvent | null = null;
   protected declare onActionInput: ModifierSelectCallback | null;
 
   private rowCursor = 0;
@@ -537,6 +538,7 @@ export class ModifierSelectUiHandler extends AwaitableUiHandler {
   }
 
   setCursor(cursor: number): boolean {
+    this.clearDescriptionTimer();
     const ui = this.getUi();
     const ret = super.setCursor(cursor);
 
@@ -585,7 +587,7 @@ export class ModifierSelectUiHandler extends AwaitableUiHandler {
       const type = options[this.cursor].modifierTypeOption.type;
       if (type) {
         const messageHandler = ui.getMessageHandler();
-        ui.showText(
+        this.showItemDescription(
           type instanceof AbilityLearnerModifierType
             ? (allAbilities[type.abilityId]?.description ?? type.getDescription())
             : type.getDescription(),
@@ -631,6 +633,40 @@ export class ModifierSelectUiHandler extends AwaitableUiHandler {
     }
 
     return ret;
+  }
+
+  private clearDescriptionTimer(): void {
+    this.descriptionTimer?.remove(false);
+    this.descriptionTimer = null;
+  }
+
+  private showItemDescription(description: string): void {
+    const ui = this.getUi();
+    const handler = ui.getMessageHandler();
+    const message = handler.message;
+    // Pre-wrap only shop descriptions, preserving the battle dialogue's layout.
+    const lines = message.advancedWordWrap(description, message.context, handler.wordWrapWidth).split("\n");
+    const pages: string[] = [];
+    for (let i = 0; i < lines.length; i += 2) {
+      pages.push(lines.slice(i, i + 2).join("\n"));
+    }
+    let page = 0;
+    ui.showText(pages[page], 0);
+    if (pages.length > 1) {
+      this.descriptionTimer = globalScene.time.addEvent({
+        delay: 4000,
+        loop: true,
+        callback: () => {
+          // Never overwrite a purchase prompt or another screen's message.
+          if (ui.getHandler() !== this || message.text !== pages[page]) {
+            this.clearDescriptionTimer();
+            return;
+          }
+          page = (page + 1) % pages.length;
+          message.setText(pages[page]);
+        },
+      });
+    }
   }
 
   setRowCursor(rowCursor: number): boolean {
@@ -719,6 +755,7 @@ export class ModifierSelectUiHandler extends AwaitableUiHandler {
   }
 
   clear() {
+    this.clearDescriptionTimer();
     super.clear();
 
     this.moveInfoOverlay.clear();
