@@ -191,7 +191,7 @@ export const speciesEggMoves = {
   [SpeciesId.KECLEON]: [ MoveId.ZIPPY_ZAP, MoveId.COIL, MoveId.EXTREME_SPEED, MoveId.MULTI_ATTACK ],
   [SpeciesId.SHUPPET]: [ MoveId.STORM_THROW, MoveId.TIDY_UP, MoveId.PARTING_SHOT, MoveId.SPECTRAL_THIEF ],
   [SpeciesId.DUSKULL]: [ MoveId.BULK_UP, MoveId.DRAIN_PUNCH, MoveId.RECOVER, MoveId.RAGE_FIST ],
-  [SpeciesId.TROPIUS]: [ MoveId.STUFF_CHEEKS, MoveId.EARTH_POWER, MoveId.APPLE_ACID, MoveId.SAPPY_SEED ],
+  [SpeciesId.TROPIUS]: [ MoveId.LEECH_SEED, MoveId.PAIN_SPLIT, MoveId.AMNESIA, MoveId.ACID_ARMOR ],
   [SpeciesId.ABSOL]: [ MoveId.KOWTOW_CLEAVE, MoveId.SACRED_SWORD, MoveId.PSYBLADE, MoveId.BITTER_BLADE ],
   [SpeciesId.WYNAUT]: [ MoveId.RECOVER, MoveId.SHED_TAIL, MoveId.TAUNT, MoveId.COMEUPPANCE ],
   [SpeciesId.SNORUNT]: [ MoveId.SPARKLY_SWIRL, MoveId.NASTY_PLOT, MoveId.EARTH_POWER, MoveId.BLOOD_MOON ],
