@@ -46960,140 +46960,126 @@
     "id": "TROPIUS",
     "form": null,
     "level": 1,
-    "move": "GUST"
+    "move": "RECOVER"
   },
   {
     "dexNum": 357,
     "id": "TROPIUS",
     "form": null,
     "level": 1,
-    "move": "LEER"
+    "move": "POISON_GAS"
   },
   {
     "dexNum": 357,
     "id": "TROPIUS",
     "form": null,
     "level": 1,
-    "move": "GROWTH"
+    "move": "LICK"
   },
   {
     "dexNum": 357,
     "id": "TROPIUS",
     "form": null,
     "level": 1,
-    "move": "RAZOR_LEAF"
+    "move": "DEFENSE_CURL"
   },
   {
     "dexNum": 357,
     "id": "TROPIUS",
     "form": null,
-    "level": 6,
-    "move": "SWEET_SCENT"
-  },
-  {
-    "dexNum": 357,
-    "id": "TROPIUS",
-    "form": null,
-    "level": 10,
-    "move": "STOMP"
+    "level": 7,
+    "move": "CONFUSE_RAY"
   },
   {
     "dexNum": 357,
     "id": "TROPIUS",
     "form": null,
     "level": 13,
-    "move": "BESTOW"
+    "move": "NIGHT_SHADE"
   },
   {
     "dexNum": 357,
     "id": "TROPIUS",
     "form": null,
-    "level": 16,
-    "move": "MAGICAL_LEAF"
+    "level": 19,
+    "move": "WILL_O_WISP"
   },
   {
     "dexNum": 357,
     "id": "TROPIUS",
     "form": null,
-    "level": 21,
-    "move": "WHIRLWIND"
+    "level": 25,
+    "move": "TOXIC"
   },
   {
     "dexNum": 357,
     "id": "TROPIUS",
     "form": null,
-    "level": 26,
-    "move": "LEAF_TORNADO"
+    "level": 31,
+    "move": "PROTECT"
   },
   {
     "dexNum": 357,
     "id": "TROPIUS",
     "form": null,
-    "level": 30,
-    "move": "NATURAL_GIFT"
+    "level": 37,
+    "move": "HEX"
   },
   {
     "dexNum": 357,
     "id": "TROPIUS",
     "form": null,
-    "level": 32,
-    "move": "DRAGON_DANCE"
+    "level": 43,
+    "move": "TAUNT"
   },
   {
     "dexNum": 357,
     "id": "TROPIUS",
     "form": null,
-    "level": 34,
-    "move": "WIDE_GUARD"
+    "level": 49,
+    "move": "KNOCK_OFF"
   },
   {
     "dexNum": 357,
     "id": "TROPIUS",
     "form": null,
-    "level": 36,
-    "move": "AIR_SLASH"
-  },
-  {
-    "dexNum": 357,
-    "id": "TROPIUS",
-    "form": null,
-    "level": 41,
-    "move": "BODY_SLAM"
-  },
-  {
-    "dexNum": 357,
-    "id": "TROPIUS",
-    "form": null,
-    "level": 46,
-    "move": "DRAGON_HAMMER"
-  },
-  {
-    "dexNum": 357,
-    "id": "TROPIUS",
-    "form": null,
-    "level": 50,
-    "move": "SYNTHESIS"
-  },
-  {
-    "dexNum": 357,
-    "id": "TROPIUS",
-    "form": null,
-    "level": 53,
-    "move": "OUTRAGE"
-  },
-  {
-    "dexNum": 357,
-    "id": "TROPIUS",
-    "form": null,
-    "level": 56,
-    "move": "SOLAR_BEAM"
+    "level": 55,
+    "move": "SUBSTITUTE"
   },
   {
     "dexNum": 357,
     "id": "TROPIUS",
     "form": null,
     "level": 61,
-    "move": "LEAF_STORM"
+    "move": "CURSE"
+  },
+  {
+    "dexNum": 357,
+    "id": "TROPIUS",
+    "form": null,
+    "level": 67,
+    "move": "PAIN_SPLIT"
+  },
+  {
+    "dexNum": 357,
+    "id": "TROPIUS",
+    "form": null,
+    "level": 73,
+    "move": "STRENGTH_SAP"
+  },
+  {
+    "dexNum": 357,
+    "id": "TROPIUS",
+    "form": null,
+    "level": 79,
+    "move": "TOXIC_SPIKES"
+  },
+  {
+    "dexNum": 357,
+    "id": "TROPIUS",
+    "form": null,
+    "level": 85,
+    "move": "REST"
   },
   {
     "dexNum": 358,
