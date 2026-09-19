@@ -4,7 +4,6 @@ import { settings } from "#app/global-settings-manager";
 import { speciesDataRegistry } from "#app/global-species-data-registry";
 import { speciesEggMoves } from "#balance/egg-moves";
 import {
-  getPassiveCandyCount,
   getSameSpeciesEggCandyCounts,
   getStarterValueFriendshipCap,
   getValueReductionCandyCounts,
@@ -18,7 +17,6 @@ import { DexAttr } from "#enums/dex-attr";
 import { GameModes } from "#enums/game-modes";
 import type { MoveId } from "#enums/move-id";
 import { Nature } from "#enums/nature";
-import { Passive } from "#enums/passive";
 import { RibbonData } from "#system/ribbon-data";
 import type { DexEntry } from "#types/dex-data";
 import type { DexAttrProps, StarterDataEntry, StarterPreferences } from "#types/save-data";
@@ -29,23 +27,6 @@ import { applyChallenges, checkStarterValidForChallenge } from "#utils/challenge
 import { deepCopy } from "#utils/data";
 import { ValueHolder } from "#utils/value-holder";
 import i18next from "i18next";
-
-/**
- * Determines if a passive upgrade is available for the given species ID
- * @param speciesId - The ID of the species to check the passive of
- * @param gameData - (Default `globalScene.gameData`) Game data to use
- * @returns Whether the user has enough candies and a passive has not been unlocked already
- */
-export function isPassiveAvailable(speciesId: number, gameData = globalScene.gameData): boolean {
-  // Get this species ID's starter data
-  const starterId = speciesDataRegistry.getStarter(speciesId);
-  const starterData = gameData.starterData[starterId];
-
-  return (
-    starterData.candyCount >= getPassiveCandyCount(speciesDataRegistry.getStarterCost(starterId))
-    && !(starterData.passiveAttr & Passive.UNLOCKED)
-  );
-}
 
 /**
  * Determines if a value reduction upgrade is available for the given species ID

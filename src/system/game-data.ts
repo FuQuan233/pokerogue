@@ -106,6 +106,8 @@ export class GameData {
 
   public voucherUnlocks: VoucherUnlocks;
   public voucherCounts: VoucherCounts;
+  /** Highest progression-reward wave claimed per mode/run seed, saved with voucher balances. */
+  public progressionRewardClaims: Record<string, number> = {};
   public eggs: Egg[];
   public eggPity: number[];
   public unlockPity: number[];
@@ -171,6 +173,7 @@ export class GameData {
       achvUnlocks: this.achvUnlocks,
       voucherUnlocks: this.voucherUnlocks,
       voucherCounts: this.voucherCounts,
+      progressionRewardClaims: this.progressionRewardClaims,
       eggs: this.eggs.map(e => new EggData(e)),
       gameVersion: globalScene.game.config.gameVersion,
       timestamp: Date.now(),
@@ -388,6 +391,7 @@ export class GameData {
       }
     }
 
+    this.progressionRewardClaims = { ...systemData.progressionRewardClaims };
     if (systemData.voucherCounts) {
       for (const key of getEnumKeys(VoucherType)) {
         const index = VoucherType[key];

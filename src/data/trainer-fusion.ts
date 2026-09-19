@@ -55,7 +55,7 @@ export function scoreRivalFusion(build: TrainerFusionBuild, party: readonly Poke
 }
 
 export function getTrainerFusionCount(type: TrainerType, wave: number, partySize: number): number {
-  if (!trainerFusionPools[type]) {
+  if (wave < 95 || !trainerFusionPools[type]) {
     return 0;
   }
   if (type >= TrainerType.RIVAL && type <= TrainerType.RIVAL_6) {

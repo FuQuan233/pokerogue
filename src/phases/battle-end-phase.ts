@@ -1,5 +1,6 @@
 import { applyAbAttrs } from "#abilities/apply-ab-attrs";
 import { globalScene } from "#app/global-scene";
+import { isProgressionRewardWave } from "#data/progression-reward";
 import { LapsingPersistentModifier, LapsingPokemonHeldItemModifier } from "#modifiers/modifier";
 import { BattlePhase } from "#phases/battle-phase";
 
@@ -86,6 +87,9 @@ export class BattleEndPhase extends BattlePhase {
           rerollMultiplier: -1,
         });
       }
+    }
+    if (this.isVictory && isProgressionRewardWave(globalScene.currentBattle.waveIndex, globalScene.gameMode.modeId)) {
+      globalScene.phaseManager.unshiftNew("ProgressionRewardPhase");
     }
     this.end();
   }

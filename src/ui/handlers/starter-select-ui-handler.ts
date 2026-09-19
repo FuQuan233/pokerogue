@@ -17,6 +17,7 @@ import { allMoves } from "#data/data-lists";
 import { Egg } from "#data/egg";
 import { getNatureName } from "#data/nature";
 import type { PokemonSpecies } from "#data/pokemon-species";
+import { isPassiveUnlocked as hasUnlockedPassive, isPassiveAvailable } from "#data/starter-progress";
 import { AbilityAttr } from "#enums/ability-attr";
 import { AbilityId } from "#enums/ability-id";
 import { Button } from "#enums/buttons";
@@ -65,7 +66,6 @@ import {
   getStarterDetailsFromPreferences,
   getStarterDexAttrPropsFromPreferences,
   getStarterMoves,
-  isPassiveAvailable,
   isSameSpeciesEggAvailable,
   isStarterValidForChallenge,
   isUpgradeAnimationEnabled,
@@ -2385,7 +2385,7 @@ export class StarterSelectUiHandler extends MessageUiHandler {
       });
 
       // Passive Filter
-      const isPassiveUnlocked = starterData.passiveAttr > 0;
+      const isPassiveUnlocked = hasUnlockedPassive(starterData.passiveAttr);
       const isPassiveUnlockable = isPassiveAvailable(starterId) && !isPassiveUnlocked;
       const fitsPassive = this.filterBar.getVals(DropDownColumn.UNLOCKS).some(unlocks => {
         if (unlocks.val === "PASSIVE" && unlocks.state === DropDownState.ON) {

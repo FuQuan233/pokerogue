@@ -58,16 +58,21 @@ describe("Named trainer fusion pools", () => {
   it("scales named trainers by wave while ordinary NPCs never receive fusions", () => {
     for (const [wave, count] of [
       [29, 0],
-      [30, 1],
-      [79, 1],
-      [80, 2],
+      [30, 0],
+      [79, 0],
+      [80, 0],
+      [94, 0],
+      [95, 2],
       [139, 2],
       [140, 3],
     ]) {
       expect(getTrainerFusionCount(TrainerType.BROCK, wave, 6)).toBe(count);
       expect(getTrainerFusionCount(TrainerType.ACE_TRAINER, wave, 6)).toBe(0);
     }
-    expect(getTrainerFusionCount(TrainerType.RIVAL, 8, 2)).toBe(1);
+    expect(getTrainerFusionCount(TrainerType.RIVAL, 8, 2)).toBe(0);
+    expect(getTrainerFusionCount(TrainerType.RIVAL_3, 55, 6)).toBe(0);
+    expect(getTrainerFusionCount(TrainerType.RIVAL_4, 94, 6)).toBe(0);
+    expect(getTrainerFusionCount(TrainerType.RIVAL_4, 95, 6)).toBe(2);
     expect(getTrainerFusionCount(TrainerType.RIVAL_6, 195, 6)).toBe(2);
   });
 

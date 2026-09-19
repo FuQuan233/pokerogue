@@ -21,6 +21,7 @@ import { getNatureName } from "#data/nature";
 import type { SpeciesFormChange } from "#data/pokemon-forms";
 import type { PokemonSpecies } from "#data/pokemon-species";
 import { normalForm } from "#data/pokemon-species";
+import { isPassiveAvailable } from "#data/starter-progress";
 import { AbilityAttr } from "#enums/ability-attr";
 import type { AbilityId } from "#enums/ability-id";
 import { BiomeId } from "#enums/biome-id";
@@ -57,7 +58,7 @@ import { MessageUiHandler } from "#ui/message-ui-handler";
 import { MoveInfoOverlay } from "#ui/move-info-overlay";
 import { PokedexInfoOverlay } from "#ui/pokedex-info-overlay";
 import { RibbonTray } from "#ui/ribbon-tray-container";
-import { isPassiveAvailable, isSameSpeciesEggAvailable, isValueReductionAvailable } from "#ui/starter-select-ui-utils";
+import { isSameSpeciesEggAvailable, isValueReductionAvailable } from "#ui/starter-select-ui-utils";
 import { StatsContainer } from "#ui/stats-container";
 import {
   addBBCodeTextObject,

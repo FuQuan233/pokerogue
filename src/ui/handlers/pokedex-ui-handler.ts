@@ -6,6 +6,7 @@ import { getStarterValueFriendshipCap, POKERUS_STARTER_COUNT } from "#balance/st
 import { allAbilities, allMoves, catchableSpecies } from "#data/data-lists";
 import type { PokemonForm, PokemonSpecies } from "#data/pokemon-species";
 import { normalForm } from "#data/pokemon-species";
+import { isPassiveAvailable } from "#data/starter-progress";
 import { AbilityAttr } from "#enums/ability-attr";
 import { AbilityId } from "#enums/ability-id";
 import { BiomeId } from "#enums/biome-id";
@@ -34,7 +35,7 @@ import { MessageUiHandler } from "#ui/message-ui-handler";
 import { PokedexMonContainer } from "#ui/pokedex-mon-container";
 import { PokemonIconAnimHelper } from "#ui/pokemon-icon-anim-helper";
 import { ScrollBar } from "#ui/scroll-bar";
-import { isPassiveAvailable, isSameSpeciesEggAvailable, isValueReductionAvailable } from "#ui/starter-select-ui-utils";
+import { isSameSpeciesEggAvailable, isValueReductionAvailable } from "#ui/starter-select-ui-utils";
 import { addTextObject, getTextColor } from "#ui/text";
 import { addWindow } from "#ui/ui-theme";
 import { argbFromRgba, rgbHexToRgba } from "#utils/color-utils";

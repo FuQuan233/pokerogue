@@ -43,6 +43,31 @@ describe("Classic trainer strength and tactics", () => {
   });
   const pool = (...moves: MoveId[]) => moves.map(m => new PokemonMove(m));
 
+  it.each([
+    [29, 0],
+    [30, 1],
+    [80, 1],
+    [94, 1],
+    [95, 5],
+  ])("reduces boss vitamins before wave 95: wave %i", async (wave, stacks) => {
+    game.override.randomTrainer({ trainerType: TrainerType.BROCK }).startingWave(wave);
+    await game.classicMode.startBattle(SpeciesId.MAGIKARP);
+    const vitamins = getTrainerLoadout(game.field.getEnemyPokemon()).filter(m => m instanceof BaseStatModifier);
+    expect(getTrainerStrength()?.vitaminStacks).toBe(stacks);
+    if (stacks === 0) {
+      expect(vitamins).toHaveLength(0);
+    } else {
+      expect(vitamins).toHaveLength(5);
+      expect(vitamins.map(m => m.stackCount).sort()).toEqual([
+        stacks,
+        stacks,
+        stacks,
+        stacks,
+        stacks + Number(wave >= 95),
+      ]);
+    }
+  });
+
   it("gives attackers guaranteed speed, HP and both defenses as well as offense, with reloadable item types", async () => {
     await game.classicMode.startBattle(SpeciesId.MAGIKARP);
     const enemy = game.field.getEnemyPokemon();

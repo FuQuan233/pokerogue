@@ -20,7 +20,7 @@ export function getTrainerStrength() {
     boss,
     stage,
     levelMultiplier: boss ? 1.1 : 1.05,
-    vitaminStacks: 1 + stage + (boss ? 1 + Math.floor(stage / 2) : 0),
+    vitaminStacks: wave < 30 ? 0 : wave < 95 ? 1 : 1 + stage + (boss ? 1 + Math.floor(stage / 2) : 0),
     ivFloor: boss ? 31 : 15 + stage * 5,
     eggLevel: boss ? 35 : 60,
     rareEggLevel: boss ? 100 : 150,

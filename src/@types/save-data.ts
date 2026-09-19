@@ -34,6 +34,7 @@ export interface SystemSaveData {
   achvUnlocks: AchvUnlocks;
   voucherUnlocks: VoucherUnlocks;
   voucherCounts: VoucherCounts;
+  progressionRewardClaims?: Record<string, number>;
   eggs: EggData[];
   gameVersion: string;
   timestamp: number;

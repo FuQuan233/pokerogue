@@ -34,7 +34,7 @@ export function getTrainerLoadout(pokemon: EnemyPokemon): PokemonHeldItemModifie
   for (const stat of [Stat.HP, Stat.DEF, Stat.SPDEF, Stat.SPD]) {
     add("BASE_STAT_BOOSTER", stacks, [stat]);
   }
-  add("BASE_STAT_BOOSTER", stacks + (profile.boss ? 1 : 0), [getTrainerOffensiveStat(pokemon)]);
+  add("BASE_STAT_BOOSTER", stacks + (profile.boss && profile.wave >= 95 ? 1 : 0), [getTrainerOffensiveStat(pokemon)]);
   const attackTypes = new Set(
     pokemon
       .getMoveset()
