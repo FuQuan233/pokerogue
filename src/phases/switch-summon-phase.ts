@@ -26,8 +26,9 @@ const SELF_SWITCH_MOVE_ATTRS = ["ForceSwitchOutAttr", "PartingShotAttr"] as cons
 export class SwitchSummonPhase extends SummonPhase {
   public readonly phaseName: "SwitchSummonPhase" | "ReturnPhase" = "SwitchSummonPhase";
   private readonly switchType: SwitchType;
-  private readonly slotIndex: number;
+  private slotIndex: number;
   private readonly doReturn: boolean;
+  private skipped = false;
 
   private lastPokemon: Pokemon;
 
@@ -48,21 +49,43 @@ export class SwitchSummonPhase extends SummonPhase {
   }
 
   start(): void {
+    // A queued replacement can become obsolete after another switch (e.g. a trainer capture).
+    const pokemon = this.getPokemon();
+    if (!pokemon || (!this.player && !this.doReturn && this.slotIndex === -1 && pokemon.isActive(true))) {
+      this.skipSwitch();
+      return;
+    }
     super.start();
   }
 
+  private skipSwitch(): void {
+    this.skipped = true;
+    this.end();
+  }
+
+  private hasValidTarget(): boolean {
+    const target = this.getParty()[this.slotIndex];
+    // Revival Blessing can re-summon the revived Pokemon into its own vacant slot.
+    return !!target && target.isAllowedInBattle() && !target.isOnField();
+  }
+
   preSummon(): void {
-    if (!this.player) {
-      if (this.slotIndex === -1) {
-        //@ts-expect-error
-        this.slotIndex = globalScene.currentBattle.trainer?.getNextSummonIndex(
+    if (!this.player && this.slotIndex === -1) {
+      this.slotIndex =
+        globalScene.currentBattle.trainer?.getNextSummonIndex(
           this.fieldIndex ? TrainerSlot.TRAINER_PARTNER : TrainerSlot.TRAINER,
-        ); // TODO: what would be the default trainer-slot fallback?
-      }
-      if (this.slotIndex > -1) {
-        this.showEnemyTrainer(this.fieldIndex % 2 ? TrainerSlot.TRAINER_PARTNER : TrainerSlot.TRAINER);
-        globalScene.pbTrayEnemy.showPbTray(globalScene.getEnemyParty());
-      }
+        ) ?? -1;
+    }
+
+    // ReturnPhase intentionally has no incoming Pokemon.
+    if (this.phaseName !== "ReturnPhase" && !this.hasValidTarget()) {
+      this.skipSwitch();
+      return;
+    }
+
+    if (!this.player && this.slotIndex > -1) {
+      this.showEnemyTrainer(this.fieldIndex % 2 ? TrainerSlot.TRAINER_PARTNER : TrainerSlot.TRAINER);
+      globalScene.pbTrayEnemy.showPbTray(globalScene.getEnemyParty());
     }
 
     if (
@@ -124,6 +147,11 @@ export class SwitchSummonPhase extends SummonPhase {
   }
 
   switchAndSummon() {
+    // Recheck after the return animation, before touching either Pokemon.
+    if (!this.getPokemon() || !this.hasValidTarget()) {
+      this.skipSwitch();
+      return;
+    }
     const party = this.player ? this.getParty() : globalScene.getEnemyParty();
     const switchedInPokemon: Pokemon | undefined = party[this.slotIndex];
     this.lastPokemon = this.getPokemon();
@@ -148,10 +176,6 @@ export class SwitchSummonPhase extends SummonPhase {
 
     applyAbAttrs("PreSummonAbAttr", { pokemon: switchedInPokemon });
     applyAbAttrs("PreSwitchOutAbAttr", { pokemon: this.lastPokemon });
-    if (!switchedInPokemon) {
-      this.end();
-      return;
-    }
 
     if (this.switchType === SwitchType.BATON_PASS) {
       // If switching via baton pass, update opposing tags coming from the prior pokemon
@@ -220,6 +244,10 @@ export class SwitchSummonPhase extends SummonPhase {
   }
 
   onEnd(): void {
+    // No summon occurred: don't reset turn data, transfer effects, or run entry abilities.
+    if (this.skipped) {
+      return;
+    }
     super.onEnd();
 
     const pokemon = this.getPokemon();

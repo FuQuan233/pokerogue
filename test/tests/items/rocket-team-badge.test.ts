@@ -7,11 +7,13 @@ import { MoveId } from "#enums/move-id";
 import { PokeballType } from "#enums/pokeball";
 import { SpeciesId } from "#enums/species-id";
 import { StatusEffect } from "#enums/status-effect";
+import { SwitchType } from "#enums/switch-type";
 import { TrainerType } from "#enums/trainer-type";
 import { type PokemonHeldItemModifier, RocketTeamBadgeModifier } from "#modifiers/modifier";
 import { modifierPool, trainerModifierPool, wildModifierPool } from "#modifiers/modifier-pools";
 import { AttemptCapturePhase } from "#phases/attempt-capture-phase";
 import type { CommandPhase } from "#phases/command-phase";
+import { SwitchSummonPhase } from "#phases/switch-summon-phase";
 import { ModifierData } from "#system/modifier-data";
 import { GameManager } from "#test/framework/game-manager";
 import { trainerConfigs } from "#trainers/trainer-config";
@@ -142,6 +144,41 @@ describe("Rocket Team Badge", () => {
     await game.phaseInterceptor.to("TrainerVictoryPhase");
     expect(game.scene.getPlayerParty()).toHaveLength(2);
     expect(game.scene.getEnemyParty().every(p => p.isFainted())).toBe(true);
+  });
+
+  it("continues after a duplicate replacement queued behind a trainer capture", async () => {
+    await game.classicMode.startBattle(SpeciesId.MAGIKARP);
+    const enemy = game.field.getEnemyPokemon();
+    game.scene.pokeballCounts[PokeballType.MASTER_BALL] = 1;
+    game.doThrowPokeball(PokeballType.MASTER_BALL);
+    await game.phaseInterceptor.to("SwitchSummonPhase");
+    game.scene.phaseManager.pushNew("SwitchSummonPhase", SwitchType.SWITCH, 0, -1, false, false);
+    await game.phaseInterceptor.to("CommandPhase");
+    const replacement = game.field.getEnemyPokemon();
+    expect(replacement).not.toBe(enemy);
+    expect(replacement.isActive(true)).toBe(true);
+    game.move.select(MoveId.SPLASH);
+    await game.toNextTurn();
+    expect(game.field.getEnemyPokemon()).toBe(replacement);
+  });
+
+  it.each([
+    "start",
+    "switchAndSummon",
+  ] as const)("skips an invalid target at %s without resetting the active Pokemon", async method => {
+    await game.classicMode.startBattle(SpeciesId.MAGIKARP);
+    const enemy = game.field.getEnemyPokemon();
+    const reset = vi.spyOn(enemy, "resetSummonData");
+    const leave = vi.spyOn(enemy, "leaveField");
+    const shift = vi.spyOn(game.scene.phaseManager, "shiftPhase").mockImplementation(() => {});
+    const postSummon = vi.spyOn(game.scene.phaseManager, "unshiftNew");
+    const phase = new SwitchSummonPhase(SwitchType.SWITCH, 0, 999, true, false);
+    expect(() => phase[method]()).not.toThrow();
+    expect(shift).toHaveBeenCalledOnce();
+    expect(reset).not.toHaveBeenCalled();
+    expect(leave).not.toHaveBeenCalled();
+    expect(postSummon).not.toHaveBeenCalled();
+    expect(enemy.isActive(true)).toBe(true);
   });
 
   it("keeps the trainer Pokemon in battle after a failed catch", async () => {
