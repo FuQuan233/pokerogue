@@ -234,7 +234,11 @@ export class CommandUiHandler extends UiHandler {
 
     const entry = entries[this.damageLogCurrentIndex];
     const logText = damageCalculationLog.formatEntry(entry);
-    this.damageLogLines = logText.split("\n");
+    this.damageLogText?.setWordWrapWidth(
+      (globalScene.scaledCanvas.width - 2 * DAMAGE_LOG_CONFIG.PADDING - 4) / this.damageLogText.scaleX,
+      true,
+    );
+    this.damageLogLines = this.damageLogText?.getWrappedText(logText) ?? logText.split("\n");
 
     // 按行截取显示，根据滚动偏移量选择显示的行
     const visibleLines = this.damageLogLines.slice(
@@ -260,7 +264,7 @@ export class CommandUiHandler extends UiHandler {
 
     // 左右切换提示
     if (entries.length > 1) {
-      navParts.push(`←→切换(${this.damageLogCurrentIndex + 1}/${entries.length})`);
+      navParts.push(`←→本回合命中(${this.damageLogCurrentIndex + 1}/${entries.length})`);
     }
 
     navParts.push("取消键返回");

@@ -30,6 +30,7 @@ import {
   TypeBoostTag,
 } from "#data/battler-tags";
 import { getBerryEffectFunc } from "#data/berry";
+import { traceLine, traceSection } from "#data/damage-trace";
 import { allAbilities, allMoves } from "#data/data-lists";
 import { SpeciesFormChangeRevertWeatherFormTrigger } from "#data/form-change-triggers";
 import { getNonVolatileStatusEffects, getStatusEffectHealText, isNonVolatileStatusEffect } from "#data/status-effect";
@@ -1119,6 +1120,8 @@ export abstract class Move implements Localizable {
    * @returns The calculated power of the move.
    */
   calculateBattlePower(source: Pokemon, target: Pokemon, simulated = false): number {
+    traceSection("招式威力");
+    traceLine(`${this.name}基础威力${this.power}`);
     if (this.category === MoveCategory.STATUS) {
       return -1;
     }
@@ -1126,6 +1129,7 @@ export abstract class Move implements Localizable {
     const power = new NumberHolder(this.power);
 
     applyMoveAttrs("VariablePowerAttr", source, target, this, power);
+    traceLine(`招式自身变威力效果后：${power.value}`);
 
     const typeChangeHolder = new ValueHolder(this.type);
 
@@ -1216,6 +1220,7 @@ export abstract class Move implements Localizable {
       power.value *= 0.5;
     }
 
+    traceLine(`太晶、场地、帮助及蓄力等效果处理后实际威力：${power.value}`);
     return power.value;
   }
 

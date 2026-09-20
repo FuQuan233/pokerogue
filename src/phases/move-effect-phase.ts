@@ -5,6 +5,8 @@ import { getPokemonNameWithAffix } from "#app/messages";
 import { ConditionalProtectTag } from "#data/arena-tag";
 import { MoveAnim } from "#data/battle-anims";
 import { ProtectedTag, SemiInvulnerableTag, SubstituteTag, TypeBoostTag } from "#data/battler-tags";
+import { damageCalculationLog } from "#data/damage-calculation-log";
+import { captureDamageTrace, traceLine } from "#data/damage-trace";
 import { SpeciesFormChangePostMoveTrigger } from "#data/form-change-triggers";
 import type { TypeDamageMultiplier } from "#data/type";
 import { ArenaTagSide } from "#enums/arena-tag-side";
@@ -648,6 +650,25 @@ export class MoveEffectPhase extends PokemonPhase {
    * @returns A {@linkcode MoveDamageTuple} containing the results of damage application.
    */
   protected applyMoveDamage(user: Pokemon, target: Pokemon, effectiveness: TypeDamageMultiplier): MoveDamageTuple {
+    const { waveIndex: wave, turn } = globalScene.currentBattle;
+    const { result, lines } = captureDamageTrace(() => this.applyMoveDamageWithTrace(user, target, effectiveness));
+    damageCalculationLog.addEntry({
+      wave,
+      turn,
+      attackerName: user.getNameToRender(),
+      defenderName: target.getNameToRender(),
+      moveName: this.move.name,
+      finalDamage: result[1],
+      lines,
+    });
+    return result;
+  }
+
+  private applyMoveDamageWithTrace(
+    user: Pokemon,
+    target: Pokemon,
+    effectiveness: TypeDamageMultiplier,
+  ): MoveDamageTuple {
     // TODO: make sure this doesn't break anything, possibly find better solution
     if (this.move.hasAttr("HealOnAllyAttr") && target === user.getAlly()) {
       return [HitCheckResult.HIT, 0, false];
@@ -716,6 +737,11 @@ export class MoveEffectPhase extends PokemonPhase {
           source: user,
         });
 
+    traceLine(
+      isBlockedBySubstitute
+        ? `替身承受${initialDmg}点计算伤害，本体不扣血`
+        : `结算前伤害${damageHolder.value}；实际扣血${finalDmg}（考虑剩余HP、挺住及Boss血条）`,
+    );
     if (isCritical) {
       globalScene.phaseManager.queueMessage(i18next.t("battle:hitResultCriticalHit"));
     }

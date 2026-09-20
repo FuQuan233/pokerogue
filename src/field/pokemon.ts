@@ -40,11 +40,7 @@ import {
 } from "#data/battler-tags";
 import { getDailyEventSeedBoss, isDailyForcedWaveHiddenAbility } from "#data/daily-run";
 import { isDailyEventSeed, isDailyFinalBoss } from "#data/daily-seed-utils";
-import {
-  type DamageCalculationEntry,
-  type DamageCalculationParams,
-  damageCalculationLog,
-} from "#data/damage-calculation-log";
+import { isTracingDamage, traceLine, traceNumber, traceSection } from "#data/damage-trace";
 import { allAbilities, allMoves } from "#data/data-lists";
 import { getLevelTotalExp } from "#data/exp";
 import {
@@ -67,6 +63,7 @@ import {
 import type { SpeciesFormChange } from "#data/pokemon-forms";
 import type { PokemonSpeciesForm } from "#data/pokemon-species";
 import { PokemonSpecies } from "#data/pokemon-species";
+import { getPeoplePowerBaseStats } from "#data/policy-items";
 import { getRandomStatus, getStatusEffectHealText, getStatusEffectOverlapText, Status } from "#data/status-effect";
 import { getTerrainBlockMessage, TerrainType } from "#data/terrain";
 import type { TypeDamageMultiplier } from "#data/type";
@@ -131,7 +128,6 @@ import {
   IntellectScrollModifier,
   InvigorateScrollModifier,
   LuckyScrollModifier,
-  PeoplePowerModifier,
   PhysicalCritScrollModifier,
   PokemonBaseStatFlatModifier,
   PokemonBaseStatTotalModifier,
@@ -242,6 +238,8 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
   public gender: Gender;
   public hp: number;
   public stats: number[];
+  /** Persisted only to preserve HP ratio when a saved temporary stat replacement is removed. */
+  public peoplePowerApplied = false;
   public ivs: number[];
   public nature: Nature;
   public moveset: PokemonMove[];
@@ -385,6 +383,7 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
       this.id = dataSource.id;
       this.hp = dataSource.hp;
       this.stats = dataSource.stats;
+      this.peoplePowerApplied = dataSource.peoplePowerApplied ?? false;
       this.ivs = dataSource.ivs;
       this.passive = !!dataSource.passive;
       if (this.variant === undefined) {
@@ -1521,6 +1520,34 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
       forDefend = false,
     }: GetEffectiveStatParams = {},
   ): number {
+    if (isTracingDamage()) {
+      const statName = ["HP", "攻击", "防御", "特攻", "特防", "速度"][stat];
+      traceSection(`${this.getNameToRender()}·${statName}`);
+      const raw = this.calculateBaseStats(true)[stat];
+      const base = this.calculateBaseStats()[stat];
+      const natureHolder = new NumberHolder(getNatureStatMultiplier(this.getNature(), stat));
+      globalScene.applyModifier(PokemonNatureWeightModifier, this.isPlayer(), this, natureHolder);
+      const nature = natureHolder.value;
+      const levelStat = Math.floor(((2 * base + this.ivs[stat]) * this.level) / 100) + 5;
+      const natureStat =
+        nature === 1 ? levelStat : Math.max(Math[nature > 1 ? "ceil" : "floor"](levelStat * nature), 1);
+      traceLine(`原始/融合种族值${raw} → 当前种族值${base}`);
+      const shared = getPeoplePowerBaseStats(this)?.[stat];
+      if (shared !== undefined) {
+        traceLine(`人民万岁均值：${shared}；再计算自身努力药等道具`);
+      }
+      traceLine(`等级${this.level}，个体值${this.ivs[stat]}，性格倍率${nature}`);
+      traceLine(`等级项=floor((2×${base}+${this.ivs[stat]})×${this.level}/100)+5`);
+      traceLine(`等级项${levelStat}，乘性格${nature}并取整=${natureStat}`);
+      traceLine(`永久面板额外修正=${this.getStat(stat) - natureStat}`);
+      for (const item of this.getHeldItems()) {
+        traceLine(`持有：${item.type.name}×${item.getStackCount()}`);
+      }
+      traceLine(`性格及永久道具计算后面板=${this.getStat(stat)}`);
+      traceLine(
+        `战斗覆盖面板=${this.getStat(stat, false)}，能力等级${this.getStatStage(stat) >= 0 ? "+" : ""}${this.getStatStage(stat)}`,
+      );
+    }
     const statVal = new NumberHolder(this.getStat(stat, false));
     if (!ignoreHeldItems) {
       globalScene.applyModifiers(StatBoosterModifier, this.isPlayer(), this, stat, statVal);
@@ -1582,9 +1609,17 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
         ? globalScene.arena.weatherType
         : getEffectiveWeatherForMove(opponent);
 
-    let ret =
-      statVal.value
-      * this.getStatStageMultiplier(stat, opponent, move, ignoreOppAbility, isCritical, simulated, ignoreHeldItems);
+    const stageMultiplier = this.getStatStageMultiplier(
+      stat,
+      opponent,
+      move,
+      ignoreOppAbility,
+      isCritical,
+      simulated,
+      ignoreHeldItems,
+    );
+    traceLine(`实际能力等级倍率×${traceNumber(stageMultiplier)}（已考虑会心、无视能力变化等）`);
+    let ret = statVal.value * stageMultiplier;
 
     switch (stat) {
       case Stat.ATK:
@@ -1633,16 +1668,23 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
       ret *= highestStatBoost.multiplier;
     }
 
-    return Math.max(Math.floor(ret), 1);
+    const finalStat = Math.max(Math.floor(ret), 1);
+    traceLine(`天气、场地及状态处理后：${traceNumber(ret)} → 取整${finalStat}`);
+    return finalStat;
   }
 
   calculateStats(): void {
+    const previousHp = this.hp;
+    const previousMaxHp = this.stats?.[Stat.HP];
+    const powerStats = getPeoplePowerBaseStats(this);
+    const preserveHpRatio = this.peoplePowerApplied || !!powerStats;
+    this.peoplePowerApplied = !!powerStats;
     if (!this.stats) {
       this.stats = [0, 0, 0, 0, 0, 0];
     }
 
     // Get and manipulate base stats
-    const baseStats = this.calculateBaseStats();
+    const baseStats = this.calculateBaseStats(false, powerStats);
     // Using base stats, calculate and store stats one by one
     for (const s of PERMANENT_STATS) {
       const statHolder = new NumberHolder(Math.floor((2 * baseStats[s] + this.ivs[s]) * this.level * 0.01));
@@ -1679,9 +1721,22 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
 
       this.setStat(s, statHolder.value);
     }
+    if (preserveHpRatio && previousMaxHp && previousHp !== undefined) {
+      this.hp =
+        previousHp <= 0
+          ? 0
+          : Math.max(1, Math.min(this.getMaxHp(), Math.floor((previousHp * this.getMaxHp()) / previousMaxHp)));
+    }
   }
 
-  calculateBaseStats(): number[] {
+  calculateBaseStats(intrinsic = false, powerStats = intrinsic ? undefined : getPeoplePowerBaseStats(this)): number[] {
+    if (powerStats) {
+      const baseStats = powerStats.slice();
+      globalScene.applyModifiers(PokemonBaseStatTotalModifier, this.isPlayer(), this, baseStats);
+      globalScene.applyModifiers(PokemonBaseStatFlatModifier, this.isPlayer(), this, baseStats);
+      globalScene.applyModifiers(BaseStatModifier, this.isPlayer(), this, baseStats);
+      return baseStats;
+    }
     let baseStats = this.getSpeciesForm(true).baseStats.slice(0);
 
     // Apply random stats in RANDOM_STATS mode (before any other modifications)
@@ -1691,9 +1746,13 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
 
     applyChallenges(ChallengeType.FLIP_STAT, this, baseStats);
     // Shuckle Juice
-    globalScene.applyModifiers(PokemonBaseStatTotalModifier, this.isPlayer(), this, baseStats);
+    if (!intrinsic) {
+      globalScene.applyModifiers(PokemonBaseStatTotalModifier, this.isPlayer(), this, baseStats);
+    }
     // Old Gateau
-    globalScene.applyModifiers(PokemonBaseStatFlatModifier, this.isPlayer(), this, baseStats);
+    if (!intrinsic) {
+      globalScene.applyModifiers(PokemonBaseStatFlatModifier, this.isPlayer(), this, baseStats);
+    }
     if (this.isFusion()) {
       let fusionBaseStats = this.getFusionSpeciesForm(true).baseStats.slice(0);
 
@@ -1718,7 +1777,9 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
       }
     }
     // Vitamins
-    globalScene.applyModifiers(BaseStatModifier, this.isPlayer(), this, baseStats);
+    if (!intrinsic) {
+      globalScene.applyModifiers(BaseStatModifier, this.isPlayer(), this, baseStats);
+    }
 
     return baseStats;
   }
@@ -3819,6 +3880,10 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
      * and Attack stat as well as this Pokemon's Defense stat
      */
     const baseDamage = (levelMultiplier * power * sourceAtk.value) / targetDef.value / 50 + 2;
+    traceSection("基础伤害");
+    traceLine(`实际威力${power}，攻击项${sourceAtk.value}，防御项${targetDef.value}`);
+    traceLine(`(2×${source.level}/5+2)×${power}×${sourceAtk.value}/${targetDef.value}/50+2`);
+    traceLine(`基础伤害=${traceNumber(baseDamage)}（包含招式特殊攻防取值）`);
 
     /** Debug message for non-simulated calls (i.e. when damage is actually dealt) */
     if (!simulated) {
@@ -3944,6 +4009,7 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     const isTypeImmune = typeMultiplier === 0;
 
     if (cancelled.value || isTypeImmune) {
+      traceLine("属性免疫或效果取消：伤害为0");
       return {
         cancelled: cancelled.value,
         result: move.id === MoveId.SHEER_COLD ? HitResult.IMMUNE : HitResult.NO_EFFECT,
@@ -3955,6 +4021,8 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     const fixedDamage = new NumberHolder(0);
     applyMoveAttrs("FixedDamageAttr", source, this, move, fixedDamage);
     if (fixedDamage.value) {
+      traceSection("固定伤害");
+      traceLine(`招式效果产生${fixedDamage.value}点，不使用通常攻防公式`);
       const multiLensMultiplier = new NumberHolder(1);
       globalScene.applyModifiers(
         PokemonMultiHitModifier,
@@ -3989,6 +4057,7 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     const isOneHitKo = new BooleanHolder(false);
     applyMoveAttrs("OneHitKOAttr", source, this, move, isOneHitKo);
     if (isOneHitKo.value) {
+      traceLine(`一击必杀：以目标当前HP ${this.hp}作为伤害`);
       return {
         cancelled: false,
         result: HitResult.ONE_HIT_KO,
@@ -4106,6 +4175,12 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
         }
       });
 
+    traceSection("伤害倍率");
+    traceLine(`多目标×${targetMultiplier}，连续攻击×${multiStrikeEnhancementMultiplier.value}`);
+    traceLine(`天气×${weatherDamageMultiplier}，巨剑突击后受伤×${glaiveRushMultiplier.value}`);
+    traceLine(`会心×${criticalMultiplier.value}，随机×${randomMultiplier}`);
+    traceLine(`本系×${stabMultiplier}，属性克制×${typeMultiplier}`);
+    traceLine(`灼伤×${burnMultiplier}，墙×${screenMultiplier.value}，招式对状态加成×${hitsTagMultiplier.value}`);
     damage.value = toDmgValue(
       baseDamage
         * targetMultiplier
@@ -4121,6 +4196,8 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
         * hitsTagMultiplier.value,
     );
 
+    traceLine(`基础伤害乘以上述倍率，再向下取整（最少1）：${damage.value}`);
+    traceSection("伤害特性与道具修正");
     if (!ignoreSourceAbility) {
       applyAbAttrs("MoveDamageBoostAbAttr", {
         pokemon: source,
@@ -4172,6 +4249,7 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
 
     // This attribute may modify damage arbitrarily, so be careful about changing its order of application.
     applyMoveAttrs("ModifiedDamageAttr", source, this, move, damage);
+    traceLine(`招式特殊伤害处理后：${damage.value}`);
 
     if (this.isFullHp() && !ignoreAbility) {
       applyAbAttrs("PreDefendFullHpEndureAbAttr", abAttrParams);
@@ -4180,49 +4258,6 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     // debug message for when damage is applied
     if (!simulated) {
       console.log("damage", damage.value, move.name);
-
-      // 记录伤害计算过程
-      const damageParams: DamageCalculationParams = {
-        levelMultiplier: (2 * source.level) / 5 + 2,
-        attackerLevel: source.level,
-        movePower: move.calculateBattlePower(source, this, true),
-        attackStat: source.getEffectiveStat(isPhysical ? Stat.ATK : Stat.SPATK, { opponent: this }),
-        defenseStat: this.getEffectiveStat(isPhysical ? Stat.DEF : Stat.SPDEF, { opponent: source }),
-        baseDamage,
-        targetMultiplier,
-        multiStrikeMultiplier: multiStrikeEnhancementMultiplier.value,
-        arenaMultiplier: weatherDamageMultiplier,
-        glaiveRushMultiplier: glaiveRushMultiplier.value,
-        criticalMultiplier: criticalMultiplier.value,
-        randomMultiplier,
-        stabMultiplier,
-        typeMultiplier,
-        burnMultiplier,
-        screenMultiplier: screenMultiplier.value,
-        hitsTagMultiplier: hitsTagMultiplier.value,
-        mistyTerrainMultiplier: 1,
-        abilityDamageMultiplier: 1, // 特性修正已经包含在damage.value中
-        enemyModifier: 1, // 敌方修正已经包含在damage.value中
-        lifeOrbMultiplier: 1, // 生命宝珠修正在其他地方处理
-      };
-
-      const entry: DamageCalculationEntry = {
-        attackerName: source.getNameToRender(),
-        attackerSpecies: source.species.speciesId,
-        attackerIsPlayer: source.isPlayer(),
-        defenderName: this.getNameToRender(),
-        defenderSpecies: this.species.speciesId,
-        moveId: move.id,
-        moveName: move.name,
-        moveType: source.getMoveType(move),
-        moveCategory: isPhysical ? "物理" : "特殊",
-        isCritical,
-        finalDamage: damage.value,
-        params: damageParams,
-        timestamp: Date.now(),
-      };
-
-      damageCalculationLog.addEntry(entry);
     }
 
     let hitResult: HitResult;
@@ -4293,42 +4328,7 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
   // TODO: Remove uses of this outside of the `Pokemon` class and subclasses and change to `protected`
   // Known violators: Pain Split, Status effect code
   // biome-ignore lint/correctness/noUnusedFunctionParameters: param used by subclass
-  damage(
-    damage: number,
-    ignoreSegments = false,
-    preventEndure = false,
-    ignoreFaintPhase = false,
-    shared = false,
-  ): number {
-    if (
-      !shared
-      && damage > 0
-      && this.isPlayer()
-      && this.isOnField()
-      && !this.isFainted()
-      && globalScene.findModifier(m => m instanceof PeoplePowerModifier)
-    ) {
-      const party = [this, ...globalScene.getPlayerParty().filter(p => p !== this && !p.isFainted())];
-      const total = Math.max(0, Math.floor(damage));
-      const base = Math.floor(total / party.length);
-      const remainder = total % party.length;
-      let dealt = 0;
-      for (const [index, pokemon] of party.entries()) {
-        const onField = pokemon.isOnField();
-        dealt += pokemon.damage(
-          base + (index < remainder ? 1 : 0),
-          ignoreSegments,
-          preventEndure,
-          ignoreFaintPhase || !onField,
-          true,
-        );
-        if (!onField && pokemon.isFainted()) {
-          pokemon.doSetStatus(StatusEffect.FAINT);
-        }
-        pokemon.updateInfo();
-      }
-      return dealt;
-    }
+  damage(damage: number, ignoreSegments = false, preventEndure = false, ignoreFaintPhase = false): number {
     if (this.isFainted()) {
       return 0;
     }
@@ -6158,6 +6158,9 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     // Trigger abilities that activate upon leaving the field
     applyAbAttrs("PreLeaveFieldAbAttr", { pokemon: this });
     this.switchOutStatus = true;
+    if (this.peoplePowerApplied) {
+      this.calculateStats();
+    }
     globalScene.triggerPokemonFormChange(this, SpeciesFormChangeActiveTrigger, true);
     globalScene.field.remove(this, destroy);
   }
@@ -6721,6 +6724,9 @@ export class PlayerPokemon extends Pokemon {
    * @param pokemon - The PlayerPokemon to fuse to this one
    */
   fuse(pokemon: PlayerPokemon): void {
+    // Session-only unlock: never writes starter/account passive progression.
+    this.passive = true;
+    pokemon.passive = true;
     this.fusionSpecies = pokemon.species;
     this.fusionFormIndex = pokemon.formIndex;
     this.fusionAbilityIndex = pokemon.abilityIndex;
@@ -6744,10 +6750,10 @@ export class PlayerPokemon extends Pokemon {
     this.calculateStats();
 
     // Set this Pokemon's HP to the average % of both fusion components
-    this.hp = Math.round(maxHp * newHpPercent);
+    this.hp = Math.round(this.getMaxHp() * newHpPercent);
     if (!this.isFainted()) {
       // If this Pokemon hasn't fainted, make sure the HP wasn't set over the new maximum
-      this.hp = Math.min(this.hp, maxHp);
+      this.hp = Math.min(this.hp, this.getMaxHp());
       this.status = getRandomStatus(this.status, pokemon.status); // Get a random valid status between the two
     } else if (!pokemon.isFainted()) {
       // If this Pokemon fainted but the other hasn't, make sure the HP wasn't set to zero
@@ -6770,9 +6776,9 @@ export class PlayerPokemon extends Pokemon {
     for (const modifier of fusedPartyMemberHeldModifiers) {
       globalScene.tryTransferHeldItemModifier(modifier, this, false, modifier.getStackCount(), true, true, false);
     }
-    globalScene.updateModifiers(true, true);
     globalScene.removePartyMemberModifiers(fusedPartyMemberIndex);
     globalScene.getPlayerParty().splice(fusedPartyMemberIndex, 1)[0];
+    globalScene.updateModifiers(true, true);
     const newPartyMemberIndex = globalScene.getPlayerParty().indexOf(this);
     pokemon
       .getMoveset(true)

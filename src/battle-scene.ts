@@ -30,6 +30,8 @@ import { STARTING_WAVE } from "#balance/misc";
 import { FRIENDSHIP_GAIN_FROM_BATTLE } from "#balance/starters";
 import { initCommonAnims, initMoveAnim, loadCommonAnimAssets, loadMoveAnimAssets } from "#data/battle-anims";
 import { getDailyMysteryEncounter } from "#data/daily-run";
+import { damageCalculationLog } from "#data/damage-calculation-log";
+import { observeDamageChange } from "#data/damage-trace";
 import { allMoves, biomeDepths, modifierTypes } from "#data/data-lists";
 import { classicFinalBossDialogue } from "#data/dialogue";
 import type { SpeciesFormChangeTrigger } from "#data/form-change-triggers";
@@ -37,7 +39,7 @@ import { SpeciesFormChangeManualTrigger, SpeciesFormChangeTimeOfDayTrigger } fro
 import { Gender } from "#data/gender";
 import type { SpeciesFormChange } from "#data/pokemon-forms";
 import type { PokemonSpecies, PokemonSpeciesFilter } from "#data/pokemon-species";
-import { getTrainerLoadout } from "#data/trainer-loadout";
+import { getTrainerLoadout, limitMidgameTrainerItems } from "#data/trainer-loadout";
 import { getTrainerStrength } from "#data/trainer-strength";
 import { getTypeRgb } from "#data/type";
 import { BattleType } from "#enums/battle-type";
@@ -1107,6 +1109,7 @@ export class BattleScene extends SceneBase {
 
   // TODO: Break up function - this does far too much in 1 sitting
   reset(clearScene = false, clearData = false, reloadI18n = false): void {
+    damageCalculationLog.clear();
     if (clearData) {
       this.gameData = new GameData();
     }
@@ -2790,6 +2793,7 @@ export class BattleScene extends SceneBase {
         for (const modifier of getTrainerLoadout(enemyPokemon)) {
           modifier.add(this.enemyModifiers, false);
         }
+        limitMidgameTrainerItems(enemyPokemon);
         return true;
       });
       this.updateModifiers(false);
@@ -2996,7 +3000,11 @@ export class BattleScene extends SceneBase {
   ): T[] {
     const appliedModifiers: T[] = [];
     for (const modifier of modifiers) {
-      if (modifier.apply(...args)) {
+      if (
+        observeDamageChange(`${player ? "我方" : "敌方"}${modifier.type.name}×${modifier.getStackCount()}`, args, () =>
+          modifier.apply(...args),
+        )
+      ) {
         console.log("Applied", modifier.type.name, player ? "" : "(enemy)");
         appliedModifiers.push(modifier);
       }
@@ -3021,7 +3029,11 @@ export class BattleScene extends SceneBase {
       (m): m is T => m instanceof modifierType && m.shouldApply(...args),
     );
     for (const modifier of modifiers) {
-      if (modifier.apply(...args)) {
+      if (
+        observeDamageChange(`${player ? "我方" : "敌方"}${modifier.type.name}×${modifier.getStackCount()}`, args, () =>
+          modifier.apply(...args),
+        )
+      ) {
         console.log("Applied", modifier.type.name, player ? "" : "(enemy)");
         return modifier;
       }

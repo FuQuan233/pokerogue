@@ -1,4 +1,5 @@
 import { globalScene } from "#app/global-scene";
+import { observeDamageChange } from "#data/damage-trace";
 import type {
   AbAttrBaseParams,
   AbAttrMap,
@@ -64,7 +65,11 @@ function applySingleAbAttrs<T extends AbAttrString>(
     }
 
     // The `as any` cast here uses the same reasoning as above.
-    attr.apply(params as any);
+    observeDamageChange(
+      `${pokemon.getNameToRender()}的${ability.name}${passive ? "（被动）" : ""}`,
+      Object.values(params),
+      () => attr.apply(params as any),
+    );
 
     if (abShown) {
       globalScene.phaseManager.queueAbilityDisplay(pokemon, passive, false);

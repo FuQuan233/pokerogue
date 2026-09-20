@@ -5,8 +5,27 @@ import { MoveId } from "#enums/move-id";
 import { MoveUseMode } from "#enums/move-use-mode";
 import { StatusEffect } from "#enums/status-effect";
 import type { Pokemon } from "#field/pokemon";
-import { FiveYearPlanModifier, LaborLawModifier } from "#modifiers/modifier";
+import { FiveYearPlanModifier, LaborLawModifier, PeoplePowerModifier } from "#modifiers/modifier";
 import { PokemonMove } from "#moves/pokemon-move";
+
+/** Compare intrinsic species/form/fusion stats, without equipment or this item's own effect. */
+export function getPeoplePowerBaseStats(pokemon: Pokemon): number[] | undefined {
+  if (!pokemon.isPlayer() || !globalScene.findModifier(m => m instanceof PeoplePowerModifier) || !pokemon.isOnField()) {
+    return;
+  }
+  const party = globalScene.getPlayerParty();
+  if (!party.includes(pokemon)) {
+    return;
+  }
+  const stats = party.map(p => p.calculateBaseStats(true));
+  const totals = stats.map(values => values.reduce((sum, value) => sum + value, 0));
+  if (totals[party.indexOf(pokemon)] !== Math.min(...totals)) {
+    return;
+  }
+  return stats[party.indexOf(pokemon)].map((value, index) =>
+    Math.max(1, Math.floor((value + Math.max(...stats.map(values => values[index]))) / 2)),
+  );
+}
 
 /** Runs before NPC sends out its team. No faint abilities, revives or EXP are triggered. */
 export function applyLaborLaw(): void {

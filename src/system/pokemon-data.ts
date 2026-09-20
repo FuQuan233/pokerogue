@@ -32,6 +32,7 @@ export class PokemonData {
   public gender: Gender;
   public hp: number;
   public stats: number[];
+  public peoplePowerApplied?: boolean;
   public ivs: number[];
   public nature: Nature;
   public moveset: PokemonMove[];
@@ -98,6 +99,7 @@ export class PokemonData {
     this.gender = source.gender;
     this.hp = source.hp;
     this.stats = source.stats;
+    this.peoplePowerApplied = source.peoplePowerApplied ?? false;
     this.ivs = source.ivs;
 
     // TODO: Can't we move some of this verification stuff to an upgrade script?

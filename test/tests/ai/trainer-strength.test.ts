@@ -48,7 +48,9 @@ describe("Classic trainer strength and tactics", () => {
     [30, 1],
     [80, 1],
     [94, 1],
-    [95, 5],
+    [95, 2],
+    [144, 2],
+    [145, 6],
   ])("reduces boss vitamins before wave 95: wave %i", async (wave, stacks) => {
     game.override.randomTrainer({ trainerType: TrainerType.BROCK }).startingWave(wave);
     await game.classicMode.startBattle(SpeciesId.MAGIKARP);
@@ -63,7 +65,7 @@ describe("Classic trainer strength and tactics", () => {
         stacks,
         stacks,
         stacks,
-        stacks + Number(wave >= 95),
+        stacks + Number(wave >= 145),
       ]);
     }
   });
@@ -76,7 +78,7 @@ describe("Classic trainer strength and tactics", () => {
     expect(vitamins.map(m => m.getArgs().at(-1)).sort()).toEqual(
       [Stat.HP, Stat.DEF, Stat.SPDEF, Stat.SPD, Stat.SPATK].sort(),
     );
-    expect(vitamins.every(m => m.stackCount >= 3)).toBe(true);
+    expect(vitamins.every(m => m.stackCount === 1)).toBe(true);
     for (const item of items) {
       const restored = new ModifierData(item, false).toModifier(item.constructor);
       expect(restored?.match(item)).toBe(true);
@@ -99,6 +101,20 @@ describe("Classic trainer strength and tactics", () => {
           .filter(m => m instanceof BaseStatModifier)
           .every(m => m.stackCount >= 6),
       ).toBe(true);
+    }
+  });
+
+  it.each([95, 144])("caps actual midgame inventory including random healing items at wave %i", async wave => {
+    game.override.randomTrainer({ trainerType: TrainerType.BROCK }).startingWave(wave);
+    await game.classicMode.startBattle(SpeciesId.MAGIKARP);
+    for (const enemy of game.scene.getEnemyParty()) {
+      const items = enemy.getHeldItems();
+      expect(
+        items
+          .filter(m => ["LEFTOVERS", "SHELL_BELL"].includes(m.type.id))
+          .reduce((sum, item) => sum + item.stackCount, 0),
+      ).toBeLessThanOrEqual(1);
+      expect(items.filter(m => m instanceof BaseStatModifier).every(m => m.stackCount <= 2)).toBe(true);
     }
   });
 

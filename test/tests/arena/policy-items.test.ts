@@ -1,5 +1,5 @@
 import { allMoves, modifierTypes } from "#data/data-lists";
-import { applyLaborLaw } from "#data/policy-items";
+import { applyLaborLaw, getPeoplePowerBaseStats } from "#data/policy-items";
 import { AbilityId } from "#enums/ability-id";
 import { BattleType } from "#enums/battle-type";
 import { HitResult } from "#enums/hit-result";
@@ -16,6 +16,7 @@ import {
 } from "#modifiers/modifier";
 import { modifierPool, trainerModifierPool, wildModifierPool } from "#modifiers/modifier-pools";
 import { ModifierData } from "#system/modifier-data";
+import { PokemonData } from "#system/pokemon-data";
 import { GameManager } from "#test/framework/game-manager";
 import { NumberHolder } from "#utils/common";
 import Phaser from "phaser";
@@ -162,36 +163,70 @@ describe("Player policy items", () => {
     expect(party[0].hp).toBe(1);
   });
 
-  it.each([
-    HitResult.EFFECTIVE,
-    HitResult.INDIRECT,
-  ] as const)("shares damage %i once with living reserves", async result => {
-    await game.classicMode.startBattle(SpeciesId.MAGIKARP, SpeciesId.MAGIKARP, SpeciesId.MAGIKARP);
+  it("replaces the weakest battler's base stats with per-stat party maxima, including fainted members", async () => {
+    await game.classicMode.startBattle(SpeciesId.MAGIKARP, SpeciesId.BLISSEY, SpeciesId.PACHIRISU);
+    const [active, reserve, strongest] = game.scene.getPlayerParty();
     game.scene.addModifier(new PeoplePowerModifier(modifierTypes.PEOPLE_POWER()));
-    const [active, reserve, fainted] = game.scene.getPlayerParty();
-    fainted.hp = 0;
-    const hp = [active.hp, reserve.hp];
-    expect(active.damageAndUpdate(21, { result })).toBe(21);
-    expect(active.hp).toBe(hp[0] - 11);
-    expect(reserve.hp).toBe(hp[1] - 10);
-    expect(fainted.hp).toBe(0);
+    strongest.hp = 0;
+    active.calculateStats();
+    expect(active.calculateBaseStats()).toEqual([137, 100, 152, 104, 135, 140]);
+    expect(getPeoplePowerBaseStats(reserve)).toBeUndefined();
+    const before = [...active.stats];
+    active.calculateStats();
+    expect(active.stats).toEqual(before);
+    expect(strongest.hp).toBe(0);
+    const reserveHp = reserve.hp;
+    const activeHp = active.hp;
+    active.damageAndUpdate(21, { result: HitResult.INDIRECT });
+    expect(active.hp).toBe(activeHp - 21);
+    active.damageAndUpdate(21, { result: HitResult.EFFECTIVE });
+    expect(active.hp).toBe(activeHp - 42);
+    expect(reserve.hp).toBe(reserveHp);
   });
 
-  it("faints reserves without treating them as a field battler, and conserves small damage", async () => {
-    await game.classicMode.startBattle(SpeciesId.MAGIKARP, SpeciesId.MAGIKARP, SpeciesId.MAGIKARP);
+  it("counts fainted weaker members when deciding eligibility and restores original stats", async () => {
+    await game.classicMode.startBattle(SpeciesId.BLISSEY, SpeciesId.MAGIKARP);
     game.scene.addModifier(new PeoplePowerModifier(modifierTypes.PEOPLE_POWER()));
-    const [active, first, second] = game.scene.getPlayerParty();
-    first.hp = 1;
-    second.hp = 1;
-    const queue = vi.spyOn(game.scene.phaseManager, "queueFaintPhase");
-    const hp = active.hp;
-    active.damage(1);
-    expect(active.hp).toBe(hp - 1);
-    expect(first.hp).toBe(1);
-    active.damage(6);
-    expect(first.isFainted()).toBe(true);
-    expect(second.isFainted()).toBe(true);
-    expect(queue).not.toHaveBeenCalled();
+    const [active, weaker] = game.scene.getPlayerParty();
+    weaker.hp = 0;
+    expect(getPeoplePowerBaseStats(active)).toBeUndefined();
+    expect(active.calculateBaseStats()).toEqual(active.calculateBaseStats(true));
+  });
+
+  it("handles ties in doubles without recursive boosts and removes the effect on leaving", async () => {
+    game.override.battleStyle("double");
+    await game.classicMode.startBattle(SpeciesId.MAGIKARP, SpeciesId.MAGIKARP, SpeciesId.PACHIRISU);
+    game.scene.addModifier(new PeoplePowerModifier(modifierTypes.PEOPLE_POWER()));
+    const [first, second] = game.scene.getPlayerParty();
+    expect(getPeoplePowerBaseStats(first)).toEqual([137, 100, 152, 104, 135, 140]);
+    expect(getPeoplePowerBaseStats(second)).toEqual(getPeoplePowerBaseStats(first));
+    first.hp = Math.floor(first.getMaxHp() / 2);
+    const ratio = first.getHpRatio();
+    first.leaveField();
+    expect(first.calculateBaseStats()).toEqual(first.calculateBaseStats(true));
+    expect(first.peoplePowerApplied).toBe(false);
+    expect(first.getHpRatio()).toBeLessThanOrEqual(ratio);
+    expect(first.getHpRatio()).toBeGreaterThan(ratio - 0.02);
+    first.switchOutStatus = false;
+    game.scene.field.add(first);
+    first.calculateStats();
+    expect(first.getHpRatio()).toBeLessThanOrEqual(ratio);
+  });
+
+  it("preserves temporary HP scaling across serialization without reviving fainted Pokemon", async () => {
+    await game.classicMode.startBattle(SpeciesId.MAGIKARP, SpeciesId.PACHIRISU);
+    game.scene.addModifier(new PeoplePowerModifier(modifierTypes.PEOPLE_POWER()));
+    const active = game.field.getPlayerPokemon();
+    active.hp = Math.floor(active.getMaxHp() / 2);
+    const saved = new PokemonData(active);
+    expect(saved.peoplePowerApplied).toBe(true);
+    const restored = new PokemonData(JSON.parse(JSON.stringify(saved))).toPokemon();
+    restored.calculateStats();
+    expect(restored.getHpRatio()).toBeLessThanOrEqual(active.getHpRatio());
+    expect(restored.getHpRatio()).toBeGreaterThan(active.getHpRatio() - 0.02);
+    active.hp = 0;
+    active.calculateStats();
+    expect(active.hp).toBe(0);
   });
 
   it.each([4, 5, 10])("repeats an entire move only on battle turn %i and costs one PP", async turn => {

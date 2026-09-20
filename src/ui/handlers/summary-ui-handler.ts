@@ -1289,6 +1289,7 @@ export class SummaryUiHandler extends UiHandler {
         break;
       }
       case Page.STATS: {
+        this.pokemon?.calculateStats();
         this.statsContainer = globalScene.add.container(0, -pageBg.height);
         pageContainer.add(this.statsContainer);
         this.permStatsContainer = globalScene.add.container(27, 64);
@@ -1357,7 +1358,9 @@ export class SummaryUiHandler extends UiHandler {
           const statValueText =
             stat === Stat.HP
               ? `${formatStat(this.pokemon?.hp!, true)}/${formatStat(this.pokemon?.getMaxHp()!, true)}`
-              : formatStat(this.pokemon?.getStat(stat)!);
+              : formatStat(
+                  this.pokemon!.isOnField() ? this.pokemon!.getEffectiveStat(stat) : this.pokemon!.getStat(stat),
+                );
           const ivText = `${this.pokemon?.ivs[stat]}/31`;
 
           const statValue = addTextObject(93 + 93 * colIndex, 16 * rowIndex, statValueText, TextStyle.WINDOW_ALT);
