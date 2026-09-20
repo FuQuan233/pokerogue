@@ -1,11 +1,11 @@
-import { getTrainerMatchupMultiplier } from "#ai/trainer-tactics";
+import { getTrainerMatchupMultiplier, usesTrainerTactics } from "#ai/trainer-tactics";
 import { globalScene } from "#app/global-scene";
 import { speciesDataRegistry } from "#app/global-species-data-registry";
 import { signatureSpecies } from "#balance/signature-species";
 import { EntryHazardTag } from "#data/arena-tag";
 import type { PokemonSpecies } from "#data/pokemon-species";
 import { applyTrainerFusion } from "#data/trainer-fusion";
-import { getTrainerStrength, strengthenTrainerPokemon } from "#data/trainer-strength";
+import { strengthenTrainerPokemon } from "#data/trainer-strength";
 import { ArenaTagSide } from "#enums/arena-tag-side";
 import { PartyMemberStrength } from "#enums/party-member-strength";
 import { SpeciesId } from "#enums/species-id";
@@ -613,7 +613,7 @@ export class Trainer extends Phaser.GameObjects.Container {
         for (const playerPokemon of playerField) {
           score +=
             p.getMatchupScore(playerPokemon)
-            * (getTrainerStrength() ? getTrainerMatchupMultiplier(p, playerPokemon) : 1);
+            * (usesTrainerTactics() ? getTrainerMatchupMultiplier(p, playerPokemon) : 1);
           if (playerPokemon.species.legendary) {
             score /= 2;
           }

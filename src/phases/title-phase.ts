@@ -21,6 +21,7 @@ import type { Modifier } from "#modifiers/modifier";
 import { getDailyRunStarterModifiers, regenerateModifierPoolThresholds } from "#modifiers/modifier-type";
 import { randomStatsManager } from "#system/random-stats-manager";
 import { vouchers } from "#system/voucher";
+import type { RunEntry } from "#types/save-data";
 import type { OptionSelectConfig, OptionSelectItem } from "#types/ui-types";
 import { SaveSlotUiMode } from "#ui/save-slot-select-ui-handler";
 import { isLocalServerConnected } from "#utils/common";
@@ -375,26 +376,6 @@ export class TitlePhase extends Phase {
 
   // TODO: Refactor this
   end(): void {
-    // Check if we have PvP battle data waiting to start
-    const pvpData = (globalScene as any).pvpBattleData;
-    if (pvpData) {
-      console.log("[TitlePhase] Starting PvP battle from end()");
-      // Clear the PvP data
-      (globalScene as any).pvpBattleData = undefined;
-
-      // Start PvP battle phase
-      globalScene.phaseManager.pushNew(
-        "PvPBattlePhase",
-        pvpData.playerRun,
-        pvpData.opponentRun,
-        pvpData.opponentName,
-        0,
-        pvpData.playerRunData,
-      );
-      super.end();
-      return;
-    }
-
     if (!this.loaded && !globalScene.gameMode.isDaily) {
       globalScene.gameMode = getGameMode(this.gameMode);
       if (this.gameMode === GameModes.CHALLENGE) {
@@ -445,6 +426,14 @@ export class TitlePhase extends Phase {
     globalScene.ui.clearText();
     // Open run history in PvP mode (true = PvP mode)
     // Player will select their run, then choose opponents
-    globalScene.ui.setMode(UiMode.RUN_HISTORY, true);
+    globalScene.ui.setOverlayMode(UiMode.PVP_CODE_INPUT);
+  }
+
+  startPvpBattle(playerRun: RunEntry, opponentRun: RunEntry, opponentName: string): void {
+    globalScene.ui.setMode(UiMode.MESSAGE);
+    globalScene.ui.clearText();
+    globalScene.phaseManager.clearPhaseQueue();
+    globalScene.phaseManager.pushNew("PvPBattlePhase", playerRun, opponentRun, opponentName);
+    super.end();
   }
 }

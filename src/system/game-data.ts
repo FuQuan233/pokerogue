@@ -1215,6 +1215,10 @@ export class GameData {
     useCachedSession = false,
     useCachedSystem = false,
   ): Promise<boolean> {
+    // PVP snapshots must never replace the player's active adventure save, even on save-and-quit.
+    if (globalScene.gameMode.modeId === GameModes.PVP) {
+      return true;
+    }
     if (!skipVerification) {
       const [success] = await updateUserInfo();
       if (!success) {

@@ -2,6 +2,7 @@ import { globalScene } from "#app/global-scene";
 import { allMoves } from "#data/data-lists";
 import { getTrainerStrength } from "#data/trainer-strength";
 import { getWeatherMoveId } from "#data/weather";
+import { GameModes } from "#enums/game-modes";
 import { MoveCategory } from "#enums/move-category";
 import { MoveId } from "#enums/move-id";
 import { MoveUseMode } from "#enums/move-use-mode";
@@ -132,7 +133,7 @@ function scoreTarget(user: EnemyPokemon, target: Pokemon, move: Move, incoming: 
 }
 
 export function chooseTrainerMove(user: EnemyPokemon, pool: PokemonMove[]): TurnMove | null {
-  if (!getTrainerStrength()) {
+  if (!usesTrainerTactics()) {
     return null;
   }
   const incoming = getKnownIncomingDamage(user);
@@ -155,6 +156,11 @@ export function chooseTrainerMove(user: EnemyPokemon, pool: PokemonMove[]): Turn
     return null;
   }
   return { move: chosen.move, targets: chosen.targets, useMode: MoveUseMode.NORMAL };
+}
+
+/** Enable the best tactical decisions in PVP without applying NPC stat/item bonuses. */
+export function usesTrainerTactics(): boolean {
+  return globalScene.gameMode.modeId === GameModes.PVP || !!getTrainerStrength();
 }
 
 export function trainerCanFinishOpponent(user: EnemyPokemon): boolean {

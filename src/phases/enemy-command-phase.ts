@@ -1,10 +1,15 @@
-import { getKnownIncomingDamage, getTrainerMatchupMultiplier, trainerCanFinishOpponent } from "#ai/trainer-tactics";
+import {
+  getKnownIncomingDamage,
+  getTrainerMatchupMultiplier,
+  trainerCanFinishOpponent,
+  usesTrainerTactics,
+} from "#ai/trainer-tactics";
 import { globalScene } from "#app/global-scene";
-import { getTrainerStrength } from "#data/trainer-strength";
 import { AbilityId } from "#enums/ability-id";
 import { BattlerIndex } from "#enums/battler-index";
 import { BattlerTagType } from "#enums/battler-tag-type";
 import { Command } from "#enums/command";
+import { GameModes } from "#enums/game-modes";
 import type { EnemyPokemon } from "#field/pokemon";
 import { FieldPhase } from "#phases/field-phase";
 
@@ -60,7 +65,7 @@ export class EnemyCommandPhase extends FieldPhase {
     if (trainer && enemyPokemon.getMoveQueue().length === 0) {
       const opponents = enemyPokemon.getOpponents();
 
-      const strength = getTrainerStrength();
+      const strength = usesTrainerTactics();
       if (!enemyPokemon.isTrapped() && !(strength && trainerCanFinishOpponent(enemyPokemon))) {
         const partyMemberScores = trainer.getPartyMemberMatchupScores(enemyPokemon.trainerSlot, true);
 
@@ -76,7 +81,16 @@ export class EnemyCommandPhase extends FieldPhase {
 
           const candidate = globalScene.getEnemyParty()[sortedPartyMemberScores[0][0]];
           const safeSwitch = !strength || getKnownIncomingDamage(candidate) < candidate.hp;
-          const threshold = strength ? (trainer.config.isBoss ? 1.5 : 2) : trainer.config.isBoss ? 2 : 3;
+          const threshold =
+            globalScene.gameMode.modeId === GameModes.PVP
+              ? 1.5
+              : strength
+                ? trainer.config.isBoss
+                  ? 1.5
+                  : 2
+                : trainer.config.isBoss
+                  ? 2
+                  : 3;
           if (safeSwitch && sortedPartyMemberScores[0][1] * switchMultiplier >= matchupScore * threshold) {
             const index = trainer.getNextSummonIndex(enemyPokemon.trainerSlot, partyMemberScores);
 

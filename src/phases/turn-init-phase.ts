@@ -47,7 +47,7 @@ export class TurnInitPhase extends FieldPhase {
       }
     });
 
-    if (isFiveYearPlanTurn() && globalScene.getPlayerField().some(p => p?.isActive(true) && hasFiveYearPlan(p))) {
+    if (isFiveYearPlanTurn() && globalScene.getField().some(p => p?.isActive(true) && hasFiveYearPlan(p))) {
       globalScene.phaseManager.queueMessage("五年之期已至！");
     }
 

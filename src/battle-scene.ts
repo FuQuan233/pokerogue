@@ -3117,6 +3117,9 @@ export class BattleScene extends SceneBase {
   }
 
   validateAchv<T extends Achv>(achv: T, args?: Parameters<T["validate"]>[0]): boolean {
+    if (this.gameMode.modeId === GameModes.PVP) {
+      return false;
+    }
     if (
       (!Object.hasOwn(this.gameData.achvUnlocks, achv.id) || activeOverrides.ACHIEVEMENTS_REUNLOCK_OVERRIDE)
       && achv.validate(args)

@@ -10,10 +10,14 @@ import { PokemonMove } from "#moves/pokemon-move";
 
 /** Compare intrinsic species/form/fusion stats, without equipment or this item's own effect. */
 export function getPeoplePowerBaseStats(pokemon: Pokemon): number[] | undefined {
-  if (!pokemon.isPlayer() || !globalScene.findModifier(m => m instanceof PeoplePowerModifier) || !pokemon.isOnField()) {
+  if (
+    (!pokemon.isPlayer() && globalScene.gameMode.modeId !== GameModes.PVP)
+    || !globalScene.findModifier(m => m instanceof PeoplePowerModifier, pokemon.isPlayer())
+    || !pokemon.isOnField()
+  ) {
     return;
   }
-  const party = globalScene.getPlayerParty();
+  const party: Pokemon[] = pokemon.isPlayer() ? globalScene.getPlayerParty() : globalScene.getEnemyParty();
   if (!party.includes(pokemon)) {
     return;
   }
@@ -50,8 +54,11 @@ export function applyLaborLaw(): void {
 
 export function hasFiveYearPlan(pokemon: Pokemon): boolean {
   return (
-    pokemon.isPlayer()
-    && !!globalScene.findModifier(m => m instanceof FiveYearPlanModifier && m.pokemonId === pokemon.id)
+    (pokemon.isPlayer() || globalScene.gameMode.modeId === GameModes.PVP)
+    && !!globalScene.findModifier(
+      m => m instanceof FiveYearPlanModifier && m.pokemonId === pokemon.id,
+      pokemon.isPlayer(),
+    )
   );
 }
 

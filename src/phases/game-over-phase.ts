@@ -51,6 +51,13 @@ export class GameOverPhase extends BattlePhase {
 
     globalScene.phaseManager.hideAbilityBar();
 
+    if (globalScene.gameMode.modeId === GameModes.PVP) {
+      globalScene.phaseManager.clearPhaseQueue();
+      globalScene.phaseManager.pushNew("PvPGameOverPhase", this.isVictory);
+      this.end();
+      return;
+    }
+
     // Failsafe if players somehow skip floor 200 in classic mode
     if (globalScene.gameMode.isClassic && globalScene.currentBattle.waveIndex > 200) {
       this.isVictory = true;
@@ -80,13 +87,6 @@ export class GameOverPhase extends BattlePhase {
         fixedInt(3000),
       );
     } else if (this.isVictory || !settings.general.enableRetries) {
-      // Handle PvP mode separately
-      if (globalScene.gameMode.modeId === GameModes.PVP) {
-        globalScene.phaseManager.unshiftNew("PvPGameOverPhase", this.isVictory);
-        this.end();
-        return;
-      }
-
       this.handleGameOver();
     } else {
       globalScene.ui.showText(i18next.t("battle:retryBattle"), null, () => {

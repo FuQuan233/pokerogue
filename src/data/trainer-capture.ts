@@ -1,5 +1,6 @@
 import { globalScene } from "#app/global-scene";
 import { BattleType } from "#enums/battle-type";
+import { GameModes } from "#enums/game-modes";
 import { TrainerType } from "#enums/trainer-type";
 import { RocketTeamBadgeModifier } from "#modifiers/modifier";
 
@@ -8,6 +9,7 @@ export function canCaptureTrainerPokemon(): boolean {
   const battle = globalScene.currentBattle;
   return (
     battle.battleType === BattleType.TRAINER
+    && globalScene.gameMode.modeId !== GameModes.PVP
     && !!battle.trainer
     && battle.trainer.config.getDerivedType() !== TrainerType.RIVAL
     && !!globalScene.findModifier(m => m instanceof RocketTeamBadgeModifier && m.getStackCount() > 0)

@@ -1,196 +1,148 @@
 import { getGameMode } from "#app/game-mode";
 import { globalScene } from "#app/global-scene";
 import { Phase } from "#app/phase";
+import { validatePvpRun } from "#data/pvp-team";
+import { AiType } from "#enums/ai-type";
 import { BattleType } from "#enums/battle-type";
 import { GameModes } from "#enums/game-modes";
 import { TrainerType } from "#enums/trainer-type";
 import { TrainerVariant } from "#enums/trainer-variant";
 import { UiMode } from "#enums/ui-mode";
-import type { EnemyPokemon, PlayerPokemon } from "#field/pokemon";
-import { Trainer } from "#field/trainer";
-// biome-ignore lint/performance/noNamespaceImport: Need to access Modifier classes dynamically via className
+// biome-ignore lint/performance/noNamespaceImport: Saved modifiers identify their constructor by name.
 import * as Modifier from "#modifiers/modifier";
+import { ModifierData } from "#system/modifier-data";
+import { PokemonData } from "#system/pokemon-data";
+import { TrainerData } from "#system/trainer-data";
 import type { RunEntry, SessionSaveData } from "#types/save-data";
-import i18next from "i18next";
+
+/** Reconstruct two independent copies; even a self-challenge must not share IDs or mutable data. */
+export async function preparePvpBattle(
+  playerRun: RunEntry,
+  opponentRun: RunEntry,
+  opponentName: string,
+): Promise<void> {
+  validatePvpRun(playerRun);
+  validatePvpRun(opponentRun);
+  globalScene.reset();
+  globalScene.gameMode = getGameMode(GameModes.PVP);
+  globalScene.sessionPlayTime = 0;
+  globalScene.lastSavePlayTime = 0;
+  const battle = globalScene.newBattle({
+    ...playerRun.entry,
+    waveIndex: 1,
+    battleType: BattleType.TRAINER,
+    mysteryEncounterType: -1,
+    trainer: new TrainerData({ trainerType: TrainerType.YOUNGSTER, variant: TrainerVariant.DEFAULT }),
+  });
+  battle.trainer!.setName(opponentName);
+  globalScene.field.add(battle.trainer!);
+  let nextId = 1000000;
+  for (const [run, player] of [
+    [playerRun, true],
+    [opponentRun, false],
+  ] as const) {
+    const ids = new Map<number, number>();
+    for (const saved of run.entry.party) {
+      const raw = JSON.parse(JSON.stringify(saved));
+      const id = nextId++;
+      ids.set(raw.id, id);
+      Object.assign(raw, { id, player, boss: false, bossSegments: 0, peoplePowerApplied: false, status: null });
+      raw.summonData = undefined;
+      raw.battleData = undefined;
+      const data = new PokemonData(raw);
+      const pokemon = data.toPokemon(BattleType.TRAINER, ids.size - 1, false);
+      pokemon.setVisible(false);
+      pokemon.resetSummonData();
+      if (pokemon.isPlayer()) {
+        globalScene.getPlayerParty().push(pokemon);
+      } else if (pokemon.isEnemy()) {
+        pokemon.aiType = AiType.SMART;
+        battle.enemyParty.push(pokemon);
+      }
+    }
+    for (const saved of run.entry.modifiers) {
+      const data = new ModifierData(JSON.parse(JSON.stringify(saved)), player);
+      const modifierConstructor = Modifier[data.className];
+      if (!modifierConstructor || !(modifierConstructor.prototype instanceof Modifier.PersistentModifier)) {
+        throw new Error(`无法还原道具：${data.typeId}。请使用相同版本的队伍记录。`);
+      }
+      if (modifierConstructor.prototype instanceof Modifier.PokemonHeldItemModifier) {
+        const mapped = ids.get(data.args[0]);
+        if (mapped == null) {
+          throw new Error(`道具 ${data.typeId} 的携带者不在队伍中。`);
+        }
+        data.args[0] = mapped;
+      }
+      const modifier = data.toModifier(modifierConstructor);
+      if (!modifier) {
+        throw new Error(`无法还原道具：${data.typeId}。`);
+      }
+      if (player) {
+        globalScene.addModifier(modifier, true, false, false, true);
+      } else {
+        await globalScene.addEnemyModifier(modifier, true, true);
+      }
+    }
+  }
+  globalScene.updateModifiers(true, true);
+  globalScene.updateModifiers(false, true);
+  for (const pokemon of [...globalScene.getPlayerParty(), ...globalScene.getEnemyParty()]) {
+    pokemon.calculateStats();
+    pokemon.hp = pokemon.getMaxHp();
+    pokemon.status = null;
+    pokemon.getMoveset().forEach(move => {
+      move.ppUsed = 0;
+    });
+  }
+  battle.enemyLevels = battle.enemyParty.map(p => p.level);
+}
 
 export class PvPBattlePhase extends Phase {
   public readonly phaseName = "PvPBattlePhase";
-  private playerRun: RunEntry;
-  private opponentRun: RunEntry;
-  private opponentName: string;
-  private opponentTrainerId: number;
-  private playerRunData: SessionSaveData;
 
   constructor(
-    playerRun: RunEntry,
-    opponentRun: RunEntry,
-    opponentName: string,
-    opponentTrainerId: number,
-    playerRunData: SessionSaveData,
+    private readonly playerRun: RunEntry,
+    private readonly opponentRun: RunEntry,
+    private readonly opponentName: string,
+    private readonly opponentTrainerId = 0,
+    private readonly playerRunData: SessionSaveData = playerRun.entry,
   ) {
     super();
-    this.playerRun = playerRun;
-    this.opponentRun = opponentRun;
-    this.opponentName = opponentName;
-    this.opponentTrainerId = opponentTrainerId;
-    this.playerRunData = playerRunData;
   }
 
-  start(): void {
-    console.log("[PvPBattlePhase] Phase started");
+  override async start(): Promise<void> {
     super.start();
-
-    // Set up PvP game mode
-    globalScene.gameMode = getGameMode(GameModes.PVP);
-    console.log("[PvPBattlePhase] Game mode set to PVP");
-
-    // Reset scene for fresh battle
-    globalScene.money = 0;
-    globalScene.score = 0;
-    globalScene.updateMoneyText();
-    globalScene.updateScoreText();
-
-    // Set seed for reproducible battles (optional)
-    globalScene.setSeed(Date.now().toString());
-    globalScene.resetSeed();
-    console.log("[PvPBattlePhase] Scene reset complete");
-
-    // Show battle start message
-    globalScene.ui.setMode(UiMode.MESSAGE);
-    console.log("[PvPBattlePhase] Showing battle start message");
-    globalScene.ui.showText(
-      i18next.t("pvp:battleStart") + "\n" + i18next.t("pvp:vsPlayer", { playerName: this.opponentName }),
-      null,
-      () => {
-        console.log("[PvPBattlePhase] Battle start message acknowledged, setting up battle...");
-        this.setupBattle();
-      },
-    );
-  }
-
-  setupBattle(): void {
-    console.log("[PvPBattlePhase] setupBattle called");
-
-    // Clear existing parties
-    const playerParty = globalScene.getPlayerParty();
-    playerParty.splice(0, playerParty.length);
-    const enemyParty = globalScene.getEnemyParty();
-    enemyParty.splice(0, enemyParty.length);
-    console.log("[PvPBattlePhase] Parties cleared");
-
-    const loadPokemonAssets: Promise<void>[] = [];
-
-    // Add player's pokemon from victory run
-    console.log("[PvPBattlePhase] Loading player's pokemon, count:", this.playerRun.entry.party.length);
-    for (const pokemonData of this.playerRun.entry.party) {
-      const pokemon = pokemonData.toPokemon() as PlayerPokemon;
-      pokemon.setVisible(true); // Show player's pokemon in PvP
-      loadPokemonAssets.push(pokemon.loadAssets(false));
-      playerParty.push(pokemon);
+    try {
+      await preparePvpBattle(this.playerRun, this.opponentRun, this.opponentName);
+      await Promise.all([
+        ...globalScene.getPlayerParty().map(p => p.loadAssets()),
+        ...globalScene.getEnemyParty().map(p => p.loadAssets()),
+        globalScene.currentBattle.trainer!.loadAssets(),
+      ]);
+      globalScene.gameData.pvpBattleContext = {
+        playerRunData: this.playerRunData,
+        opponentName: this.opponentName,
+        opponentTrainerId: this.opponentTrainerId,
+      };
+      await globalScene.ui.setMode(UiMode.MESSAGE);
+      globalScene.phaseManager.pushNew("EncounterPhase", true);
+      // Loaded encounters don't summon the player. This is a fresh fight from a snapshot.
+      globalScene.phaseManager.pushNew("SummonPhase", 0);
+      this.end();
+    } catch (error) {
+      globalScene.reset();
+      await globalScene.ui.setMode(UiMode.MESSAGE);
+      globalScene.ui.showText(
+        `无法开始 PVP：${error instanceof Error ? error.message : "队伍加载失败"}`,
+        null,
+        () => {
+          globalScene.phaseManager.clearPhaseQueue();
+          globalScene.phaseManager.pushNew("TitlePhase");
+          this.end();
+        },
+        null,
+        true,
+      );
     }
-    console.log("[PvPBattlePhase] Player's pokemon loaded");
-
-    // Apply player's modifiers
-    console.log("[PvPBattlePhase] Applying player's modifiers, count:", this.playerRun.entry.modifiers.length);
-    for (const modifierData of this.playerRun.entry.modifiers) {
-      const modifier = modifierData.toModifier(Modifier[modifierData.className]);
-      if (modifier) {
-        globalScene.addModifier(modifier, true, false, false, true);
-      }
-    }
-    globalScene.updateModifiers(true);
-
-    // Initialize battle and arena (order matters!)
-    console.log("[PvPBattlePhase] Initializing battle and arena...");
-    // Create battle as TRAINER type to prevent pokeball usage
-    globalScene.newBattle({ ...this.playerRun.entry, waveIndex: 1, battleType: BattleType.TRAINER });
-    // Create a dummy trainer for PvP mode
-    const dummyTrainer = new Trainer(TrainerType.YOUNGSTER, TrainerVariant.DEFAULT);
-    dummyTrainer.setName(this.opponentName);
-    globalScene.currentBattle.trainer = dummyTrainer;
-    globalScene.field.add(dummyTrainer); // Add trainer to scene
-    // Link battle.enemyParty to globalScene's enemy party so EncounterPhase can find them
-    globalScene.currentBattle.enemyParty = globalScene.getEnemyParty();
-    globalScene.arena.init();
-
-    // Set session time
-    globalScene.sessionPlayTime = 0;
-    globalScene.lastSavePlayTime = 0;
-    console.log("[PvPBattlePhase] Battle and arena initialized");
-
-    Promise.all(loadPokemonAssets).then(() => {
-      console.log("[PvPBattlePhase] Player assets loaded, loading opponent team...");
-      // Load opponent's pokemon
-      this.loadOpponentTeam();
-    });
-  }
-
-  loadOpponentTeam(): void {
-    const battle = globalScene.currentBattle;
-    const enemyParty = globalScene.getEnemyParty();
-    const loadEnemyAssets: Promise<void>[] = [];
-
-    // Clear and initialize battle.enemyLevels first
-    battle.enemyLevels = [];
-
-    // Load opponent's pokemon as enemy pokemon
-    for (let i = 0; i < this.opponentRun.entry.party.length; i++) {
-      const pokemonData = this.opponentRun.entry.party[i];
-      // Ensure the pokemon is created as an enemy by setting player to false
-      pokemonData.player = false;
-      const enemyPokemon = pokemonData.toPokemon(BattleType.TRAINER, i, false) as EnemyPokemon;
-
-      // Make it an AI-controlled enemy (but visible for PvP)
-      enemyPokemon.setVisible(true);
-      loadEnemyAssets.push(enemyPokemon.loadAssets());
-      enemyParty.push(enemyPokemon);
-
-      // Add level to battle.enemyLevels
-      battle.enemyLevels.push(enemyPokemon.level);
-    }
-
-    console.log("[PvPBattlePhase] Loaded opponent team:", {
-      enemyPartyLength: enemyParty.length,
-      enemyLevelsLength: battle.enemyLevels.length,
-      enemyLevels: battle.enemyLevels,
-    });
-
-    // Apply opponent's modifiers (to enemy side)
-    for (const modifierData of this.opponentRun.entry.modifiers) {
-      const modifier = modifierData.toModifier(Modifier[modifierData.className]);
-      if (modifier) {
-        globalScene.addModifier(modifier, false, false, false, true);
-      }
-    }
-    globalScene.updateModifiers(false);
-
-    Promise.all(loadEnemyAssets).then(() => {
-      // Set up AI for opponent's pokemon
-      if (globalScene.currentBattle.trainer) {
-        globalScene.currentBattle.trainer.genAI(globalScene.getEnemyParty());
-      }
-      // Start the battle
-      this.startPvPBattle();
-    });
-  }
-
-  startPvPBattle(): void {
-    console.log("[PvPBattlePhase] startPvPBattle called");
-    globalScene.currentBattle.started = true;
-
-    // Queue up battle phases
-    console.log("[PvPBattlePhase] Queueing EncounterPhase...");
-    globalScene.phaseManager.pushNew("EncounterPhase", true);
-
-    // Set up PvPGameOverPhase with context for return navigation
-    globalScene.gameData.pvpBattleContext = {
-      playerRunData: this.playerRunData,
-      opponentTrainerId: this.opponentTrainerId,
-      opponentName: this.opponentName,
-    };
-
-    // Add custom end handler for PvP
-    console.log("[PvPBattlePhase] Battle setup complete, ending phase");
-    this.end();
   }
 }

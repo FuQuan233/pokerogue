@@ -4,6 +4,7 @@ import { modifierTypes } from "#data/data-lists";
 import { BattleType } from "#enums/battle-type";
 import type { BattlerIndex } from "#enums/battler-index";
 import { ClassicFixedBossWaves } from "#enums/fixed-boss-waves";
+import { GameModes } from "#enums/game-modes";
 import { ModifierTier } from "#enums/modifier-tier";
 import { handleMysteryEncounterVictory } from "#mystery-encounters/encounter-phase-utils";
 import { PokemonPhase } from "#phases/pokemon-phase";
@@ -22,6 +23,15 @@ export class VictoryPhase extends PokemonPhase {
 
   public override start(): void {
     super.start();
+
+    if (globalScene.gameMode.modeId === GameModes.PVP) {
+      if (globalScene.getEnemyParty().every(p => p.isFainted())) {
+        globalScene.phaseManager.clearPhaseQueue();
+        globalScene.phaseManager.pushNew("PvPGameOverPhase", true);
+      }
+      this.end();
+      return;
+    }
 
     const isMysteryEncounter = globalScene.currentBattle.isBattleMysteryEncounter();
 

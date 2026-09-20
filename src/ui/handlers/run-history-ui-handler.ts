@@ -119,7 +119,7 @@ export class RunHistoryUiHandler extends MessageUiHandler {
         if (this.runs[cursor]) {
           if (this.isPvPMode) {
             // In PvP mode, ACTION opens base64 code input
-            globalScene.ui.setMode(UiMode.PVP_CODE_INPUT, this.runs[cursor].entryData);
+            globalScene.ui.setOverlayMode(UiMode.PVP_CODE_INPUT, this.runs[cursor].entryData);
           } else {
             // Normal mode, show run details
             globalScene.ui.setOverlayMode(
@@ -139,7 +139,7 @@ export class RunHistoryUiHandler extends MessageUiHandler {
         // Export selected run as base64 (available in all modes)
         const cursor = this.cursor + this.scrollCursor;
         if (this.runs[cursor]) {
-          this.exportRunAsBase64(this.runs[cursor].entryData);
+          globalScene.ui.setOverlayMode(UiMode.PVP_CODE_INPUT, this.runs[cursor].entryData);
         }
         success = true;
         return success;
@@ -295,61 +295,11 @@ export class RunHistoryUiHandler extends MessageUiHandler {
     this.uploadHintText = addTextObject(
       globalScene.scaledCanvas.width - 8,
       -globalScene.scaledCanvas.height + 8,
-      i18next.t("pvp:exportHint"),
+      "回车：上传 / 分享通关队伍",
       TextStyle.WINDOW,
     );
     this.uploadHintText.setOrigin(1, 0);
     this.runSelectContainer.add(this.uploadHintText);
-  }
-
-  /**
-   * Export a run as base64 code
-   */
-  private exportRunAsBase64(runEntry: RunEntry): void {
-    const messageHandler = globalScene.ui.getMessageHandler();
-
-    try {
-      // Create export data with trainer info
-      const exportData = {
-        trainerId: globalScene.gameData.trainerId,
-        playerName: globalScene.gameData.trainerId.toString(),
-        runEntry,
-        exportedAt: Date.now(),
-      };
-
-      // Convert to JSON and encode as base64
-      const jsonStr = JSON.stringify(exportData);
-      const base64Code = btoa(unescape(encodeURIComponent(jsonStr)));
-
-      // Copy to clipboard
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard
-          .writeText(base64Code)
-          .then(() => {
-            messageHandler.showText(i18next.t("pvp:exportSuccess"), null, () => {}, null, true);
-          })
-          .catch(() => {
-            // Fallback: show the code in a message
-            this.showBase64Code(base64Code);
-          });
-      } else {
-        // Fallback: show the code in a message
-        this.showBase64Code(base64Code);
-      }
-    } catch (error) {
-      console.error("Failed to export run:", error);
-      messageHandler.showText(i18next.t("pvp:exportFailed"), null, () => {}, null, true);
-    }
-  }
-
-  /**
-   * Show base64 code when clipboard is not available
-   */
-  private showBase64Code(code: string): void {
-    const messageHandler = globalScene.ui.getMessageHandler();
-    // Truncate code for display if too long
-    const displayCode = code.length > 100 ? `${code.slice(0, 100)}...` : code;
-    messageHandler.showText(`${i18next.t("pvp:exportCode")}\n${displayCode}`, null, () => {}, null, true);
   }
 }
 
