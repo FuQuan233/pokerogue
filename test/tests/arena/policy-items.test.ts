@@ -64,8 +64,8 @@ describe("Player policy items", () => {
   it.each([
     [99, 1, 900],
     [100, 5, 500],
-    [101, 1, 1200],
-    [101, 5, 2000],
+    [101, 1, 1400],
+    [101, 5, 3000],
   ])("applies pension at wave %i with %i stacks", async (wave, stacks, expected) => {
     await game.classicMode.startBattle(SpeciesId.MAGIKARP);
     game.scene.currentBattle.waveIndex = wave;

@@ -4753,7 +4753,7 @@ export class PensionInsuranceModifier extends PersistentModifier {
     return 5;
   }
   override apply(amount: NumberHolder): boolean {
-    const rate = globalScene.currentBattle.waveIndex <= 100 ? -0.1 : 0.2;
+    const rate = globalScene.currentBattle.waveIndex <= 100 ? -0.1 : 0.4;
     amount.value = Math.floor(amount.value * (1 + rate * this.getStackCount()));
     return true;
   }

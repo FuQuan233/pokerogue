@@ -48,7 +48,7 @@ export function registerFuquanTranslations(instance: i18n): void {
           },
           PENSION_INSURANCE: {
             name: "养老保险",
-            description: "每层使第1至100关战斗后的金币减少10%，第101关起增加20%。最多持有5个。",
+            description: "每层使第1至100关战斗后的金币减少10%，第101关起增加40%。最多持有5个。",
           },
           FIVE_YEAR_PLAN: {
             name: "五年规划",
