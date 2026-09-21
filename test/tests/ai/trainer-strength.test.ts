@@ -1,7 +1,8 @@
 import { __INTERNAL_TEST_EXPORTS } from "#ai/ai-moveset-gen";
 import { chooseTrainerMovesetSlot } from "#ai/trainer-moveset";
 import { chooseTrainerMove, getKnownIncomingDamage } from "#ai/trainer-tactics";
-import { getTrainerLoadout } from "#data/trainer-loadout";
+import { modifierTypes } from "#data/data-lists";
+import { getTrainerHealingItem, getTrainerLoadout, limitTrainerItems } from "#data/trainer-loadout";
 import { getTrainerStrength, strengthenTrainerPokemon } from "#data/trainer-strength";
 import { Weather } from "#data/weather";
 import { AbilityId } from "#enums/ability-id";
@@ -13,12 +14,12 @@ import { SpeciesId } from "#enums/species-id";
 import { Stat } from "#enums/stat";
 import { TrainerType } from "#enums/trainer-type";
 import { WeatherType } from "#enums/weather-type";
-import { BaseStatModifier } from "#modifiers/modifier";
+import { BaseStatModifier, HitHealModifier, TurnHealModifier } from "#modifiers/modifier";
 import { PokemonMove } from "#moves/pokemon-move";
 import { ModifierData } from "#system/modifier-data";
 import { GameManager } from "#test/framework/game-manager";
 import Phaser from "phaser";
-import { beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("Classic trainer strength and tactics", () => {
   let phaserGame: Phaser.Game;
@@ -128,6 +129,56 @@ describe("Classic trainer strength and tactics", () => {
     expect(getTrainerLoadout(enemy)).toEqual([]);
     expect(enemy.ivs).toEqual(before);
     expect(chooseTrainerMove(enemy, pool(MoveId.PSYCHIC))).toBeNull();
+  });
+
+  it.each([
+    94, 95, 144, 145, 195,
+  ])("restricts healing to one tank and one attacker, including extra item sources at wave %i", async wave => {
+    game.override.randomTrainer({ trainerType: TrainerType.BROCK }).startingWave(wave);
+    await game.classicMode.startBattle(SpeciesId.MAGIKARP);
+    const party = game.scene.getEnemyParty();
+    expect(party.length).toBeGreaterThanOrEqual(2);
+    for (const [i, pokemon] of party.entries()) {
+      vi.spyOn(pokemon, "isFusion").mockReturnValue(false);
+      const form = pokemon.getSpeciesForm();
+      vi.spyOn(pokemon, "getSpeciesForm").mockReturnValue(
+        Object.assign(Object.create(Object.getPrototypeOf(form)), form, {
+          baseStats: i === 0 ? [200, 30, 200, 30, 200, 30] : [80, 50, 50, 180 - i, 50, 100],
+        }),
+      );
+    }
+    expect(getTrainerHealingItem(party[0])).toBe("LEFTOVERS");
+    expect(getTrainerHealingItem(party[1])).toBe("SHELL_BELL");
+    for (const pokemon of party.slice(2)) {
+      expect(getTrainerHealingItem(pokemon)).toBeUndefined();
+    }
+    game.scene.clearEnemyHeldItemModifiers();
+    for (const pokemon of party) {
+      // Simulate excessive random/special/old-save items, even without a populated type id.
+      const leftovers = modifierTypes.LEFTOVERS().newModifier(pokemon) as TurnHealModifier;
+      const bell = modifierTypes.SHELL_BELL().newModifier(pokemon) as HitHealModifier;
+      leftovers.stackCount = 4;
+      bell.stackCount = 4;
+      await game.scene.addEnemyModifier(leftovers, true);
+      await game.scene.addEnemyModifier(bell, true);
+    }
+    for (const pokemon of party) {
+      limitTrainerItems(pokemon);
+    }
+    const cap = wave >= 95 && wave < 145 ? 1 : 2;
+    const items = game.scene.findModifiers(() => true, false);
+    const leftovers = items.filter((m): m is TurnHealModifier => m instanceof TurnHealModifier && m.stackCount > 0);
+    const bells = items.filter((m): m is HitHealModifier => m instanceof HitHealModifier && m.stackCount > 0);
+    expect(leftovers.map(m => [m.pokemonId, m.stackCount])).toEqual([[party[0].id, cap]]);
+    expect(bells.map(m => [m.pokemonId, m.stackCount])).toEqual([[party[1].id, cap]]);
+    // Fainting and changing field order must not promote another holder.
+    party[0].hp = 0;
+    party.reverse();
+    for (const pokemon of party) {
+      limitTrainerItems(pokemon);
+    }
+    expect(leftovers[0].stackCount).toBe(cap);
+    expect(bells[0].stackCount).toBe(cap);
   });
 
   it("opens egg moves at the new level gates without granting any outside the species egg pool", async () => {

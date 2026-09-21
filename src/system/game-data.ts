@@ -18,6 +18,7 @@ import { allMoves } from "#data/data-lists";
 import type { Egg } from "#data/egg";
 import type { PokemonSpecies } from "#data/pokemon-species";
 import { loadPositionalTag } from "#data/positional-tags/load-positional-tag";
+import { limitTrainerItems } from "#data/trainer-loadout";
 import { AbilityAttr } from "#enums/ability-attr";
 import { BattleType } from "#enums/battle-type";
 import { ChallengeType } from "#enums/challenge-type";
@@ -1024,6 +1025,9 @@ export class GameData {
       }
     }
 
+    for (const pokemon of globalScene.getEnemyParty()) {
+      limitTrainerItems(pokemon);
+    }
     globalScene.updateModifiers(false);
 
     await Promise.all(loadPokemonAssets);

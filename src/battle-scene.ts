@@ -39,7 +39,7 @@ import { SpeciesFormChangeManualTrigger, SpeciesFormChangeTimeOfDayTrigger } fro
 import { Gender } from "#data/gender";
 import type { SpeciesFormChange } from "#data/pokemon-forms";
 import type { PokemonSpecies, PokemonSpeciesFilter } from "#data/pokemon-species";
-import { getTrainerLoadout, limitMidgameTrainerItems } from "#data/trainer-loadout";
+import { getTrainerLoadout, limitTrainerItems } from "#data/trainer-loadout";
 import { getTrainerStrength } from "#data/trainer-strength";
 import { getTypeRgb } from "#data/type";
 import { BattleType } from "#enums/battle-type";
@@ -2793,7 +2793,7 @@ export class BattleScene extends SceneBase {
         for (const modifier of getTrainerLoadout(enemyPokemon)) {
           modifier.add(this.enemyModifiers, false);
         }
-        limitMidgameTrainerItems(enemyPokemon);
+        limitTrainerItems(enemyPokemon);
         return true;
       });
       this.updateModifiers(false);
