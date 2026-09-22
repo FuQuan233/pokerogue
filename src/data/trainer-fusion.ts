@@ -4,14 +4,17 @@ import { getLevelTotalExp } from "#data/exp";
 import { Gender } from "#data/gender";
 import { CustomPokemonData } from "#data/pokemon-data";
 import { type TrainerFusionBuild, trainerFusionPools } from "#data/trainer-fusion-pools";
+import { getTrainerVarietyPool } from "#data/trainer-fusion-variety";
 import { getTrainerStrength } from "#data/trainer-strength";
 import { getTypeDamageMultiplier } from "#data/type";
 import { AbilityId } from "#enums/ability-id";
 import { PokemonType } from "#enums/pokemon-type";
+import { SpeciesId } from "#enums/species-id";
 import { Stat } from "#enums/stat";
 import { TrainerType } from "#enums/trainer-type";
 import type { EnemyPokemon, Pokemon } from "#field/pokemon";
 import type { Trainer } from "#field/trainer";
+import { randSeedInt } from "#utils/common";
 
 function buildStats(build: TrainerFusionBuild): number[] {
   const a = speciesDataRegistry.getPokemonSpeciesForm(build[0], 0).baseStats;
@@ -82,16 +85,23 @@ export function selectTrainerFusion(trainer: Trainer, index: number): TrainerFus
   if (!pool || fromEnd < 0 || fromEnd >= count) {
     return;
   }
-  if (type < TrainerType.RIVAL || type > TrainerType.RIVAL_6) {
-    return pool[fromEnd];
-  }
-  // Keep Rayquaza as the late rival ace; select the complementary member against the player's party.
-  if (type >= TrainerType.RIVAL_4 && fromEnd === 0) {
-    return pool[0];
-  }
-  const candidates = type >= TrainerType.RIVAL_4 ? pool.slice(1) : pool;
-  const party = globalScene.getPlayerParty();
-  return [...candidates].sort((a, b) => scoreRivalFusion(b, party) - scoreRivalFusion(a, party))[0];
+  const variety = getTrainerVarietyPool(type, profile.wave);
+  // Old high-powered builds are endgame-only. Remove the oppressive fixed Rayquaza/Archaludon pair entirely.
+  const candidates =
+    profile.wave < 195
+      ? variety
+      : [...variety, ...pool.filter(build => !(build[0] === SpeciesId.RAYQUAZA && build[1] === SpeciesId.ARCHALUDON))];
+  // Recreate one seeded ordering per owner, so slots don't duplicate builds and reloads don't reroll.
+  globalScene.executeWithSeedOffset(
+    () => {
+      for (let i = candidates.length - 1; i > 0; i--) {
+        const j = randSeedInt(i + 1);
+        [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+      }
+    },
+    profile.wave * 1000 + type,
+  );
+  return candidates[fromEnd];
 }
 
 /** Runs only on fresh generation, before assets/held items/save data; preserves the slot's boss HP bars and ID. */

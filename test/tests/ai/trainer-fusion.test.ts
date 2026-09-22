@@ -1,14 +1,14 @@
 import { speciesDataRegistry } from "#app/global-species-data-registry";
 import { allAbilities } from "#data/data-lists";
-import { applyTrainerFusion, getTrainerFusionCount, scoreRivalFusion, selectTrainerFusion } from "#data/trainer-fusion";
+import { applyTrainerFusion, getTrainerFusionCount, selectTrainerFusion } from "#data/trainer-fusion";
 import { trainerFusionPools } from "#data/trainer-fusion-pools";
-import { getTrainerBaseStats, getTrainerOffensiveStat } from "#data/trainer-strength";
+import { getTrainerVarietyPool } from "#data/trainer-fusion-variety";
+import { getTrainerBaseStats } from "#data/trainer-strength";
 import { AbilityId } from "#enums/ability-id";
 import { BattleType } from "#enums/battle-type";
 import { MoveId } from "#enums/move-id";
 import { PokeballType } from "#enums/pokeball";
 import { SpeciesId } from "#enums/species-id";
-import { Stat } from "#enums/stat";
 import { TrainerType } from "#enums/trainer-type";
 import { TrainerVariant } from "#enums/trainer-variant";
 import { PokemonData } from "#system/pokemon-data";
@@ -76,16 +76,19 @@ describe("Named trainer fusion pools", () => {
     expect(getTrainerFusionCount(TrainerType.RIVAL_6, 195, 6)).toBe(2);
   });
 
-  it("generates the late boss's last three slots with the approved species and custom abilities", async () => {
+  it("generates three distinct moderate fusions with intact custom abilities before endgame", async () => {
     await game.classicMode.startBattle(SpeciesId.MAGIKARP);
     const party = game.scene.getEnemyParty();
     expect(party.filter(p => p.isFusion())).toHaveLength(3);
     const ace = party.at(-1)!;
-    expect(ace.species.speciesId).toBe(SpeciesId.STEELIX);
-    expect(ace.fusionSpecies?.speciesId).toBe(SpeciesId.GARCHOMP);
-    expect(ace.getAllAbilities().map(a => a.id)).toEqual(trainerFusionPools[TrainerType.BROCK]![0].slice(2));
-    expect(getTrainerBaseStats(ace)).toEqual([108, 130, 200, 80, 85, 102]);
-    expect(getTrainerOffensiveStat(ace)).toBe(Stat.ATK);
+    const builds = party.filter(p => p.isFusion()).map(p => [p.species.speciesId, p.fusionSpecies!.speciesId]);
+    expect(new Set(builds.map(b => b.join("/"))).size).toBe(3);
+    const build = getTrainerVarietyPool(TrainerType.BROCK, 151).find(
+      b => b[0] === ace.species.speciesId && b[1] === ace.fusionSpecies?.speciesId,
+    )!;
+    expect(build).toBeDefined();
+    expect(ace.getAllAbilities().map(a => a.id)).toEqual(build.slice(2));
+    expect(getTrainerBaseStats(ace).reduce((a, b) => a + b, 0)).toBeLessThanOrEqual(650);
     expect(ace.hp).toBe(ace.getMaxHp());
   });
 
@@ -107,23 +110,76 @@ describe("Named trainer fusion pools", () => {
     for (let i = 0; i < size; i++) {
       const build = selectTrainerFusion(trainer, i);
       if (build) {
-        expect(trainerFusionPools[i % 2 ? TrainerType.LIZA : TrainerType.TATE]).toContain(build);
+        expect(getTrainerVarietyPool(i % 2 ? TrainerType.LIZA : TrainerType.TATE, 151)).toContainEqual(build);
         expect(game.scene.getEnemyParty()[i].fusionSpecies?.speciesId).toBe(build[1]);
       }
     }
   });
 
-  it("keeps the late rival Rayquaza ace and chooses its partner deterministically against the party", async () => {
-    game.override.randomTrainer({ trainerType: TrainerType.RIVAL_6 });
+  it.each([95, 145, 195])("varies rival fusions by run seed without the fixed Rayquaza pair at wave %i", async wave => {
+    game.override.randomTrainer({ trainerType: TrainerType.RIVAL_6 }).startingWave(wave);
     await game.classicMode.startBattle(SpeciesId.BLISSEY);
     const trainer = game.scene.currentBattle.trainer!;
     const size = trainer.getPartyTemplate().size;
-    expect(selectTrainerFusion(trainer, size - 1)?.[0]).toBe(SpeciesId.RAYQUAZA);
-    const pool = trainerFusionPools[TrainerType.RIVAL_6]!.slice(1);
-    const chosen = selectTrainerFusion(trainer, size - 2)!;
-    const score = scoreRivalFusion(chosen, game.scene.getPlayerParty());
-    expect(pool.every(p => score >= scoreRivalFusion(p, game.scene.getPlayerParty()))).toBe(true);
-    expect(selectTrainerFusion(trainer, size - 2)).toBe(chosen);
+    const chosen = selectTrainerFusion(trainer, size - 1)!;
+    expect(selectTrainerFusion(trainer, size - 1)).toEqual(chosen);
+    const combinations = new Set<string>();
+    for (let i = 0; i < 20; i++) {
+      game.scene.seed = `fusion-variety-${i}`;
+      const ace = selectTrainerFusion(trainer, size - 1)!;
+      const partner = selectTrainerFusion(trainer, size - 2)!;
+      expect(ace.slice(0, 2)).not.toEqual([SpeciesId.RAYQUAZA, SpeciesId.ARCHALUDON]);
+      expect(ace).not.toEqual(partner);
+      if (wave < 195) {
+        expect(getTrainerVarietyPool(trainer.config.trainerType, wave)).toContainEqual(ace);
+      }
+      combinations.add(ace.slice(0, 2).join("/"));
+    }
+    expect(combinations.size).toBeGreaterThan(5);
+  });
+
+  it("provides moderate nonlegendary builds for every named trainer, with implemented abilities", async () => {
+    await game.classicMode.startBattle(SpeciesId.MAGIKARP);
+    for (const wave of [95, 145]) {
+      const unique = new Set<string>();
+      for (const type of Object.keys(trainerFusionPools).map(Number)) {
+        const pool = getTrainerVarietyPool(type, wave);
+        const expectedSize =
+          type >= TrainerType.RIVAL && type <= TrainerType.RIVAL_6
+            ? 60
+            : type >= TrainerType.BROCK && type <= TrainerType.GRUSHA
+              ? 20
+              : 30;
+        expect(pool, TrainerType[type]).toHaveLength(expectedSize);
+        const pairs = pool.map(build => [build[0], build[1]].sort((a, b) => a - b).join("/"));
+        expect(new Set(pairs).size, TrainerType[type]).toBe(expectedSize);
+        let crossTypeCount = 0;
+        const roles = new Set<number>();
+        for (const build of pool) {
+          unique.add([build[0], build[1]].sort((a, b) => a - b).join("/"));
+          const forms = [build[0], build[1]].map(id => speciesDataRegistry.getPokemonSpeciesForm(id, 0));
+          if (forms[0].type1 !== forms[1].type1) {
+            crossTypeCount++;
+          }
+          const stats = forms[0].baseStats.map((v, i) => Math.max(v, forms[1].baseStats[i]));
+          roles.add((stats[2] + stats[4]) / 2 >= Math.max(stats[1], stats[3]) ? 0 : stats[5] >= 85 ? 1 : 2);
+          const total = forms[0].baseStats.reduce((sum, v, i) => sum + Math.max(v, forms[1].baseStats[i]), 0);
+          expect(total).toBeLessThanOrEqual(wave < 145 ? 600 : 650);
+          for (const id of [build[0], build[1]]) {
+            const species = speciesDataRegistry.getSpecies(id);
+            expect(species.legendary || species.subLegendary || species.mythical).toBeFalsy();
+          }
+          expect(new Set(build.slice(2)).size).toBe(4);
+          for (const id of build.slice(2)) {
+            expect(allAbilities[id].name).not.toMatch(/ \(N\)$/);
+          }
+        }
+        expect(crossTypeCount, TrainerType[type]).toBeGreaterThanOrEqual(Math.floor(expectedSize / 2));
+        expect(roles.size, TrainerType[type]).toBeGreaterThanOrEqual(2);
+      }
+      expect(unique.size).toBeGreaterThan(300);
+      console.log(`Fusion pool audit: wave=${wave}, trainers=158, unique unordered pairs=${unique.size}`);
+    }
   });
 
   it("round trips species, learned slots, moves, HP and boss bars without rerolling a saved fusion", async () => {
@@ -162,11 +218,12 @@ describe("Named trainer fusion pools", () => {
     const trainer = game.scene.currentBattle.trainer!;
     applyTrainerFusion(enemy, trainer, trainer.getPartyTemplate().size - 1);
     const abilities = enemy.getAllAbilities().map(a => a.id);
+    const donor = enemy.fusionSpecies!.speciesId;
     game.scene.pokeballCounts[PokeballType.MASTER_BALL] = 1;
     game.doThrowPokeball(PokeballType.MASTER_BALL);
     await game.phaseInterceptor.to("VictoryPhase");
     const caught = game.scene.getPlayerParty().at(-1)!;
-    expect(caught.fusionSpecies?.speciesId).toBe(SpeciesId.GARCHOMP);
+    expect(caught.fusionSpecies?.speciesId).toBe(donor);
     expect(caught.getAllAbilities().map(a => a.id)).toEqual(abilities);
     expect(caught.passive).toBe(true);
   });
