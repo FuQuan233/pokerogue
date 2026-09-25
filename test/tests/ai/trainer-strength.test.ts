@@ -60,25 +60,17 @@ describe("Classic trainer strength and tactics", () => {
     if (stacks === 0) {
       expect(vitamins).toHaveLength(0);
     } else {
-      expect(vitamins).toHaveLength(5);
-      expect(vitamins.map(m => m.stackCount).sort()).toEqual([
-        stacks,
-        stacks,
-        stacks,
-        stacks,
-        stacks + Number(wave >= 145),
-      ]);
+      expect(vitamins).toHaveLength(4);
+      expect(vitamins.map(m => m.stackCount).sort()).toEqual([stacks, stacks, stacks, stacks + Number(wave >= 145)]);
     }
   });
 
-  it("gives attackers guaranteed speed, HP and both defenses as well as offense, with reloadable item types", async () => {
+  it("gives attackers HP, both defenses and offense without speed vitamins, with reloadable item types", async () => {
     await game.classicMode.startBattle(SpeciesId.MAGIKARP);
     const enemy = game.field.getEnemyPokemon();
     const items = getTrainerLoadout(enemy);
     const vitamins = items.filter(m => m instanceof BaseStatModifier);
-    expect(vitamins.map(m => m.getArgs().at(-1)).sort()).toEqual(
-      [Stat.HP, Stat.DEF, Stat.SPDEF, Stat.SPD, Stat.SPATK].sort(),
-    );
+    expect(vitamins.map(m => m.getArgs().at(-1)).sort()).toEqual([Stat.HP, Stat.DEF, Stat.SPDEF, Stat.SPATK].sort());
     expect(vitamins.every(m => m.stackCount === 1)).toBe(true);
     for (const item of items) {
       const restored = new ModifierData(item, false).toModifier(item.constructor);
@@ -88,6 +80,23 @@ describe("Classic trainer strength and tactics", () => {
     expect(enemy.nature).toBe(Nature.TIMID);
     expect(enemy.ivs.every(iv => iv >= 25)).toBe(true);
     expect(game.scene.findModifiers(m => m.type.id === "LUCKY_EGG", false)).toHaveLength(0);
+  });
+
+  it.each([29, 95, 145, 195])("removes extra and restored NPC speed vitamins at wave %i", async wave => {
+    game.override.randomTrainer({ trainerType: TrainerType.BROCK }).startingWave(wave);
+    await game.classicMode.startBattle(SpeciesId.MAGIKARP);
+    const enemy = game.field.getEnemyPokemon();
+    const type = modifierTypes.BASE_STAT_BOOSTER().generateType([enemy], [Stat.SPD])!;
+    type.id = "BASE_STAT_BOOSTER";
+    const speed = type.newModifier(enemy) as BaseStatModifier;
+    speed.stackCount = 3;
+    const restored = new ModifierData(speed, false).toModifier(speed.constructor) as BaseStatModifier;
+    await game.scene.addEnemyModifier(restored, true);
+    limitTrainerItems(enemy);
+    game.scene.updateModifiers(false);
+    expect(
+      enemy.getHeldItems().filter(m => m instanceof BaseStatModifier && m.getArgs().at(-1) === Stat.SPD),
+    ).toHaveLength(0);
   });
 
   it("gives late bosses full IVs, full-team passives and a stronger loadout", async () => {

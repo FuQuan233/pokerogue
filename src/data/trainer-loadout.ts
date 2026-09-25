@@ -60,7 +60,7 @@ export function getTrainerLoadout(pokemon: EnemyPokemon): PokemonHeldItemModifie
   const stacks = profile.vitaminStacks;
   const midgame = profile.wave >= 95 && profile.wave < 145;
   const healingItem = getTrainerHealingItem(pokemon);
-  for (const stat of [Stat.HP, Stat.DEF, Stat.SPDEF, Stat.SPD]) {
+  for (const stat of [Stat.HP, Stat.DEF, Stat.SPDEF]) {
     add("BASE_STAT_BOOSTER", stacks, [stat]);
   }
   add("BASE_STAT_BOOSTER", stacks + (profile.boss && profile.wave >= 145 ? 1 : 0), [getTrainerOffensiveStat(pokemon)]);
@@ -89,7 +89,7 @@ export function getTrainerLoadout(pokemon: EnemyPokemon): PokemonHeldItemModifie
   return result;
 }
 
-/** Enforce healing limits on all NPC sources, including random items and restored saves. */
+/** Enforce NPC item limits, including random items and restored saves. */
 export function limitTrainerItems(pokemon: EnemyPokemon): void {
   if (globalScene.currentBattle.battleType !== BattleType.TRAINER || globalScene.gameMode.modeId === GameModes.PVP) {
     return;
@@ -100,6 +100,10 @@ export function limitTrainerItems(pokemon: EnemyPokemon): void {
   let healingBudget = midgame ? 1 : 2;
   for (const modifier of globalScene.findModifiers(() => true, false)) {
     if (!(modifier instanceof PokemonHeldItemModifier) || modifier.pokemonId !== pokemon.id) {
+      continue;
+    }
+    if (modifier instanceof BaseStatModifier && modifier.getArgs().at(-1) === Stat.SPD) {
+      modifier.stackCount = 0;
       continue;
     }
     if (midgame && modifier instanceof BaseStatModifier) {
