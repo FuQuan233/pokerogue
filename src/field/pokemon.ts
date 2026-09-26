@@ -140,6 +140,7 @@ import {
   ShinyRateBoosterModifier,
   SlowScrollModifier,
   SpecialCritScrollModifier,
+  SphealBlessingModifier,
   StatBoosterModifier,
   StrengthScrollModifier,
   SuperCritScrollModifier,
@@ -3058,6 +3059,7 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
         globalScene.phaseManager.queueMessage(i18next.t("weather:strongWindsEffectMessage"));
       }
     }
+    globalScene.applyModifiers(SphealBlessingModifier, this.isPlayer(), this, moveType, multi);
     return multi.value as TypeDamageMultiplier;
   }
 

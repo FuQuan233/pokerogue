@@ -131,6 +131,7 @@ import {
   SpecialCritScrollModifier,
   SpeciesCritBoosterModifier,
   SpeciesStatBoosterModifier,
+  SphealBlessingModifier,
   StrengthScrollModifier,
   SuperCritScrollModifier,
   SurviveDamageModifier,
@@ -2430,6 +2431,14 @@ const modifierTypeInitObj = Object.freeze({
       "modifierType:ModifierType.FOCUS_BAND",
       "focus_band",
       (type, args) => new SurviveDamageModifier(type, (args[0] as Pokemon).id),
+    ),
+
+  SPHEAL_BLESSING: () =>
+    new HardcodedPokemonHeldItemModifierType(
+      "海豹球祝福",
+      "携带后，无论自身属性如何，受到冰系招式攻击时的属性倍率固定为1/8。每只宝可梦最多携带1个。",
+      "spheal_blessing",
+      (type, args) => new SphealBlessingModifier(type, (args[0] as Pokemon).id),
     ),
 
   QUICK_CLAW: () =>

@@ -22,7 +22,7 @@ import { LearnMoveType } from "#enums/learn-move-type";
 import type { MoveId } from "#enums/move-id";
 import type { Nature } from "#enums/nature";
 import type { PokeballType } from "#enums/pokeball";
-import type { PokemonType } from "#enums/pokemon-type";
+import { PokemonType } from "#enums/pokemon-type";
 import { SpeciesId } from "#enums/species-id";
 import {
   BATTLE_STATS,
@@ -1371,6 +1371,29 @@ export class AgilityScrollModifier extends PokemonHeldItemModifier {
 
   getMaxHeldItemCount(_pokemon: Pokemon): number {
     return 3;
+  }
+}
+
+export class SphealBlessingModifier extends PokemonHeldItemModifier {
+  matchType(modifier: Modifier): boolean {
+    return modifier instanceof SphealBlessingModifier;
+  }
+
+  clone(): PersistentModifier {
+    return new SphealBlessingModifier(this.type, this.pokemonId, this.stackCount);
+  }
+
+  override shouldApply(pokemon: Pokemon, moveType: PokemonType, multiplier: NumberHolder): boolean {
+    return super.shouldApply(pokemon, moveType, multiplier) && moveType === PokemonType.ICE;
+  }
+
+  override apply(_pokemon: Pokemon, _moveType: PokemonType, multiplier: NumberHolder): boolean {
+    multiplier.value = 1 / 8;
+    return true;
+  }
+
+  getMaxHeldItemCount(_pokemon: Pokemon): number {
+    return 1;
   }
 }
 
@@ -4901,6 +4924,7 @@ const ModifierClassMap = Object.freeze({
   EnduranceScrollModifier,
   VitalityScrollModifier,
   AgilityScrollModifier,
+  SphealBlessingModifier,
   StrengthScrollModifier,
   IntellectScrollModifier,
   SlowScrollModifier,

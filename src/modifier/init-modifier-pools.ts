@@ -623,6 +623,7 @@ function initUltraModifierPool() {
       4,
     ),
     new WeightedModifierType(modifierTypes.QUICK_CLAW, 3),
+    new WeightedModifierType(modifierTypes.SPHEAL_BLESSING, 3),
     new WeightedModifierType(modifierTypes.WIDE_LENS, 7),
   ].map(m => {
     m.setTier(ModifierTier.ULTRA);

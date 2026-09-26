@@ -3,6 +3,7 @@ import { globalScene } from "#app/global-scene";
 import { activeOverrides } from "#app/overrides";
 import { SceneBase } from "#app/scene-base";
 import { isMobile } from "#app/touch-controls";
+import { registerSphealBlessingIcon } from "#data/spheal-blessing-icon";
 import { BiomeId } from "#enums/biome-id";
 import { GachaType } from "#enums/gacha-types";
 import { getBiomeHasProps } from "#field/arena";
@@ -539,6 +540,7 @@ export class LoadingScene extends SceneBase {
   }
 
   async create() {
+    registerSphealBlessingIcon(this.textures);
     this.events.once(Phaser.Scenes.Events.DESTROY, () => this.handleDestroy());
     this.scene.start("battle");
   }
