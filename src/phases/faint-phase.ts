@@ -34,12 +34,20 @@ export class FaintPhase extends PokemonPhase {
    */
   // TODO: This should be handled by a move in flight object/similar
   private readonly source?: Pokemon | undefined;
+  /** Used only by forced-KO cheats, to bypass the final boss' scripted revival. */
+  private readonly skipFinalBossTransition: boolean;
 
-  constructor(battlerIndex: BattlerIndex, preventInstantRevive = false, source?: Pokemon) {
+  constructor(
+    battlerIndex: BattlerIndex,
+    preventInstantRevive = false,
+    source?: Pokemon,
+    skipFinalBossTransition = false,
+  ) {
     super(battlerIndex);
 
     this.preventInstantRevive = preventInstantRevive;
     this.source = source;
+    this.skipFinalBossTransition = skipFinalBossTransition;
   }
 
   public override start(): void {
@@ -94,7 +102,7 @@ export class FaintPhase extends PokemonPhase {
       }
     }
 
-    if (globalScene.currentBattle.isClassicFinalBoss && !this.player) {
+    if (globalScene.currentBattle.isClassicFinalBoss && !this.player && !this.skipFinalBossTransition) {
       this.handleFinalBossFaint();
     } else {
       this.doFaint();

@@ -15,7 +15,9 @@ import { BattlerIndex } from "#enums/battler-index";
 import { BattlerTagLapseType } from "#enums/battler-tag-lapse-type";
 import { BattlerTagType } from "#enums/battler-tag-type";
 import { ChallengeType } from "#enums/challenge-type";
+import { HitResult } from "#enums/hit-result";
 import { CommonAnim } from "#enums/move-anims-common";
+import { MoveCategory } from "#enums/move-category";
 import { MoveFlags } from "#enums/move-flags";
 import { MoveId } from "#enums/move-id";
 import { MovePhaseTimingModifier } from "#enums/move-phase-timing-modifier";
@@ -125,6 +127,35 @@ export class MovePhase extends PokemonPhase {
     // TODO: Cancel the user's queued `MovePhase`s when they leave the field -
     // force switching a pokemon out and back in should not let them use a move
     if (!user.isActive(true)) {
+      this.end();
+      return;
+    }
+
+    const cheatTarget = this.getNextStrikeCheatTarget();
+    if (cheatTarget) {
+      // Consume before damage/faint callbacks: multi-hit and follow-up moves must not reuse it.
+      globalScene.currentBattle.nextStrikeCheat = false;
+      user.turnData.acted = true;
+      globalScene.currentBattle.lastPlayerInvolved = this.fieldIndex;
+      this.usePP();
+      this.moveHistoryEntry.move = this.move.moveId;
+      this.moveHistoryEntry.result = MoveResult.SUCCESS;
+      user.pushMoveHistory(this.moveHistoryEntry);
+      globalScene.phaseManager.queueMessage("作弊指令：先手必杀！");
+      // This is a forced KO, including scripted final-boss HP floors.
+      const damage = cheatTarget.hp;
+      cheatTarget.hp = 0;
+      cheatTarget.destroySubstitute();
+      cheatTarget.lapseTag(BattlerTagType.COMMANDED);
+      globalScene.phaseManager.unshiftNew(
+        "DamageAnimPhase",
+        cheatTarget.getBattlerIndex(),
+        damage,
+        HitResult.INDIRECT_KO,
+        false,
+        true,
+      );
+      globalScene.phaseManager.queueFaintPhase(cheatTarget.getBattlerIndex(), true, undefined, true);
       this.end();
       return;
     }
@@ -943,6 +974,22 @@ export class MovePhase extends PokemonPhase {
   // #endregion Move Execution
 
   // #region Helpers
+
+  /** Also used by the dynamic queue so the armed attack outranks all normal move priorities. */
+  public getNextStrikeCheatTarget(): Pokemon | undefined {
+    if (
+      !globalScene.currentBattle?.nextStrikeCheat
+      || !this.pokemon.isPlayer()
+      || !this.pokemon.isActive(true)
+      || this.cancelled
+      || this.move.getMove().category === MoveCategory.STATUS
+    ) {
+      return;
+    }
+    return this.targets
+      .map(index => globalScene.getField()[index])
+      .find(target => target?.isActive(true) && this.pokemon.isOpponent(target));
+  }
 
   /**
    * Handles the case where the move was cancelled or failed:

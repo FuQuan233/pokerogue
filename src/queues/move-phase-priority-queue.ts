@@ -23,6 +23,10 @@ export class MovePhasePriorityQueue extends DynamicPhasePriorityQueue<MovePhase>
    */
   private sortPostSpeed(): void {
     this.queue.sort((a, b) => {
+      const cheatPriority = Number(!!b.getNextStrikeCheatTarget()) - Number(!!a.getNextStrikeCheatTarget());
+      if (cheatPriority !== 0) {
+        return cheatPriority;
+      }
       if (b.timingModifier !== a.timingModifier) {
         return b.timingModifier - a.timingModifier;
       }

@@ -68,6 +68,8 @@ export class Battle {
   public started = false;
   public enemySwitchCounter = 0;
   public turn = 0;
+  /** One-shot cheat, scoped to this battle and never persisted in the save. */
+  public nextStrikeCheat = false;
   public preTurnCommands: TurnCommands;
   public turnCommands: TurnCommands;
   public playerParticipantIds: Set<number> = new Set<number>();

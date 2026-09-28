@@ -13,18 +13,22 @@ export class DamageAnimPhase extends PokemonPhase {
   private amount: number;
   private readonly damageResult: DamageResult;
   private readonly critical: boolean;
+  /** Used only by forced-KO cheats, to avoid reviving the final boss during its HP animation. */
+  private readonly skipFinalBossTransition: boolean;
 
   constructor(
     battlerIndex: BattlerIndex,
     amount: number,
     damageResult: DamageResult = HitResult.EFFECTIVE,
     critical = false,
+    skipFinalBossTransition = false,
   ) {
     super(battlerIndex);
 
     this.amount = amount;
     this.damageResult = damageResult;
     this.critical = critical;
+    this.skipFinalBossTransition = skipFinalBossTransition;
   }
 
   start() {
@@ -95,7 +99,7 @@ export class DamageAnimPhase extends PokemonPhase {
   }
 
   public override end() {
-    if (globalScene.currentBattle.isClassicFinalBoss) {
+    if (globalScene.currentBattle.isClassicFinalBoss && !this.skipFinalBossTransition) {
       globalScene.initFinalBossPhaseTwo(this.getPokemon());
     } else {
       super.end();

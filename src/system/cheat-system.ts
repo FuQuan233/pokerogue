@@ -33,6 +33,8 @@ export class CheatSystem {
   // UP, UP, DOWN, DOWN, SUBMIT = Heal All
   private readonly HEAL_CODE = [Button.UP, Button.UP, Button.DOWN, Button.DOWN, Button.SUBMIT];
 
+  private readonly NEXT_STRIKE_CODE = [Button.RIGHT, Button.RIGHT, Button.LEFT, Button.LEFT, Button.SUBMIT];
+
   private inputSequence: Button[] = [];
   private readonly MAX_SEQUENCE_LENGTH = 10;
   private lastInputTime = 0;
@@ -109,6 +111,12 @@ export class CheatSystem {
     } else if (this.matchesSequence(this.HEAL_CODE)) {
       console.log("[CHEAT] Heal code activated!");
       this.healAllPokemon();
+      this.inputSequence = [];
+    } else if (this.matchesSequence(this.NEXT_STRIKE_CODE)) {
+      if (globalScene.currentBattle && globalScene.getEnemyField(true).length > 0) {
+        globalScene.currentBattle.nextStrikeCheat = true;
+        globalScene.ui.showText("作弊指令：下一次对敌攻击必定先手，目标 HP 清零！", null, () => {}, null, true);
+      }
       this.inputSequence = [];
     }
   }
@@ -205,6 +213,9 @@ export class CheatSystem {
    */
   setEnabled(enabled: boolean): void {
     this.enabled = enabled;
+    if (!enabled && globalScene?.currentBattle) {
+      globalScene.currentBattle.nextStrikeCheat = false;
+    }
     console.log(`[CHEAT] Cheat system ${enabled ? "enabled" : "disabled"}`);
   }
 
