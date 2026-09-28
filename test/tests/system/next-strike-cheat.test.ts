@@ -84,12 +84,15 @@ describe("Cheats - next strike", () => {
     expect(ally.hp).toBe(hp);
   });
 
-  it("arms through the button sequence and clears when cheats are disabled", async () => {
+  it.each([
+    Button.SUBMIT,
+    Button.CYCLE_TERA,
+  ])("arms with confirmation %s and clears when disabled", async confirmation => {
     await game.classicMode.startBattle(SpeciesId.SHUCKLE);
     const cheat = CheatSystem.getInstance();
     cheat.setEnabled(true);
     vi.spyOn(game.scene.ui, "showText").mockImplementation(() => {});
-    for (const button of [Button.RIGHT, Button.RIGHT, Button.LEFT, Button.LEFT, Button.SUBMIT]) {
+    for (const button of [Button.RIGHT, Button.RIGHT, Button.LEFT, Button.LEFT, confirmation]) {
       cheat["onButtonPressed"](button);
     }
     expect(game.scene.currentBattle.nextStrikeCheat).toBe(true);

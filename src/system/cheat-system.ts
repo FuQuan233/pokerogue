@@ -127,7 +127,13 @@ export class CheatSystem {
     }
 
     const recentInputs = this.inputSequence.slice(-targetSequence.length);
-    return recentInputs.every((button, index) => button === targetSequence[index]);
+    return recentInputs.every(
+      (button, index) =>
+        button === targetSequence[index] // Mobile V is CYCLE_TERA. Accept it only as the final confirmation of a cheat.
+        || (index === targetSequence.length - 1
+          && targetSequence[index] === Button.SUBMIT
+          && button === Button.CYCLE_TERA),
+    );
   }
 
   /**
