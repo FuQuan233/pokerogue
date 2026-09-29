@@ -420,6 +420,27 @@ export class EncounterPhase extends BattlePhase {
         });
   }
 
+  /** Keep each trainer's opening Pokemon in its own field slot after pre-battle KOs. */
+  private queueTrainerSummons(): void {
+    const battle = globalScene.currentBattle;
+    const party = globalScene.getEnemyParty();
+    for (let fieldIndex = 0; fieldIndex < battle.getBattlerCount(); fieldIndex++) {
+      const trainerSlot = fieldIndex === 0 ? TrainerSlot.TRAINER : TrainerSlot.TRAINER_PARTNER;
+      const index = party.findIndex(
+        (pokemon, partyIndex) =>
+          partyIndex >= fieldIndex
+          && pokemon.isAllowedInBattle()
+          && (!battle.trainer?.isDouble() || pokemon.trainerSlot === trainerSlot),
+      );
+      // One trainer may have no Pokemon left even while their partner can still fight.
+      if (index === -1) {
+        continue;
+      }
+      [party[fieldIndex], party[index]] = [party[index], party[fieldIndex]];
+      globalScene.phaseManager.unshiftNew("SummonPhase", fieldIndex, false);
+    }
+  }
+
   doEncounterCommon(showEncounterMessage = true) {
     this.incrementMysteryEncounterChance();
 
@@ -459,10 +480,7 @@ export class EncounterPhase extends BattlePhase {
             this.end();
             return;
           }
-          globalScene.phaseManager.unshiftNew("SummonPhase", 0, false);
-          if (globalScene.currentBattle.double && availablePartyMembers > 1) {
-            globalScene.phaseManager.unshiftNew("SummonPhase", 1, false);
-          }
+          this.queueTrainerSummons();
           this.end();
         };
         if (showEncounterMessage) {
