@@ -386022,6 +386022,546 @@
     "move": "TERA_BLAST"
   },
   {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "BODY_SLAM"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "TAKE_DOWN"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "DOUBLE_EDGE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "ROAR"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "FLAMETHROWER"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "HYDRO_PUMP"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "SURF"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "ICE_BEAM"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "BLIZZARD"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "HYPER_BEAM"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "STRENGTH"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "THUNDERBOLT"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "THUNDER_WAVE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "THUNDER"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "EARTHQUAKE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "TOXIC"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "DOUBLE_TEAM"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "REFLECT"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "FIRE_BLAST"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "WATERFALL"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "REST"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "SUBSTITUTE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "SNORE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "CURSE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "SPITE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "PROTECT"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "SCARY_FACE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "ZAP_CANNON"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "ICY_WIND"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "OUTRAGE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "SANDSTORM"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "ENDURE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "SWAGGER"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "ATTRACT"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "SLEEP_TALK"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "RETURN"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "IRON_TAIL"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "HIDDEN_POWER"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "RAIN_DANCE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "SUNNY_DAY"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "CRUNCH"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "ROCK_SMASH"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "WHIRLPOOL"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "UPROAR"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "HAIL"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "TORMENT"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "FACADE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "TAUNT"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "HELPING_HAND"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "ENDEAVOR"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "SECRET_POWER"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "DIVE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "MUDDY_WATER"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "BOUNCE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "DRAGON_DANCE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "WATER_PULSE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "BRINE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "PAYBACK"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "DARK_PULSE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "AQUA_TAIL"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "DRAGON_PULSE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "GIGA_IMPACT"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "AVALANCHE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "ICE_FANG"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "POWER_WHIP"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "IRON_HEAD"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "STONE_EDGE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "ROUND"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "SCALD"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "INCINERATE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "BULLDOZE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "DRAGON_TAIL"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "HURRICANE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "CONFIDE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "BRUTAL_SWING"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "SCALE_SHOT"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "LASH_OUT"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "TERA_BLAST"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "CHILLING_WATER"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "DRAGON_CHEER"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "TEMPER_FLARE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "ROCK_SLIDE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "SUPER_FANG"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "MUD_SLAP"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "ENCORE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "ROCK_TOMB"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "SIGNAL_BEAM"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "ECHOED_VOICE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "FROST_BREATH"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "move": "STEEL_ROLLER"
+  },
+  {
     "dexNum": 2019,
     "id": "ALOLA_RATTATA",
     "form": null,

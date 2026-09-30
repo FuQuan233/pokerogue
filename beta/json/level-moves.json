@@ -127435,6 +127435,125 @@
     "move": "RECOVER"
   },
   {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "level": 1,
+    "move": "WATER_GUN"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "level": 1,
+    "move": "SCARY_FACE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "level": 1,
+    "move": "POWDER_SNOW"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "level": 7,
+    "move": "BELLY_DRUM"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "level": 13,
+    "move": "ROLLOUT"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "level": 19,
+    "move": "AURORA_BEAM"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "level": 25,
+    "move": "HAZE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "level": 31,
+    "move": "BRINE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "level": 37,
+    "move": "RAIN_DANCE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "level": 43,
+    "move": "BOUNCY_BUBBLE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "level": 49,
+    "move": "ICE_BEAM"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "level": 55,
+    "move": "HYDRO_PUMP"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "level": 61,
+    "move": "HURRICANE"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "level": 67,
+    "move": "FREEZE_DRY"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "level": 73,
+    "move": "BLIZZARD"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "level": 79,
+    "move": "SPLISHY_SPLASH"
+  },
+  {
+    "dexNum": 1900,
+    "id": "BAOLILONG",
+    "form": null,
+    "level": 85,
+    "move": "WATER_SPOUT"
+  },
+  {
     "dexNum": 2019,
     "id": "ALOLA_RATTATA",
     "form": null,

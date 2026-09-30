@@ -222,6 +222,7 @@ dexNum,id,evoDexNum,evoId,prevoKey,evoKey,levelNeeded,evoItems,evoDelay,timeOfDa
 361,SNORUNT,362,GLALIE,,,42,,,,,,,,,,,,,,,,,,
 361,SNORUNT,478,FROSLASS,,,1,DAWN_STONE,42|42|42,,,FEMALE,,,,,,,,,,,,,
 363,SPHEAL,364,SEALEO,,,32,,,,,,,,,,,,,,,,,,
+363,SPHEAL,1900,BAOLILONG,,,1,SPHEAL_STONE,20|20|20,,,,,,,,,,,,,,,,
 364,SEALEO,365,WALREIN,,,44,,,,,,,,,,,,,,,,,,
 366,CLAMPERL,367,HUNTAIL,,,1,LINKING_CORD,40|40|50,,,,,,,,,,,,,,,DEEP_SEA_TOOTH,
 366,CLAMPERL,368,GOREBYSS,,,1,LINKING_CORD,40|40|50,,,,,,,,,,,,,,,DEEP_SEA_SCALE,
