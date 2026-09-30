@@ -37,7 +37,9 @@ export class QuietFormChangePhase extends BattlePhase {
     this.preName = getPokemonNameWithAffix(this.pokemon);
 
     // Don't do anything if the user is already in the same form.
-    if (this.pokemon.formIndex === this.pokemon.species.forms.findIndex(f => f.formKey === this.formChange.formKey)) {
+    const species = this.formChange.forFusion ? this.pokemon.fusionSpecies : this.pokemon.species;
+    const formIndex = this.formChange.forFusion ? this.pokemon.fusionFormIndex : this.pokemon.formIndex;
+    if (!species || formIndex === species.forms.findIndex(f => f.formKey === this.formChange.formKey)) {
       super.end();
       return;
     }

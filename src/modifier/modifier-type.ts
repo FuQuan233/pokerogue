@@ -13,7 +13,7 @@ import { allAbilities, allMoves, modifierTypes } from "#data/data-lists";
 import { SpeciesFormChangeItemTrigger } from "#data/form-change-triggers";
 import { getNatureName, getNatureStatMultiplier } from "#data/nature";
 import { getPokeballCatchMultiplier, getPokeballName } from "#data/pokeball";
-import { SpeciesFormChangeCondition } from "#data/pokemon-forms";
+import { getPokemonFormChanges, SpeciesFormChangeCondition } from "#data/pokemon-forms";
 import { getStatusEffectDescriptor } from "#data/status-effect";
 import { AbilityAttr } from "#enums/ability-attr";
 import { AbilityId } from "#enums/ability-id";
@@ -1469,11 +1469,11 @@ export class FormChangeItemModifierType extends PokemonModifierType implements G
       (pokemon: PlayerPokemon) => {
         // Make sure the Pokemon has alternate forms
         if (
-          speciesDataRegistry.hasFormChanges(pokemon.species.speciesId) // Get all form changes for this species with an item trigger, including any compound triggers
-          && speciesDataRegistry
-            .getFormChanges(pokemon.species.speciesId)
+          getPokemonFormChanges(pokemon)
             .filter(
-              fc => fc.trigger.hasTriggerType(SpeciesFormChangeItemTrigger) && fc.preFormKey === pokemon.getFormKey(),
+              fc =>
+                fc.trigger.hasTriggerType(SpeciesFormChangeItemTrigger)
+                && fc.preFormKey === (fc.forFusion ? pokemon.getFusionFormKey() : pokemon.getFormKey()),
             )
             // Returns true if any form changes match this item
             .flatMap(fc => fc.findTrigger(SpeciesFormChangeItemTrigger) as SpeciesFormChangeItemTrigger)
@@ -1811,6 +1811,7 @@ class EvolutionItemModifierTypeGenerator extends ModifierTypeGenerator {
               && (!p.pauseEvolutions
                 || p.species.speciesId === SpeciesId.SLOWPOKE
                 || p.species.speciesId === SpeciesId.EEVEE
+                || p.species.speciesId === SpeciesId.SPHEAL
                 || p.species.speciesId === SpeciesId.KIRLIA
                 || p.species.speciesId === SpeciesId.SNORUNT),
           )
@@ -1827,6 +1828,7 @@ class EvolutionItemModifierTypeGenerator extends ModifierTypeGenerator {
               && (!p.pauseEvolutions
                 || p.fusionSpecies.speciesId === SpeciesId.SLOWPOKE
                 || p.fusionSpecies.speciesId === SpeciesId.EEVEE
+                || p.fusionSpecies.speciesId === SpeciesId.SPHEAL
                 || p.fusionSpecies.speciesId === SpeciesId.KIRLIA
                 || p.fusionSpecies.speciesId === SpeciesId.SNORUNT),
           )
@@ -1849,6 +1851,86 @@ class EvolutionItemModifierTypeGenerator extends ModifierTypeGenerator {
   }
 }
 
+/** Eligible unique item IDs, shared by reward weights and item generation. */
+export function getFormChangeItemPool(party: readonly Pokemon[], isRareFormChangeItem: boolean): FormChangeItem[] {
+  return [
+    ...new Set(
+      [
+        ...new Set(
+          party.flatMap(p => {
+            const formChanges = getPokemonFormChanges(p);
+            let formChangeItemTriggers = formChanges
+              .filter(
+                fc =>
+                  ((fc.formKey.indexOf(SpeciesFormKey.MEGA) === -1 && fc.formKey.indexOf(SpeciesFormKey.PRIMAL) === -1)
+                    || globalScene.getModifiers(MegaEvolutionAccessModifier).length > 0)
+                  && ((fc.formKey.indexOf(SpeciesFormKey.GIGANTAMAX) === -1
+                    && fc.formKey.indexOf(SpeciesFormKey.ETERNAMAX) === -1)
+                    || globalScene.getModifiers(GigantamaxAccessModifier).length > 0)
+                  && (fc.conditions.length === 0
+                    || fc.conditions.filter(cond => cond instanceof SpeciesFormChangeCondition && cond.predicate(p))
+                      .length > 0)
+                  && fc.preFormKey === (fc.forFusion ? p.getFusionFormKey() : p.getFormKey()),
+              )
+              .map(fc => fc.findTrigger(SpeciesFormChangeItemTrigger) as SpeciesFormChangeItemTrigger)
+              .filter(
+                t =>
+                  t?.active
+                  && !globalScene.findModifier(
+                    m =>
+                      m instanceof PokemonFormChangeItemModifier && m.pokemonId === p.id && m.formChangeItem === t.item,
+                  ),
+              );
+
+            if (p.species.speciesId === SpeciesId.NECROZMA) {
+              // technically we could use a simplified version and check for formChanges.length > 3, but in case any code changes later, this might break...
+              let foundULTRA_Z = false;
+              let foundN_LUNA = false;
+              let foundN_SOLAR = false;
+              formChangeItemTriggers.forEach((fc, _i) => {
+                console.log("Checking ", fc.item);
+                switch (fc.item) {
+                  case FormChangeItem.ULTRANECROZIUM_Z:
+                    foundULTRA_Z = true;
+                    break;
+                  case FormChangeItem.N_LUNARIZER:
+                    foundN_LUNA = true;
+                    break;
+                  case FormChangeItem.N_SOLARIZER:
+                    foundN_SOLAR = true;
+                    break;
+                }
+              });
+              if (foundULTRA_Z && foundN_LUNA && foundN_SOLAR) {
+                // all three items are present -> user hasn't acquired any of the N_*ARIZERs -> block ULTRANECROZIUM_Z acquisition.
+                formChangeItemTriggers = formChangeItemTriggers.filter(
+                  fc => fc.item !== FormChangeItem.ULTRANECROZIUM_Z,
+                );
+              } else {
+                console.log("DID NOT FIND ");
+              }
+            }
+            return formChangeItemTriggers;
+          }),
+        ),
+      ]
+        .flat()
+        .flatMap(fc => fc.item)
+        .filter(i => (i > FormChangeItem.NONE && i < 150) === isRareFormChangeItem),
+    ),
+  ];
+}
+
+export function isMegaStone(item: FormChangeItem): boolean {
+  return item > FormChangeItem.NONE && item < FormChangeItem.BLUE_ORB;
+}
+
+/** Increase only Mega stone weight, leaving the other form items at their original weight. */
+export function getRareFormChangeWeightMultiplier(party: readonly Pokemon[]): number {
+  const pool = getFormChangeItemPool(party, true);
+  return pool.length > 0 ? 1 + pool.filter(isMegaStone).length / pool.length : 1;
+}
+
 export class FormChangeItemModifierTypeGenerator extends ModifierTypeGenerator {
   constructor(isRareFormChangeItem: boolean) {
     super((party: readonly Pokemon[], pregenArgs?: any[]) => {
@@ -1856,74 +1938,9 @@ export class FormChangeItemModifierTypeGenerator extends ModifierTypeGenerator {
         return new FormChangeItemModifierType(pregenArgs[0] as FormChangeItem);
       }
 
-      const formChangeItemPool = [
-        ...new Set(
-          party
-            .filter(p => speciesDataRegistry.hasFormChanges(p.species.speciesId))
-            .flatMap(p => {
-              const formChanges = speciesDataRegistry.getFormChanges(p.species.speciesId);
-              let formChangeItemTriggers = formChanges
-                .filter(
-                  fc =>
-                    ((fc.formKey.indexOf(SpeciesFormKey.MEGA) === -1
-                      && fc.formKey.indexOf(SpeciesFormKey.PRIMAL) === -1)
-                      || globalScene.getModifiers(MegaEvolutionAccessModifier).length > 0)
-                    && ((fc.formKey.indexOf(SpeciesFormKey.GIGANTAMAX) === -1
-                      && fc.formKey.indexOf(SpeciesFormKey.ETERNAMAX) === -1)
-                      || globalScene.getModifiers(GigantamaxAccessModifier).length > 0)
-                    && (fc.conditions.length === 0
-                      || fc.conditions.filter(cond => cond instanceof SpeciesFormChangeCondition && cond.predicate(p))
-                        .length > 0)
-                    && fc.preFormKey === p.getFormKey(),
-                )
-                .map(fc => fc.findTrigger(SpeciesFormChangeItemTrigger) as SpeciesFormChangeItemTrigger)
-                .filter(
-                  t =>
-                    t?.active
-                    && !globalScene.findModifier(
-                      m =>
-                        m instanceof PokemonFormChangeItemModifier
-                        && m.pokemonId === p.id
-                        && m.formChangeItem === t.item,
-                    ),
-                );
-
-              if (p.species.speciesId === SpeciesId.NECROZMA) {
-                // technically we could use a simplified version and check for formChanges.length > 3, but in case any code changes later, this might break...
-                let foundULTRA_Z = false;
-                let foundN_LUNA = false;
-                let foundN_SOLAR = false;
-                formChangeItemTriggers.forEach((fc, _i) => {
-                  console.log("Checking ", fc.item);
-                  switch (fc.item) {
-                    case FormChangeItem.ULTRANECROZIUM_Z:
-                      foundULTRA_Z = true;
-                      break;
-                    case FormChangeItem.N_LUNARIZER:
-                      foundN_LUNA = true;
-                      break;
-                    case FormChangeItem.N_SOLARIZER:
-                      foundN_SOLAR = true;
-                      break;
-                  }
-                });
-                if (foundULTRA_Z && foundN_LUNA && foundN_SOLAR) {
-                  // all three items are present -> user hasn't acquired any of the N_*ARIZERs -> block ULTRANECROZIUM_Z acquisition.
-                  formChangeItemTriggers = formChangeItemTriggers.filter(
-                    fc => fc.item !== FormChangeItem.ULTRANECROZIUM_Z,
-                  );
-                } else {
-                  console.log("DID NOT FIND ");
-                }
-              }
-              return formChangeItemTriggers;
-            }),
-        ),
-      ]
-        .flat()
-        .flatMap(fc => fc.item)
-        .filter(i => (i && i < 150) === isRareFormChangeItem);
-      // convert it into a set to remove duplicate values, which can appear when the same species with a potential form change is in the party.
+      const formChangeItemPool = getFormChangeItemPool(party, isRareFormChangeItem).flatMap(item =>
+        isRareFormChangeItem && isMegaStone(item) ? [item, item] : [item],
+      );
 
       if (formChangeItemPool.length === 0) {
         return null;

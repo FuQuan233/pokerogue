@@ -3,6 +3,7 @@ import { globalScene } from "#app/global-scene";
 import { activeOverrides } from "#app/overrides";
 import { SceneBase } from "#app/scene-base";
 import { isMobile } from "#app/touch-controls";
+import { loadBaolilongIcons, registerBaolilongIcons } from "#data/baolilong-assets";
 import { registerSphealBlessingIcon } from "#data/spheal-blessing-icon";
 import { BiomeId } from "#enums/biome-id";
 import { GachaType } from "#enums/gacha-types";
@@ -540,6 +541,7 @@ export class LoadingScene extends SceneBase {
   }
 
   async create() {
+    registerBaolilongIcons(this.textures);
     registerSphealBlessingIcon(this.textures);
     this.events.once(Phaser.Scenes.Events.DESTROY, () => this.handleDestroy());
     this.scene.start("battle");
@@ -620,6 +622,7 @@ export class LoadingScene extends SceneBase {
   }
 
   private loadPokemonIcons(): this {
+    loadBaolilongIcons(this.load);
     for (let i = 0; i < 10; i++) {
       this.loadAtlas(`pokemon_icons_${i}`, "");
       if (i) {

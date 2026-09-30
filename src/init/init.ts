@@ -3,6 +3,7 @@ import "#app/extensions"; // Setup Phaser extension methods/etc
 import { initAbilities } from "#abilities/init-abilities";
 import { initGlobalAudioManager } from "#app/global-audio-manager";
 import { initSettingsManager } from "#app/global-settings-manager";
+import { initBaolilongTms } from "#data/baolilong-moves";
 import { initChallenges } from "#data/challenge";
 import { initTrainerTypeDialogue } from "#data/dialogue";
 import { initSpeciesDataRegistry } from "#data/species-data-registry";
@@ -35,6 +36,7 @@ export async function initializeGame(): Promise<void> {
   initBiomeDepths();
   initTrainerTypeDialogue();
   initMoves();
+  initBaolilongTms();
   initAbilities();
   initChallenges();
   initMysteryEncounters();

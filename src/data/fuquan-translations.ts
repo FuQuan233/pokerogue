@@ -33,6 +33,15 @@ export function registerFuquanTranslations(instance: i18n): void {
     }
   }
   for (const language of SUPPORTED_LANGUAGES) {
+    instance.addResourceBundle(language, "pokemon", { baolilong: "豹鲤龙" }, true, true);
+    instance.addResourceBundle(language, "pokemonCategory", { baolilongCategory: "海豹龙宝可梦" }, true, true);
+    instance.addResourceBundle(
+      language,
+      "modifierType",
+      { EvolutionItem: { SPHEAL_STONE: "海豹球进化石" } },
+      true,
+      true,
+    );
     instance.addResourceBundle(
       language,
       "modifierType",
@@ -87,6 +96,10 @@ export function registerFuquanTranslations(instance: i18n): void {
       language,
       "ability",
       {
+        kuaiLaiBaoBao: {
+          name: "快来豹豹",
+          description: "七只厚脂肪的海豹球抱在一起，有七段HP，当前HP段数越多，攻击次数越多。",
+        },
         sunDevourer: { name: "吞日", description: "出场时将天气变为大黑天，持续5回合。" },
         moonRadiance: { name: "皎月", description: "出场时将天气变为月圆之夜，持续时间无限。" },
       },

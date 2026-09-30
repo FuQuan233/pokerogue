@@ -2203,6 +2203,23 @@ export function initAbilities() {
       .build(),
     new AbBuilder(AbilityId.SUN_DEVOURER, 9).attr(PostSummonWeatherChangeAbAttr, WeatherType.DARK_SKY).build(),
     new AbBuilder(AbilityId.MOON_RADIANCE, 9).attr(PostSummonWeatherChangeAbAttr, WeatherType.FULL_MOON).build(),
+    new AbBuilder(AbilityId.KUAI_LAI_BAO_BAO, 9)
+      .attr(ReceivedTypeDamageMultiplierAbAttr, PokemonType.FIRE, 0.5)
+      .attr(ReceivedTypeDamageMultiplierAbAttr, PokemonType.ICE, 0.5)
+      .attr(AddSecondStrikeAbAttr, (pokemon: Pokemon) => Math.max(0, pokemon.getBaoBaoHealthSegments() - 1))
+      .attr(
+        MoveDamageBoostAbAttr,
+        0.5,
+        (user, target, move) =>
+          user.turnData.hitsLeft < user.turnData.hitCount && move.canBeMultiStrikeEnhanced(user, true, target),
+      )
+      .attr(AiMovegenMoveStatsAbAttr, ({ pokemon, move, powerMult }) => {
+        if (move.canBeMultiStrikeEnhanced(pokemon, false, null)) {
+          powerMult.value *= 1 + Math.max(0, pokemon.getBaoBaoHealthSegments() - 1) * 0.5;
+        }
+      })
+      .ignorable()
+      .build(),
   );
 }
 

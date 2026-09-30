@@ -1,5 +1,6 @@
 // FuQuan overrides are applied after upstream configs, before derived data is initialized.
 import { EVOLVE_MOVE } from "#app/constants";
+import { EvolutionItem, SpeciesEvolution } from "#balance/pokemon-evolutions";
 import { GrowthRate } from "#data/exp";
 import { PokemonForm, PokemonSpecies } from "#data/pokemon-species";
 import { AbilityId } from "#enums/ability-id";
@@ -9,6 +10,70 @@ import { SpeciesId } from "#enums/species-id";
 import type { SpeciesDataMap } from "#types/pokemon-species";
 
 export function applyFuquanSpeciesOverrides(data: SpeciesDataMap): void {
+  // Keep Spheal's original Sealeo route and add an item-only branch.
+  const gyarados = data[SpeciesId.GYARADOS];
+  const base = gyarados.species;
+  data[SpeciesId.BAOLILONG] = {
+    species: new PokemonSpecies({
+      id: SpeciesId.BAOLILONG,
+      generation: 3,
+      category: "Seal Serpent Pokémon",
+      type1: PokemonType.WATER,
+      type2: PokemonType.ICE,
+      height: base.height,
+      weight: base.weight,
+      ability1: AbilityId.KUAI_LAI_BAO_BAO,
+      ability2: AbilityId.KUAI_LAI_BAO_BAO,
+      abilityHidden: AbilityId.KUAI_LAI_BAO_BAO,
+      baseTotal: 710,
+      baseHp: 490,
+      baseAtk: 40,
+      baseDef: 50,
+      baseSpatk: 55,
+      baseSpdef: 50,
+      baseSpd: 25,
+      catchRate: base.catchRate,
+      baseFriendship: base.baseFriendship,
+      baseExp: base.baseExp,
+      growthRate: base.growthRate,
+      malePercent: base.malePercent,
+      genderDiffs: false,
+    }),
+    starter: SpeciesId.SPHEAL,
+    prevolution: SpeciesId.SPHEAL,
+    evolutions: [],
+    passives: AbilityId.GALE_WINGS,
+    levelMoves: [
+      [1, MoveId.WATER_GUN],
+      [1, MoveId.SCARY_FACE],
+      [1, MoveId.POWDER_SNOW],
+      [7, MoveId.BELLY_DRUM],
+      [13, MoveId.ROLLOUT],
+      [19, MoveId.AURORA_BEAM],
+      [25, MoveId.HAZE],
+      [31, MoveId.BRINE],
+      [37, MoveId.RAIN_DANCE],
+      [43, MoveId.BOUNCY_BUBBLE],
+      [49, MoveId.ICE_BEAM],
+      [55, MoveId.HYDRO_PUMP],
+      [61, MoveId.HURRICANE],
+      [67, MoveId.FREEZE_DRY],
+      [73, MoveId.BLIZZARD],
+      [79, MoveId.SPLISHY_SPLASH],
+      [85, MoveId.WATER_SPOUT],
+    ],
+    tms: [...gyarados.tms],
+  };
+  data[SpeciesId.SPHEAL].evolutions.push(
+    new SpeciesEvolution({
+      speciesId: SpeciesId.BAOLILONG,
+      level: 1,
+      item: EvolutionItem.SPHEAL_STONE,
+      // Item use has no extra level gate; generated opponents follow Gyarados's level-20 floor.
+      evoDelay: [20, 20, 20],
+    }),
+  );
+
   Object.assign(data[SpeciesId.TROPIUS], {
     species: new PokemonSpecies({
       id: SpeciesId.TROPIUS,

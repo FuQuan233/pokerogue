@@ -534,7 +534,10 @@ export abstract class PokemonSpeciesForm {
   }
 
   getCryKey(formIndex?: number): string {
-    let speciesId = this.speciesId;
+    if (this.speciesId === SpeciesId.BAOLILONG) {
+      return `cry/${SpeciesId.GYARADOS}`;
+    }
+    let speciesId: SpeciesId = this.speciesId;
 
     const override = timedEventManager.getEventPokemonSpriteReplacement(this.speciesId, formIndex);
     if (override) {

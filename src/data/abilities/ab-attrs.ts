@@ -1460,12 +1460,16 @@ export interface AddSecondStrikeAbAttrParams extends Omit<AugmentMoveInteraction
  * @see {@linkcode MoveId.PARENTAL_BOND | Parental Bond}
  */
 export class AddSecondStrikeAbAttr extends PreAttackAbAttr {
+  constructor(private readonly extraStrikes: (pokemon: Pokemon) => number = () => 1) {
+    super();
+  }
+
   override canApply({ pokemon, opponent: target, move }: AddSecondStrikeAbAttrParams): boolean {
     return move.canBeMultiStrikeEnhanced(pokemon, true, target);
   }
 
-  override apply({ hitCount }: AddSecondStrikeAbAttrParams): void {
-    hitCount.value += 1;
+  override apply({ hitCount, pokemon }: AddSecondStrikeAbAttrParams): void {
+    hitCount.value += this.extraStrikes(pokemon);
   }
 }
 

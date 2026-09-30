@@ -4035,6 +4035,13 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
         multiLensMultiplier,
       );
       fixedDamage.value = toDmgValue(fixedDamage.value * multiLensMultiplier.value);
+      if (
+        source.hasAbility(AbilityId.KUAI_LAI_BAO_BAO)
+        && source.turnData.hitsLeft < source.turnData.hitCount
+        && move.canBeMultiStrikeEnhanced(source, true, this)
+      ) {
+        fixedDamage.value = toDmgValue(fixedDamage.value * 0.5);
+      }
 
       // This return skips the rest of the calculation, so abilities that endure a hit
       // taken at full HP (Sturdy) have to be given their chance to apply here too.
@@ -4318,6 +4325,19 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     return isCritical;
   }
 
+  /** Count occupied sevenths using the same rounded boundaries as the HP display. */
+  getBaoBaoHealthSegments(): number {
+    if (this.hp <= 0) {
+      return 0;
+    }
+    for (let segment = 6; segment > 0; segment--) {
+      if (this.hp > Math.round((this.getMaxHp() * segment) / 7)) {
+        return segment + 1;
+      }
+    }
+    return 1;
+  }
+
   /**
    * Submethod called by {@linkcode damageAndUpdate} to apply damage to this Pokemon and adjust its HP.
    * @param damage - The damage to deal
@@ -4329,10 +4349,20 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
   // TODO: Rework this to use an object for the optional parameters
   // TODO: Remove uses of this outside of the `Pokemon` class and subclasses and change to `protected`
   // Known violators: Pain Split, Status effect code
-  // biome-ignore lint/correctness/noUnusedFunctionParameters: param used by subclass
+
   damage(damage: number, ignoreSegments = false, preventEndure = false, ignoreFaintPhase = false): number {
     if (this.isFainted()) {
       return 0;
+    }
+
+    if (!ignoreSegments && this.hasAbility(AbilityId.KUAI_LAI_BAO_BAO)) {
+      [damage] = calculateBossSegmentDamage(
+        damage,
+        this.hp,
+        this.getMaxHp() / 7,
+        0,
+        this.getBaoBaoHealthSegments() - 1,
+      );
     }
 
     if (!preventEndure && this.hp - damage <= 0) {
@@ -4900,10 +4930,21 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
    * @returns A Promise that resolves once the form change has completed.
    */
   public async changeForm(formChange: SpeciesFormChange): Promise<void> {
-    this.formIndex = Math.max(
-      this.species.forms.findIndex(f => f.formKey === formChange.formKey),
-      0,
-    );
+    if (formChange.forFusion) {
+      if (this.fusionSpecies?.speciesId !== formChange.speciesId) {
+        return;
+      }
+      this.fusionFormIndex = Math.max(
+        this.fusionSpecies.forms.findIndex(f => f.formKey === formChange.formKey),
+        0,
+      );
+      this.fusionAbilityIndex = Math.min(this.fusionAbilityIndex, this.getFusionSpeciesForm().getAbilityCount() - 1);
+    } else {
+      this.formIndex = Math.max(
+        this.species.forms.findIndex(f => f.formKey === formChange.formKey),
+        0,
+      );
+    }
     this.generateName();
 
     const abilityCount = this.getSpeciesForm().getAbilityCount();
@@ -6357,7 +6398,15 @@ export class PlayerPokemon extends Pokemon {
       this.moveset.forEach(move => tms.delete(move.moveId));
     }
     if (excludeLevelUp) {
-      this.getLevelMoves({ includeEvolutionMoves: true, includeRelearnerMoves: true }).forEach(lm => tms.delete(lm[1]));
+      const baolilongTms =
+        this.species.speciesId === SpeciesId.BAOLILONG || this.fusionSpecies?.speciesId === SpeciesId.BAOLILONG
+          ? speciesDataRegistry.data[SpeciesId.BAOLILONG].tms
+          : [];
+      this.getLevelMoves({ includeEvolutionMoves: true, includeRelearnerMoves: true }).forEach(([, move]) => {
+        if (!baolilongTms.includes(move)) {
+          tms.delete(move);
+        }
+      });
     }
     if (excludeUsedTMs) {
       this.usedTMs.forEach(moveId => tms.delete(moveId));
@@ -6666,10 +6715,12 @@ export class PlayerPokemon extends Pokemon {
 
   getPossibleForm(formChange: SpeciesFormChange): Promise<Pokemon> {
     return new Promise(resolve => {
-      const formIndex = Math.max(
-        this.species.forms.findIndex(f => f.formKey === formChange.formKey),
-        0,
-      );
+      const formIndex = formChange.forFusion
+        ? this.formIndex
+        : Math.max(
+            this.species.forms.findIndex(f => f.formKey === formChange.formKey),
+            0,
+          );
       const ret = globalScene.addPlayerPokemon(
         this.species,
         this.level,
@@ -6682,11 +6733,21 @@ export class PlayerPokemon extends Pokemon {
         this.nature,
         this,
       );
+      if (formChange.forFusion && ret.fusionSpecies) {
+        ret.fusionFormIndex = Math.max(
+          ret.fusionSpecies.forms.findIndex(f => f.formKey === formChange.formKey),
+          0,
+        );
+        ret.generateName();
+      }
       ret.loadAssets().then(() => resolve(ret));
     });
   }
 
   changeForm(formChange: SpeciesFormChange): Promise<void> {
+    if (formChange.forFusion) {
+      return super.changeForm(formChange);
+    }
     return new Promise(resolve => {
       this.formIndex = Math.max(
         this.species.forms.findIndex(f => f.formKey === formChange.formKey),
@@ -7430,7 +7491,7 @@ export class EnemyPokemon extends Pokemon {
 
     let clearedBossSegmentIndex = this.isBoss() ? this.bossSegmentIndex + 1 : 0;
 
-    if (this.isBoss() && !ignoreSegments) {
+    if (this.isBoss() && !ignoreSegments && !this.hasAbility(AbilityId.KUAI_LAI_BAO_BAO)) {
       [damage, clearedBossSegmentIndex] = calculateBossSegmentDamage(
         damage,
         this.hp,

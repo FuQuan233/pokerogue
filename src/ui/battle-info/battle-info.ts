@@ -2,6 +2,7 @@ import { globalScene } from "#app/global-scene";
 import { settings } from "#app/global-settings-manager";
 import { Gender, getGenderColor, getGenderSymbol } from "#data/gender";
 import { getTypeRgb } from "#data/type";
+import { AbilityId } from "#enums/ability-id";
 import { PokemonType } from "#enums/pokemon-type";
 import { Stat } from "#enums/stat";
 import { StatusEffect } from "#enums/status-effect";
@@ -70,6 +71,7 @@ export abstract class BattleInfo extends Phaser.GameObjects.Container {
   protected levelContainer: Phaser.GameObjects.Container;
   protected hpLabel: Phaser.GameObjects.Image;
   protected hpBar: Phaser.GameObjects.Image;
+  private baoBaoDividers: Phaser.GameObjects.Rectangle[] = [];
   protected levelNumbersContainer: Phaser.GameObjects.Container;
   protected type1Icon: Phaser.GameObjects.Sprite;
   protected type2Icon: Phaser.GameObjects.Sprite;
@@ -584,6 +586,8 @@ export abstract class BattleInfo extends Phaser.GameObjects.Container {
       return resolve();
     }
 
+    this.updateBaoBaoSegments(pokemon);
+
     const gender: Gender = pokemon.summonData?.illusion?.gender ?? pokemon.gender;
 
     this.genderText.setText(getGenderSymbol(gender)).setColor(getGenderColor(gender));
@@ -627,6 +631,33 @@ export abstract class BattleInfo extends Phaser.GameObjects.Container {
 
     resolve();
     await promise;
+  }
+
+  /** Seven-part HP display for either side, without turning the holder into a boss. */
+  protected updateBaoBaoSegments(pokemon: Pokemon): void {
+    for (const divider of this.baoBaoDividers) {
+      divider.destroy();
+    }
+    this.baoBaoDividers = [];
+    if (!pokemon.hasAbility(AbilityId.KUAI_LAI_BAO_BAO)) {
+      return;
+    }
+    const maxHp = pokemon.getMaxHp();
+    for (let segment = 1; segment < 7; segment++) {
+      const threshold = Math.round((maxHp * segment) / 7);
+      const divider = globalScene.add.rectangle(
+        0,
+        0,
+        1,
+        this.hpBar.height,
+        pokemon.hp > threshold ? 0xffffff : 0x404040,
+      );
+      divider.setOrigin(0.5, 0).setName(`baobao_hp_divider_${segment}`);
+      this.add(divider);
+      this.moveBelow(divider as Phaser.GameObjects.GameObject, this.statsContainer);
+      divider.setPositionRelative(this.hpBar, (threshold / maxHp) * this.hpBar.width, 0);
+      this.baoBaoDividers.push(divider);
+    }
   }
 
   updateNameText(pokemon: Pokemon): void {

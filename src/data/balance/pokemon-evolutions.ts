@@ -62,6 +62,8 @@ export enum EvolutionItem {
   SUN_FLUTE,
   MOON_FLUTE,
 
+  SPHEAL_STONE = 50,
+
   BLACK_AUGURITE = 51,
   PEAT_BLOCK,
   METAL_ALLOY,

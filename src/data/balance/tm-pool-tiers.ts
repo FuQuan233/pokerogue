@@ -329,11 +329,14 @@ export const tmPoolTiers: TmPoolTiers = {
   [MoveId.UPPER_HAND]: ModifierTier.COMMON,
 };
 
+// Preserve existing TM numbers when custom species register additional moves at startup.
+const originalTmNumbers = new Map(Object.keys(tmPoolTiers).map((id, index) => [Number(id), index + 1]));
+
 /**
  * Get the TM number for a given move ID.
  * @param moveId - The MoveId for which to retrieve the TM number
  * @returns The TM number as a string or `null` if the move is not in the TM pool
  */
 export function getTmNumber(moveId: MoveId): string | null {
-  return padInt(Object.keys(tmPoolTiers).indexOf(moveId.toString()) + 1, 3);
+  return Object.hasOwn(tmPoolTiers, moveId) ? padInt(originalTmNumbers.get(moveId) ?? 1000 + moveId, 3) : null;
 }

@@ -75,14 +75,15 @@ describe("Items - Spheal Blessing", () => {
     expect(restored.getArgs()).toEqual([defender.id]);
   });
 
-  it("shares Quick Claw's Ultra tier and reward weight", async () => {
+  it("has reward weight 20 in the Ultra tier", async () => {
     await game.classicMode.startBattle(SpeciesId.GARCHOMP);
     const pool = modifierPool[ModifierTier.ULTRA];
     const blessing = pool.find(entry => entry.modifierType.id === "SPHEAL_BLESSING");
     const claw = pool.find(entry => entry.modifierType.id === "QUICK_CLAW");
     expect(blessing).toBeDefined();
     expect(claw).toBeDefined();
-    expect(blessing?.weight).toBe(claw?.weight);
+    expect(blessing?.weight).toBe(20);
+    expect(claw?.weight).toBe(3);
     expect(modifierTypes.SPHEAL_BLESSING().iconImage).toBe("spheal_blessing");
   });
 });

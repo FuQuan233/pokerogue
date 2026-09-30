@@ -28,6 +28,7 @@ import { TurnCommandManager } from "#app/turn-command-manager";
 import { UiInputs } from "#app/ui-inputs";
 import { STARTING_WAVE } from "#balance/misc";
 import { FRIENDSHIP_GAIN_FROM_BATTLE } from "#balance/starters";
+import { getBaolilongAtlas } from "#data/baolilong-assets";
 import { initCommonAnims, initMoveAnim, loadCommonAnimAssets, loadMoveAnimAssets } from "#data/battle-anims";
 import { getDailyMysteryEncounter } from "#data/daily-run";
 import { damageCalculationLog } from "#data/damage-calculation-log";
@@ -37,7 +38,7 @@ import { classicFinalBossDialogue } from "#data/dialogue";
 import type { SpeciesFormChangeTrigger } from "#data/form-change-triggers";
 import { SpeciesFormChangeManualTrigger, SpeciesFormChangeTimeOfDayTrigger } from "#data/form-change-triggers";
 import { Gender } from "#data/gender";
-import type { SpeciesFormChange } from "#data/pokemon-forms";
+import { getPokemonFormChanges, type SpeciesFormChange } from "#data/pokemon-forms";
 import type { PokemonSpecies, PokemonSpeciesFilter } from "#data/pokemon-species";
 import { getTrainerLoadout, limitTrainerItems } from "#data/trainer-loadout";
 import { getTrainerStrength } from "#data/trainer-strength";
@@ -359,6 +360,11 @@ export class BattleScene extends SceneBase {
   }
 
   public loadPokemonAtlas(key: string, atlasPath: string, experimental = settings.expSpritesEnabled): void {
+    const customAtlas = getBaolilongAtlas(atlasPath);
+    if (customAtlas) {
+      this.load.atlas(key, customAtlas.url, customAtlas.data);
+      return;
+    }
     const variant = atlasPath.includes("variant/") || /_[0-3]$/.test(atlasPath);
     if (experimental) {
       experimental = hasExpSprite(key);
@@ -3048,13 +3054,18 @@ export class BattleScene extends SceneBase {
     delayed = false,
     modal = false,
   ): boolean {
-    if (speciesDataRegistry.hasFormChanges(pokemon.species.speciesId)) {
+    const formChanges = getPokemonFormChanges(pokemon);
+    if (formChanges.length > 0) {
       // in case this is NECROZMA, determine which forms this
-      const matchingFormChangeOpts = speciesDataRegistry
-        .getFormChanges(pokemon.species.speciesId)
-        .filter(fc => fc.findTrigger(formChangeTriggerType) && fc.canChange(pokemon));
+      const matchingFormChangeOpts = formChanges.filter(
+        fc => fc.findTrigger(formChangeTriggerType) && fc.canChange(pokemon),
+      );
       let matchingFormChange: SpeciesFormChange | null;
-      if (pokemon.species.speciesId === SpeciesId.NECROZMA && matchingFormChangeOpts.length > 1) {
+      if (
+        pokemon.species.speciesId === SpeciesId.NECROZMA
+        && matchingFormChangeOpts.length > 1
+        && matchingFormChangeOpts.every(fc => !fc.forFusion)
+      ) {
         // Ultra Necrozma is changing its form back, so we need to figure out into which form it devolves.
         const formChangeItemModifiers = (
           this.findModifiers(

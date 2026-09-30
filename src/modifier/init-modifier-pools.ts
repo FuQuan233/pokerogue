@@ -25,7 +25,7 @@ import {
   wildModifierPool,
 } from "#modifiers/modifier-pools";
 import type { initModifierTypes } from "#modifiers/modifier-type";
-import { WeightedModifierType } from "#modifiers/modifier-type";
+import { getRareFormChangeWeightMultiplier, WeightedModifierType } from "#modifiers/modifier-type";
 import type { WeightedModifierTypeWeightFunc } from "#types/modifier-types";
 
 /**
@@ -623,7 +623,7 @@ function initUltraModifierPool() {
       4,
     ),
     new WeightedModifierType(modifierTypes.QUICK_CLAW, 3),
-    new WeightedModifierType(modifierTypes.SPHEAL_BLESSING, 3),
+    new WeightedModifierType(modifierTypes.SPHEAL_BLESSING, 20),
     new WeightedModifierType(modifierTypes.WIDE_LENS, 7),
   ].map(m => {
     m.setTier(ModifierTier.ULTRA);
@@ -652,8 +652,14 @@ function initRogueModifierPool() {
     new WeightedModifierType(modifierTypes.SUPER_EXP_CHARM, skipInLastClassicWaveOrDefault(8)),
     new WeightedModifierType(
       modifierTypes.RARE_FORM_CHANGE_ITEM,
-      () => Math.min(Math.ceil(globalScene.currentBattle.waveIndex / 50), 4) * 6,
-      24,
+      // Threshold keys must remain integers; mixed Mega/non-Mega pools round to the nearest weight.
+      (party: Pokemon[]) =>
+        Math.round(
+          Math.min(Math.ceil(globalScene.currentBattle.waveIndex / 50), 4)
+            * 6
+            * getRareFormChangeWeightMultiplier(party),
+        ),
+      48,
     ),
     new WeightedModifierType(
       modifierTypes.MEGA_BRACELET,

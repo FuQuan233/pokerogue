@@ -639,4 +639,5 @@ export enum AbilityId {
   SPICY_SPRAY,
   SUN_DEVOURER,
   MOON_RADIANCE,
+  KUAI_LAI_BAO_BAO,
 }

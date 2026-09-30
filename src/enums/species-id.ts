@@ -2167,4 +2167,6 @@ export enum SpeciesId {
   PALDEA_WOOPER = 8194,
   /**{@link https://bulbapedia.bulbagarden.net/wiki/Ursaluna_(Pokémon) | Source} */
   BLOODMOON_URSALUNA = 8901,
+  /** FuQuan's Spheal evolution; reserved custom ID below the regional-ID range. */
+  BAOLILONG = 1900,
 }

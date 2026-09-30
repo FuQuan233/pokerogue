@@ -1,4 +1,5 @@
 import { globalScene } from "#app/global-scene";
+import { speciesDataRegistry } from "#app/global-species-data-registry";
 import { SpeciesFormChangeCompoundTrigger, type SpeciesFormChangeTrigger } from "#data/form-change-triggers";
 import type { SpeciesId } from "#enums/species-id";
 import type { Pokemon } from "#field/pokemon";
@@ -17,6 +18,7 @@ interface SpeciesFormChangeConstructor {
 }
 
 export class SpeciesFormChange {
+  public forFusion = false;
   public speciesId: SpeciesId;
   public preFormKey: string;
   public formKey: string;
@@ -34,20 +36,22 @@ export class SpeciesFormChange {
   }
 
   canChange(pokemon: Pokemon): boolean {
-    if (pokemon.species.speciesId !== this.speciesId) {
+    const species = this.forFusion ? pokemon.fusionSpecies : pokemon.species;
+    const formIndex = this.forFusion ? pokemon.fusionFormIndex : pokemon.formIndex;
+    if (species?.speciesId !== this.speciesId) {
       return false;
     }
 
-    if (pokemon.species.forms.length === 0) {
+    if (species.forms.length === 0) {
       return false;
     }
 
-    const formKeys = pokemon.species.forms.map(f => f.formKey);
-    if (formKeys[pokemon.formIndex] !== this.preFormKey) {
+    const formKeys = species.forms.map(f => f.formKey);
+    if (formKeys[formIndex] !== this.preFormKey) {
       return false;
     }
 
-    if (formKeys[pokemon.formIndex] === this.formKey) {
+    if (formKeys[formIndex] === this.formKey) {
       return false;
     }
 
@@ -73,6 +77,29 @@ export class SpeciesFormChange {
 
     return trigger;
   }
+}
+
+/** Main-species changes plus Mega transitions (including reversions) for the fusion partner. */
+export function getPokemonFormChanges(pokemon: Pokemon): SpeciesFormChange[] {
+  const changes = [...speciesDataRegistry.getFormChanges(pokemon.species.speciesId)];
+  if (pokemon.isFusion() && pokemon.fusionSpecies) {
+    for (const change of speciesDataRegistry.getFormChanges(pokemon.fusionSpecies.speciesId)) {
+      if (!change.formKey.startsWith("mega") && !change.preFormKey.startsWith("mega")) {
+        continue;
+      }
+      const fusionChange = new SpeciesFormChange({
+        speciesId: change.speciesId,
+        preFormKey: change.preFormKey,
+        evoFormKey: change.formKey,
+        trigger: change.trigger,
+        quiet: change.quiet,
+        conditions: [...change.conditions],
+      });
+      fusionChange.forFusion = true;
+      changes.push(fusionChange);
+    }
+  }
+  return changes;
 }
 
 export class SpeciesFormChangeCondition {

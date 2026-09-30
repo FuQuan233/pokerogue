@@ -1,5 +1,6 @@
 import { globalScene } from "#app/global-scene";
 import { settings } from "#app/global-settings-manager";
+import { AbilityId } from "#enums/ability-id";
 import { Stat } from "#enums/stat";
 import { TextStyle } from "#enums/text-style";
 import { TypeHints } from "#enums/type-hints";
@@ -215,6 +216,10 @@ export class EnemyBattleInfo extends BattleInfo {
       this.hpBarSegmentDividers.pop()?.destroy();
     }
 
+    if (pokemon.hasAbility(AbilityId.KUAI_LAI_BAO_BAO)) {
+      this.updateBaoBaoSegments(pokemon);
+      return;
+    }
     if (this.boss && this.bossSegments > 1) {
       const isLegacyUiTheme = settings.isLegacyTheme;
       const maxHp = pokemon.getMaxHp();
