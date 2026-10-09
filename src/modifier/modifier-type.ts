@@ -2299,7 +2299,6 @@ const modifierTypeInitObj = Object.freeze({
   TM_GREAT: () => new TmModifierTypeGenerator(ModifierTier.GREAT),
   TM_ULTRA: () => new TmModifierTypeGenerator(ModifierTier.ULTRA),
   TM_ECLIPSE_SUN: () => new ModifierTypeGenerator(() => new TmModifierType(MoveId.ECLIPSE_SUN)),
-  TM_BRIGHT_MOON: () => new ModifierTypeGenerator(() => new TmModifierType(MoveId.BRIGHT_MOON)),
   ABILITY_SUN_DEVOURER: () => new AbilityLearnerModifierType(AbilityId.SUN_DEVOURER),
   ABILITY_MOON_RADIANCE: () => new AbilityLearnerModifierType(AbilityId.MOON_RADIANCE),
 

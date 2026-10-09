@@ -57,7 +57,7 @@ describe("FuQuan night weather", () => {
     const pool = modifierPool[ModifierTier.COMMON];
     const weights = pool.map(entry => (typeof entry.weight === "function" ? entry.weight(party, 0) : entry.weight));
     const total = weights.reduce((a, b) => a + b, 0);
-    for (const id of ["ABILITY_SUN_DEVOURER", "ABILITY_MOON_RADIANCE", "TM_ECLIPSE_SUN", "TM_BRIGHT_MOON"]) {
+    for (const id of ["ABILITY_SUN_DEVOURER", "ABILITY_MOON_RADIANCE", "TM_ECLIPSE_SUN"]) {
       const index = pool.findIndex(entry => entry.modifierType.id === id);
       expect(index).toBeGreaterThanOrEqual(0);
       expect(weights[index] / total).toBeCloseTo(0.005, 8);
@@ -66,7 +66,6 @@ describe("FuQuan night weather", () => {
   });
   it.each([
     ["TM_ECLIPSE_SUN", MoveId.ECLIPSE_SUN, WeatherType.DARK_SKY],
-    ["TM_BRIGHT_MOON", MoveId.BRIGHT_MOON, WeatherType.FULL_MOON],
   ] as const)("learns and uses the dedicated %s TM", async (key, moveId, weather) => {
     game.override.moveset([MoveId.SPLASH]);
     await game.classicMode.startBattle(SpeciesId.MAGIKARP);
@@ -105,6 +104,44 @@ describe("FuQuan night weather", () => {
     game.doSwitchPokemon(1);
     await game.toNextTurn();
     expect(game.scene.arena.weatherType).toBe(weather);
+    if (ability === AbilityId.MOON_RADIANCE) {
+      game.doSwitchPokemon(1);
+      await game.toNextTurn();
+      expect(game.scene.arena.weatherType).toBe(WeatherType.NONE);
+    }
+  });
+  it("removes the Bright Moon TM while retaining the Moon Radiance ability machine", async () => {
+    await game.classicMode.startBattle(SpeciesId.PIKACHU);
+    expect(modifierTypes).not.toHaveProperty("TM_BRIGHT_MOON");
+    expect(game.field.getPlayerPokemon().getCompatibleTms()).not.toContain(MoveId.BRIGHT_MOON);
+    expect(modifierPool[ModifierTier.COMMON].some(entry => entry.modifierType.id === "ABILITY_MOON_RADIANCE")).toBe(
+      true,
+    );
+  });
+  it("retains full moon when another holder remains on the field", async () => {
+    game.override.ability(AbilityId.NONE).enemyAbility(AbilityId.MOON_RADIANCE);
+    await game.classicMode.startBattle(SpeciesId.PIKACHU, SpeciesId.SQUIRTLE);
+    const pokemon = game.scene.getPlayerParty()[1];
+    const item = modifierTypes.ABILITY_MOON_RADIANCE().newModifier(pokemon, 0) as AbilityLearnerModifier;
+    item.apply(pokemon);
+    game.doSwitchPokemon(1);
+    await game.toNextTurn();
+    expect(game.scene.arena.weatherType).toBe(WeatherType.FULL_MOON);
+    game.doSwitchPokemon(1);
+    await game.toNextTurn();
+    expect(game.scene.arena.weatherType).toBe(WeatherType.FULL_MOON);
+  });
+  it("clears full moon when its last holder faints", async () => {
+    game.override
+      .ability(AbilityId.NO_GUARD)
+      .moveset(MoveId.SHEER_COLD)
+      .enemyAbility(AbilityId.MOON_RADIANCE)
+      .enemyLevel(1);
+    await game.classicMode.startBattle(SpeciesId.PIKACHU);
+    expect(game.scene.arena.weatherType).toBe(WeatherType.FULL_MOON);
+    game.move.select(MoveId.SHEER_COLD);
+    await game.phaseInterceptor.to("TurnEndPhase");
+    expect(game.scene.arena.weatherType).toBe(WeatherType.NONE);
   });
   it("uses exactly five turns of darkness and unlimited full moon", () => {
     const dark = new Weather(WeatherType.DARK_SKY, 5);

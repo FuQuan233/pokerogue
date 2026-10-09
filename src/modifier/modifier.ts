@@ -1656,12 +1656,12 @@ export class FirecrackerModifier extends PokemonHeldItemModifier {
    */
   override apply(_pokemon: Pokemon, damageHolder: NumberHolder): boolean {
     for (let i = 0; i < this.getStackCount(); i++) {
-      if (_pokemon.randBattleSeedInt(10000) < 2026) {
+      if (_pokemon.randBattleSeedInt(10000) < FirecrackerModifier.TRIGGER_CHANCE * 10000) {
         damageHolder.value = FirecrackerModifier.FIXED_DAMAGE;
         return true;
       }
     }
-    return true;
+    return false;
   }
 
   getMaxHeldItemCount(_pokemon: Pokemon): number {

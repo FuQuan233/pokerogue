@@ -721,10 +721,7 @@ export class MoveEffectPhase extends PokemonPhase {
     // Preserve the private server fixed-damage item before applying HP damage.
     const damageHolder = new NumberHolder(initialDmg);
     if (!isBlockedBySubstitute && initialDmg > 0) {
-      globalScene.applyModifiers(FirecrackerModifier, user.isPlayer(), user, damageHolder);
-      if (damageHolder.value === 2026) {
-        globalScene.phaseManager.queueMessage(`${getPokemonNameWithAffix(user)}的爆竹发动！造成2026点伤害！`);
-      }
+      this.applyFirecrackerDamage(user, damageHolder);
     }
     const finalDmg = isBlockedBySubstitute
       ? 0
@@ -930,10 +927,21 @@ export class MoveEffectPhase extends PokemonPhase {
         // 标记已触发，防止递归
         user.turnData.comboScrollTriggered = true;
         // 造成原伤害70%的额外伤害
-        const comboDamage = Math.max(1, Math.floor(damage * comboDamageMultiplier.value));
-        target.damageAndUpdate(comboDamage, { result: HitResult.INDIRECT });
+        const comboDamage = new NumberHolder(Math.max(1, Math.floor(damage * comboDamageMultiplier.value)));
+        this.applyFirecrackerDamage(user, comboDamage);
+        target.damageAndUpdate(comboDamage.value, { result: HitResult.INDIRECT });
         globalScene.phaseManager.queueMessage("触发了连击！");
       }
+    }
+  }
+
+  /** Each damage event rolls independently, after any strike damage reductions. */
+  private applyFirecrackerDamage(user: Pokemon, damage: NumberHolder): void {
+    const triggered = globalScene.applyModifiers(FirecrackerModifier, user.isPlayer(), user, damage);
+    if (triggered.length > 0) {
+      globalScene.phaseManager.queueMessage(
+        `${getPokemonNameWithAffix(user)}的爆竹发动！伤害变为${FirecrackerModifier.FIXED_DAMAGE}点！`,
+      );
     }
   }
 

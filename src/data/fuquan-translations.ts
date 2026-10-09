@@ -101,7 +101,10 @@ export function registerFuquanTranslations(instance: i18n): void {
           description: "七只厚脂肪的海豹球抱在一起，有七段HP，当前HP段数越多，攻击次数越多。",
         },
         sunDevourer: { name: "吞日", description: "出场时将天气变为大黑天，持续5回合。" },
-        moonRadiance: { name: "皎月", description: "出场时将天气变为月圆之夜，持续时间无限。" },
+        moonRadiance: {
+          name: "皎月",
+          description: "出场时将天气变为月圆之夜。场上最后一只有效的皎月持有者退场后，天气消失。",
+        },
       },
       true,
       true,

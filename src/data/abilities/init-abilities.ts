@@ -2202,7 +2202,12 @@ export function initAbilities() {
       .bypassFaint()
       .build(),
     new AbBuilder(AbilityId.SUN_DEVOURER, 9).attr(PostSummonWeatherChangeAbAttr, WeatherType.DARK_SKY).build(),
-    new AbBuilder(AbilityId.MOON_RADIANCE, 9).attr(PostSummonWeatherChangeAbAttr, WeatherType.FULL_MOON).build(),
+    new AbBuilder(AbilityId.MOON_RADIANCE, 9)
+      .attr(PostSummonWeatherChangeAbAttr, WeatherType.FULL_MOON)
+      .attr(PostBiomeChangeWeatherChangeAbAttr, WeatherType.FULL_MOON)
+      .attr(PreLeaveFieldClearWeatherAbAttr, WeatherType.FULL_MOON)
+      .bypassFaint()
+      .build(),
     new AbBuilder(AbilityId.KUAI_LAI_BAO_BAO, 9)
       .attr(ReceivedTypeDamageMultiplierAbAttr, PokemonType.FIRE, 0.5)
       .attr(ReceivedTypeDamageMultiplierAbAttr, PokemonType.ICE, 0.5)
