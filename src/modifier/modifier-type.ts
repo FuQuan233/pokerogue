@@ -855,7 +855,8 @@ export class RememberAbilityModifierType extends PokemonModifierType {
     super(
       "",
       iconImage,
-      (type, args) => new RememberAbilityModifier(type, (args[0] as PlayerPokemon).id, args[1] as number),
+      (type, args) =>
+        new RememberAbilityModifier(type, (args[0] as PlayerPokemon).id, args[1] as number, args[2] as number),
       (pokemon: PlayerPokemon) => {
         // 获取可回忆的特性列表
         const recallableAbilities = RememberAbilityModifierType.getRecallableAbilities(pokemon);

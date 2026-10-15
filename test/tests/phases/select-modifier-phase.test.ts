@@ -1,22 +1,26 @@
 import type { BattleScene } from "#app/battle-scene";
 import { settings } from "#app/global-settings-manager";
 import { speciesDataRegistry } from "#app/global-species-data-registry";
-import { modifierTypes } from "#data/data-lists";
+import { allAbilities, modifierTypes } from "#data/data-lists";
+import { CustomPokemonData } from "#data/pokemon/pokemon-data";
 import { AbilityId } from "#enums/ability-id";
 import { Button } from "#enums/buttons";
 import { ModifierTier } from "#enums/modifier-tier";
 import { MoveId } from "#enums/move-id";
+import { PartyUiMode } from "#enums/party-ui-mode";
 import { ShopCursorTarget } from "#enums/shop-cursor-target";
 import { SpeciesId } from "#enums/species-id";
 import { UiMode } from "#enums/ui-mode";
 import { PlayerPokemon } from "#field/pokemon";
 import type { CustomModifierSettings } from "#modifiers/modifier-type";
-import { ModifierTypeOption } from "#modifiers/modifier-type";
+import { ModifierTypeOption, RememberAbilityModifierType } from "#modifiers/modifier-type";
 import { SelectModifierPhase } from "#phases/select-modifier-phase";
 import { GameManager } from "#test/framework/game-manager";
 import { initSceneWithoutEncounterPhase } from "#test/utils/game-manager-utils";
+import type { OptionSelectConfig } from "#types/ui-types";
 import { ModifierSelectUiHandler } from "#ui/modifier-select-ui-handler";
 import { shiftCharCodes } from "#utils/common";
+import i18next from "i18next";
 import Phaser from "phaser";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -41,6 +45,96 @@ describe("SelectModifierPhase", () => {
       .startingLevel(200)
       .enemySpecies(SpeciesId.MAGIKARP)
       .battleStyle("single");
+  });
+
+  it("coffee asks which slot to replace, preserves the old ability, and charges once", async () => {
+    initSceneWithoutEncounterPhase(scene, [SpeciesId.ABRA]);
+    const pokemon = scene.getPlayerParty()[0];
+    pokemon.customPokemonData.learnedAbilities = [AbilityId.INTIMIDATE];
+    pokemon.customPokemonData.ability = AbilityId.SYNCHRONIZE;
+    pokemon.customPokemonData.passive = AbilityId.MAGIC_GUARD;
+    vi.spyOn(pokemon, "hasPassive").mockReturnValue(true);
+    scene.money = 1000;
+    const phase = new SelectModifierPhase();
+    const setModeWithoutClear = vi.spyOn(scene.ui, "setModeWithoutClear").mockImplementation(() => Promise.resolve());
+    vi.spyOn(scene.ui, "setMode").mockResolvedValue();
+    const applyModifier = vi.spyOn(phase as any, "applyModifier").mockImplementation((...args: any[]) => {
+      args[0].apply(pokemon, args[1]);
+    });
+    const coffee = modifierTypes.MEMORY_COFFEE();
+    const recallIndex = RememberAbilityModifierType.getRecallableAbilities(pokemon).indexOf(AbilityId.INTIMIDATE);
+    phase["openModifierMenu"](coffee, 100, () => true);
+    const selectAbility = setModeWithoutClear.mock.calls[0][3] as (slot: number, ability: number) => void;
+    selectAbility(0, recallIndex);
+    const menu = setModeWithoutClear.mock.calls[1][1] as OptionSelectConfig;
+    expect(menu.options.map(o => o.label)).toEqual([
+      `特性: ${allAbilities[AbilityId.SYNCHRONIZE].name}`,
+      `被动: ${allAbilities[AbilityId.MAGIC_GUARD].name}`,
+      i18next.t("menu:cancel"),
+    ]);
+    expect(scene.money).toBe(1000);
+    menu.options[1].handler();
+    await Promise.resolve();
+    expect(applyModifier).toHaveBeenCalledOnce();
+    expect(pokemon.customPokemonData.ability).toBe(AbilityId.SYNCHRONIZE);
+    expect(pokemon.customPokemonData.passive).toBe(AbilityId.INTIMIDATE);
+    expect(pokemon.customPokemonData.learnedAbilities).toContain(AbilityId.MAGIC_GUARD);
+    expect(scene.money).toBe(900);
+  });
+
+  it("cancelling coffee slot selection returns to ability selection without charging", () => {
+    initSceneWithoutEncounterPhase(scene, [SpeciesId.ABRA]);
+    const pokemon = scene.getPlayerParty()[0];
+    pokemon.customPokemonData.learnedAbilities = [AbilityId.INTIMIDATE];
+    scene.money = 1000;
+    const phase = new SelectModifierPhase();
+    const setModeWithoutClear = vi.spyOn(scene.ui, "setModeWithoutClear").mockImplementation(() => Promise.resolve());
+    const coffee = modifierTypes.MEMORY_COFFEE();
+    phase["openModifierMenu"](coffee, 100, () => true);
+    const selectAbility = setModeWithoutClear.mock.calls[0][3] as (slot: number, ability: number) => void;
+    selectAbility(0, 0);
+    const menu = setModeWithoutClear.mock.calls[1][1] as OptionSelectConfig;
+    menu.options.at(-1)!.handler();
+    expect(setModeWithoutClear.mock.calls[2][1]).toBe(PartyUiMode.REMEMBER_ABILITY_MODIFIER);
+    expect(scene.money).toBe(1000);
+    expect(pokemon.customPokemonData.learnedAbilities).toEqual([AbilityId.INTIMIDATE]);
+  });
+
+  it.each([false, true])("coffee can replace fusion slots (passive=%s)", hasPassive => {
+    initSceneWithoutEncounterPhase(scene, [SpeciesId.ABRA]);
+    const pokemon = scene.getPlayerParty()[0];
+    pokemon.fusionSpecies = speciesDataRegistry.getSpecies(SpeciesId.MAGIKARP);
+    pokemon.customPokemonData.passive = AbilityId.SYNCHRONIZE;
+    pokemon.fusionCustomPokemonData = new CustomPokemonData({ passive: AbilityId.RATTLED });
+    vi.spyOn(pokemon, "hasPassive").mockReturnValue(hasPassive);
+    pokemon.customPokemonData.learnedAbilities = [AbilityId.INTIMIDATE];
+    const coffee = modifierTypes.MEMORY_COFFEE();
+    const recallIndex = RememberAbilityModifierType.getRecallableAbilities(pokemon).indexOf(AbilityId.INTIMIDATE);
+    const slot = hasPassive ? 2 : 1;
+    const oldAbility = pokemon.getAllAbilities()[slot].id;
+    expect(coffee.newModifier(pokemon, recallIndex, slot)!.apply(pokemon)).toBe(true);
+    expect(pokemon.fusionCustomPokemonData?.ability).toBe(AbilityId.INTIMIDATE);
+    expect(pokemon.customPokemonData.learnedAbilities).toContain(oldAbility);
+    if (hasPassive) {
+      pokemon.customPokemonData.learnedAbilities.push(AbilityId.MAGIC_GUARD);
+      const index = RememberAbilityModifierType.getRecallableAbilities(pokemon).indexOf(AbilityId.MAGIC_GUARD);
+      expect(coffee.newModifier(pokemon, index, 3)!.apply(pokemon)).toBe(true);
+      expect(pokemon.fusionCustomPokemonData?.passive).toBe(AbilityId.MAGIC_GUARD);
+    }
+  });
+
+  it("coffee rejects an invalid replacement slot without changing abilities or charging", () => {
+    initSceneWithoutEncounterPhase(scene, [SpeciesId.ABRA]);
+    const pokemon = scene.getPlayerParty()[0];
+    pokemon.customPokemonData.learnedAbilities = [AbilityId.INTIMIDATE];
+    const coffee = modifierTypes.MEMORY_COFFEE();
+    const recallIndex = RememberAbilityModifierType.getRecallableAbilities(pokemon).indexOf(AbilityId.INTIMIDATE);
+    const oldAbility = pokemon.customPokemonData.ability;
+    scene.money = 1000;
+    expect(coffee.newModifier(pokemon, recallIndex, 99)!.apply(pokemon, 100)).toBe(false);
+    expect(pokemon.customPokemonData.ability).toBe(oldAbility);
+    expect(pokemon.customPokemonData.learnedAbilities).toEqual([AbilityId.INTIMIDATE]);
+    expect(scene.money).toBe(1000);
   });
 
   it("should start a select modifier phase", async () => {

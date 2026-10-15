@@ -366,6 +366,31 @@ export class SelectModifierPhase extends BattlePhase {
       -1,
       (slotIndex: number, option: PartyOption) => {
         if (slotIndex < 6) {
+          if (isRememberAbilityModifier) {
+            globalScene.ui.setModeWithoutClear(UiMode.OPTION_SELECT, {
+              options: [
+                ...PartyUiHandler.getAbilitySlotLabels(party[slotIndex]).map((label, abilitySlotIndex) => ({
+                  label,
+                  handler: () => {
+                    globalScene.ui.setMode(UiMode.MODIFIER_SELECT, this.isPlayer()).then(() => {
+                      const modifier = modifierType.newModifier(party[slotIndex], option as number, abilitySlotIndex);
+                      this.applyModifier(modifier!, cost, true);
+                    });
+                    return true;
+                  },
+                })),
+                {
+                  label: i18next.t("menu:cancel"),
+                  handler: () => {
+                    this.openModifierMenu(modifierType, cost, modifierSelectCallback);
+                    return true;
+                  },
+                },
+              ],
+              maxOptions: 5,
+            });
+            return;
+          }
           globalScene.ui.setMode(UiMode.MODIFIER_SELECT, this.isPlayer()).then(() => {
             const modifier = isMoveModifier
               ? modifierType.newModifier(party[slotIndex], option - PartyOption.MOVE_1)

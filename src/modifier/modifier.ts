@@ -3038,7 +3038,22 @@ export class AbilityLearnerModifier extends ConsumablePokemonModifier {
    * @returns always `true`
    */
   override apply(playerPokemon: PlayerPokemon): boolean {
-    const newAbilityId = this.type.abilityId;
+    if (!AbilityLearnerModifier.replaceAbility(playerPokemon, this.type.abilityId, this.abilitySlotIndex)) {
+      return false;
+    }
+    audioManager.playSound("se/item_fanfare");
+    return true;
+  }
+
+  /** Replace an existing slot and preserve both abilities for later recall. */
+  static replaceAbility(playerPokemon: PlayerPokemon, newAbilityId: AbilityId, abilitySlotIndex: number): boolean {
+    if (
+      !Number.isInteger(abilitySlotIndex)
+      || abilitySlotIndex < 0
+      || abilitySlotIndex >= playerPokemon.getAllAbilities().length
+    ) {
+      return false;
+    }
 
     // 初始化 learnedAbilities 列表
     if (!playerPokemon.customPokemonData.learnedAbilities) {
@@ -3047,8 +3062,7 @@ export class AbilityLearnerModifier extends ConsumablePokemonModifier {
 
     // 使用 getAllAbilities() 获取当前槽位的特性ID（确保融合宝可梦的特性顺序正确）
     const allAbilities = playerPokemon.getAllAbilities();
-    const currentAbilityId =
-      this.abilitySlotIndex < allAbilities.length ? allAbilities[this.abilitySlotIndex].id : undefined;
+    const currentAbilityId = abilitySlotIndex < allAbilities.length ? allAbilities[abilitySlotIndex].id : undefined;
 
     // 记录被替换的特性（如果不在列表中）
     if (currentAbilityId && !playerPokemon.customPokemonData.learnedAbilities.includes(currentAbilityId)) {
@@ -3065,10 +3079,10 @@ export class AbilityLearnerModifier extends ConsumablePokemonModifier {
     const hasPassive = playerPokemon.hasPassive();
     const isFusion = playerPokemon.isFusion();
 
-    if (this.abilitySlotIndex === 0) {
+    if (abilitySlotIndex === 0) {
       // 槽位0: 主体的普通特性
       playerPokemon.customPokemonData.ability = newAbilityId;
-    } else if (this.abilitySlotIndex === 1 && hasPassive) {
+    } else if (abilitySlotIndex === 1 && hasPassive) {
       // 槽位1: 主体的被动特性（如果有被动）
       playerPokemon.customPokemonData.passive = newAbilityId;
     } else if (isFusion) {
@@ -3076,13 +3090,13 @@ export class AbilityLearnerModifier extends ConsumablePokemonModifier {
       // 计算融合槽位的起始索引
       const fusionStartIndex = hasPassive ? 2 : 1;
 
-      if (this.abilitySlotIndex === fusionStartIndex) {
+      if (abilitySlotIndex === fusionStartIndex) {
         // 融合特性
         if (!playerPokemon.fusionCustomPokemonData) {
           playerPokemon.fusionCustomPokemonData = new CustomPokemonData();
         }
         playerPokemon.fusionCustomPokemonData.ability = newAbilityId;
-      } else if (this.abilitySlotIndex === fusionStartIndex + 1 && hasPassive) {
+      } else if (abilitySlotIndex === fusionStartIndex + 1 && hasPassive) {
         // 融合被动
         if (!playerPokemon.fusionCustomPokemonData) {
           playerPokemon.fusionCustomPokemonData = new CustomPokemonData();
@@ -3090,9 +3104,6 @@ export class AbilityLearnerModifier extends ConsumablePokemonModifier {
         playerPokemon.fusionCustomPokemonData.passive = newAbilityId;
       }
     }
-
-    // 播放音效反馈
-    audioManager.playSound("se/item_fanfare");
 
     return true;
   }
@@ -3103,10 +3114,12 @@ export class AbilityLearnerModifier extends ConsumablePokemonModifier {
  */
 export class RememberAbilityModifier extends ConsumablePokemonModifier {
   public abilityIndex: number;
+  public abilitySlotIndex: number;
 
-  constructor(type: ModifierType, pokemonId: number, abilityIndex: number) {
+  constructor(type: ModifierType, pokemonId: number, abilityIndex: number, abilitySlotIndex: number) {
     super(type, pokemonId);
     this.abilityIndex = abilityIndex;
+    this.abilitySlotIndex = abilitySlotIndex;
   }
 
   /**
@@ -3216,15 +3229,8 @@ export class RememberAbilityModifier extends ConsumablePokemonModifier {
     if (this.abilityIndex >= 0 && this.abilityIndex < recallableAbilities.length) {
       const abilityToRemember = recallableAbilities[this.abilityIndex];
 
-      // 默认替换普通特性
-      playerPokemon.customPokemonData.ability = abilityToRemember;
-
-      // 记录到 learnedAbilities（以便后续可以再次回忆）
-      if (!playerPokemon.customPokemonData.learnedAbilities) {
-        playerPokemon.customPokemonData.learnedAbilities = [];
-      }
-      if (!playerPokemon.customPokemonData.learnedAbilities.includes(abilityToRemember)) {
-        playerPokemon.customPokemonData.learnedAbilities.push(abilityToRemember);
+      if (!AbilityLearnerModifier.replaceAbility(playerPokemon, abilityToRemember, this.abilitySlotIndex)) {
+        return false;
       }
 
       if (cost != null && cost > 0) {
@@ -3236,9 +3242,10 @@ export class RememberAbilityModifier extends ConsumablePokemonModifier {
 
       // 播放音效反馈
       audioManager.playSound("se/item_fanfare");
+      return true;
     }
 
-    return true;
+    return false;
   }
 }
 

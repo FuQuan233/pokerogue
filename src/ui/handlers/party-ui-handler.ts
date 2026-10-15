@@ -1328,7 +1328,7 @@ export class PartyUiHandler extends MessageUiHandler {
    * @param pokemon 目标宝可梦
    * @returns 各槽位的特性名称数组
    */
-  private getAbilitySlotLabels(pokemon: PlayerPokemon): string[] {
+  static getAbilitySlotLabels(pokemon: PlayerPokemon): string[] {
     const abilities = pokemon.getAllAbilities();
     const labels: string[] = [];
     const hasPassive = pokemon.hasPassive();
@@ -1793,7 +1793,7 @@ export class PartyUiHandler extends MessageUiHandler {
         optionName = allMoves[move].name;
       } else if (this.partyUiMode === PartyUiMode.ABILITY_MODIFIER) {
         // 特性学习器模式：显示当前特性和被动的名称
-        const abilityLabels = this.getAbilitySlotLabels(pokemon);
+        const abilityLabels = PartyUiHandler.getAbilitySlotLabels(pokemon);
         optionName = abilityLabels[option] || `槽位 ${option + 1}`;
       } else if (this.partyUiMode === PartyUiMode.REMEMBER_ABILITY_MODIFIER) {
         // 回忆咖啡模式：显示可回忆的特性名称（包括本局习得过的和图鉴已解锁的）
