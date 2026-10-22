@@ -28,6 +28,8 @@ export interface PokemonSpeciesData {
   starter: StarterSpeciesId;
   /** The starter cost. Should be omitted for non starters */
   starterCost?: number;
+  /** Species whose candy economy and egg weight this starter uses. */
+  economyReference?: StarterSpeciesId;
   evolutions: SpeciesFormEvolution[];
   prevolution: SpeciesId | null;
   formChanges?: SpeciesFormChange[];

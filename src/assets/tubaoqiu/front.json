@@ -1,0 +1,32 @@
+{
+  "frames": {
+    "0001.png": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 96,
+        "h": 80
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 96,
+        "h": 80
+      },
+      "sourceSize": {
+        "w": 96,
+        "h": 80
+      }
+    }
+  },
+  "meta": {
+    "image": "front.png",
+    "size": {
+      "w": 96,
+      "h": 80
+    },
+    "scale": "1"
+  }
+}

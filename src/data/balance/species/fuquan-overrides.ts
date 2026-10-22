@@ -1,15 +1,74 @@
 // FuQuan overrides are applied after upstream configs, before derived data is initialized.
+
 import { EVOLVE_MOVE } from "#app/constants";
 import { EvolutionItem, SpeciesEvolution } from "#balance/pokemon-evolutions";
 import { GrowthRate } from "#data/exp";
 import { PokemonForm, PokemonSpecies } from "#data/pokemon-species";
 import { AbilityId } from "#enums/ability-id";
+import { EggTier } from "#enums/egg-type";
 import { MoveId } from "#enums/move-id";
 import { PokemonType } from "#enums/pokemon-type";
 import { SpeciesId } from "#enums/species-id";
 import type { SpeciesDataMap } from "#types/pokemon-species";
 
 export function applyFuquanSpeciesOverrides(data: SpeciesDataMap): void {
+  const spheal = data[SpeciesId.SPHEAL];
+  const source = spheal.species;
+  data[SpeciesId.TUBAOQIU] = {
+    species: new PokemonSpecies({
+      id: SpeciesId.TUBAOQIU,
+      generation: source.generation,
+      category: "Mud Seal Pokémon",
+      type1: PokemonType.WATER,
+      type2: PokemonType.POISON,
+      height: source.height,
+      weight: source.weight,
+      ability1: AbilityId.FA_BAO_SHI_LING,
+      ability2: AbilityId.NONE,
+      abilityHidden: AbilityId.NONE,
+      baseTotal: 490,
+      baseHp: 130,
+      baseAtk: 75,
+      baseDef: 60,
+      baseSpatk: 55,
+      baseSpdef: 150,
+      baseSpd: 20,
+      catchRate: source.catchRate,
+      baseFriendship: source.baseFriendship,
+      baseExp: source.baseExp,
+      growthRate: source.growthRate,
+      malePercent: source.malePercent,
+      genderDiffs: false,
+    }),
+    starter: SpeciesId.TUBAOQIU,
+    starterCost: 7,
+    economyReference: SpeciesId.SPHEAL,
+    prevolution: null,
+    evolutions: [],
+    eggTier: spheal.eggTier ?? EggTier.COMMON,
+    passives: AbilityId.EARTH_EATER,
+    levelMoves: [
+      [1, MoveId.BUBBLE],
+      [1, MoveId.WITHDRAW],
+      [1, MoveId.POISON_STING],
+      [1, MoveId.POISON_GAS],
+      [6, MoveId.WATER_PULSE],
+      [8, MoveId.POISON_TAIL],
+      [10, MoveId.BRINE],
+      [12, MoveId.TOXIC],
+      [14, MoveId.SCALD],
+      [16, MoveId.TOXIC_SPIKES],
+      [18, MoveId.BOUNCY_BUBBLE],
+      [20, MoveId.POISON_JAB],
+      [22, MoveId.ORIGIN_PULSE],
+      [24, MoveId.BANEFUL_BUNKER],
+      [26, MoveId.SPLISHY_SPLASH],
+      [28, MoveId.BARB_BARRAGE],
+      [30, MoveId.SPARKLING_ARIA],
+    ],
+    tms: [...spheal.tms],
+  };
+
   // Keep Spheal's original Sealeo route and add an item-only branch.
   const gyarados = data[SpeciesId.GYARADOS];
   const base = gyarados.species;

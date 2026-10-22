@@ -2678,6 +2678,38 @@ export class PostSummonFormChangeAbAttr extends PostSummonAbAttr {
   }
 }
 
+/** On entry, temporarily replace only the first ability slot of every other active battler. */
+export class PostSummonGiveOthersAbilityAbAttr extends PostSummonAbAttr {
+  constructor(private readonly ability: AbilityId) {
+    super(true);
+  }
+
+  override canApply({ pokemon }: AbAttrBaseParams): boolean {
+    return globalScene
+      .getField(true)
+      .some(target => target !== pokemon && target.getEffectiveAbilityEntries()[0]?.ability.id !== this.ability);
+  }
+
+  override apply({ pokemon, simulated }: AbAttrBaseParams): void {
+    if (simulated) {
+      return;
+    }
+    for (const target of globalScene.getField(true)) {
+      if (target === pokemon || target.getEffectiveAbilityEntries()[0]?.ability.id === this.ability) {
+        continue;
+      }
+      target.setTempAbility(allAbilities[this.ability], false, true);
+      target.updateInfo();
+      globalScene.phaseManager.queueMessage(
+        i18next.t("abilityTriggers:faBaoShiLing", {
+          pokemonName: getPokemonNameWithAffix(target),
+          abilityName: allAbilities[this.ability].name,
+        }),
+      );
+    }
+  }
+}
+
 /**
  * Attempts to copy a pokemon's ability
  *
@@ -6276,6 +6308,7 @@ export const AbilityAttrs = Object.freeze({
   PostSummonFormChangeAbAttr,
   PostSummonFormChangeByWeatherAbAttr,
   PostSummonHealStatusAbAttr,
+  PostSummonGiveOthersAbilityAbAttr,
   PostSummonMessageAbAttr,
   PostSummonRemoveArenaTagAbAttr,
   PostSummonRemoveBattlerTagAbAttr,

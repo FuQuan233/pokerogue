@@ -52,6 +52,7 @@ export const defaultStarterSpecies: readonly StarterSpeciesId[] = [
   SpeciesId.SPRIGATITO,
   SpeciesId.FUECOCO,
   SpeciesId.QUAXLY,
+  SpeciesId.TUBAOQIU,
 ];
 
 export const saveKey = "x0i2O7WRiANTqPmZ"; // Temporary; secure encryption is not yet necessary

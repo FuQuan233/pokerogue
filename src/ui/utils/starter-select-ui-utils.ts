@@ -40,7 +40,7 @@ export function isValueReductionAvailable(speciesId: number, gameData = globalSc
 
   return (
     starterData.candyCount
-      >= getValueReductionCandyCounts(speciesDataRegistry.getStarterCost(starterId))[starterData.valueReduction]
+      >= getValueReductionCandyCounts(speciesDataRegistry.getStarterEconomyCost(starterId))[starterData.valueReduction]
     && starterData.valueReduction < VALUE_REDUCTION_MAX
   );
 }
@@ -56,7 +56,7 @@ export function isSameSpeciesEggAvailable(speciesId: number, gameData = globalSc
   const hatchCount = gameData.dexData[starterId].hatchedCount;
   return (
     gameData.starterData[starterId].candyCount
-    >= getSameSpeciesEggCandyCounts(speciesDataRegistry.getStarterCost(starterId), hatchCount)
+    >= getSameSpeciesEggCandyCounts(speciesDataRegistry.getStarterEconomyCost(starterId), hatchCount)
   );
 }
 
@@ -281,7 +281,7 @@ export function getStarterData(
 export function getFriendship(speciesId: StarterSpeciesId): { currentFriendship: number; friendshipCap: number } {
   const currentFriendship = globalScene.gameData.starterData[speciesId].friendship;
 
-  const friendshipCap = getStarterValueFriendshipCap(speciesDataRegistry.getStarterCost(speciesId));
+  const friendshipCap = getStarterValueFriendshipCap(speciesDataRegistry.getStarterEconomyCost(speciesId));
 
   return { currentFriendship, friendshipCap };
 }

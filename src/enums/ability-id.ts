@@ -640,4 +640,5 @@ export enum AbilityId {
   SUN_DEVOURER,
   MOON_RADIANCE,
   KUAI_LAI_BAO_BAO,
+  FA_BAO_SHI_LING,
 }

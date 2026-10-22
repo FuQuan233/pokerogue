@@ -33,8 +33,36 @@ export function registerFuquanTranslations(instance: i18n): void {
     }
   }
   for (const language of SUPPORTED_LANGUAGES) {
-    instance.addResourceBundle(language, "pokemon", { baolilong: "豹鲤龙" }, true, true);
-    instance.addResourceBundle(language, "pokemonCategory", { baolilongCategory: "海豹龙宝可梦" }, true, true);
+    instance.addResourceBundle(
+      language,
+      "abilityTriggers",
+      {
+        faBaoShiLing: "{{pokemonName}}的第一特性变成了{{abilityName}}！",
+      },
+      true,
+      true,
+    );
+    instance.addResourceBundle(
+      language,
+      "ability",
+      {
+        faBaoShiLing: {
+          name: "发豹施令",
+          description:
+            "地面系和冰系招式威力提高50%；火、冰属性招式伤害减半；受到水属性招式时免疫并回复最大HP的1/4。出场时将场上其他宝可梦的第一特性槽改为懒惰，换下后恢复原特性。",
+        },
+      },
+      true,
+      true,
+    );
+    instance.addResourceBundle(language, "pokemon", { baolilong: "豹鲤龙", tubaoqiu: "土豹球" }, true, true);
+    instance.addResourceBundle(
+      language,
+      "pokemonCategory",
+      { baolilongCategory: "海豹龙宝可梦", tubaoqiuCategory: "泥衣海豹宝可梦" },
+      true,
+      true,
+    );
     instance.addResourceBundle(
       language,
       "modifierType",

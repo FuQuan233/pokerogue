@@ -1,4 +1,5 @@
 import { starterColors } from "#data/data-lists";
+import { SpeciesId } from "#enums/species-id";
 import { cachedFetch } from "#utils/fetch-utils";
 
 export async function initStarterColors(): Promise<void> {
@@ -13,4 +14,5 @@ export async function initStarterColors(): Promise<void> {
   for (const key of Object.keys(starterColorsJSON)) {
     starterColors[key] = starterColorsJSON[key];
   }
+  starterColors[SpeciesId.TUBAOQIU] = [...starterColors[SpeciesId.SPHEAL]];
 }

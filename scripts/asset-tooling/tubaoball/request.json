@@ -1,0 +1,18 @@
+{
+  "model": "gpt-image-2.5-sunburst",
+  "prompt": "Create a production pixel-art sprite sheet for a new fan game Pokemon named Tubaoqiu, faithful to reference: round blue baby seal Spheal inside a brown mud-salamander costume, hood with little black eyes and white side spots, four stubby legs and thick curled tail. Cute squat WATER POISON creature. Nintendo DS era 2D pixel art, crisp square pixels, limited palette, dark outlines. Transparent background, no text, no shadows, no labels, no grid lines. EXACT layout 2 columns x 3 rows evenly spaced isolated sprites with large empty gutters: row 1 normal front three-quarter facing left, normal BACK three-quarter facing right; row 2 shiny front, shiny back; row 3 normal small menu icon, shiny small menu icon. Normal palette blue seal face cream belly gray-brown costume. Shiny palette pink-lavender face cream belly deep plum purple costume with mint green spots. Back view shows costume hood back and tail, not face. Consistent design front/back and icons. Each battle sprite should look designed at 80x80 pixels upscaled with nearest neighbor. Each menu icon designed at 32x32 pixels. Output 1024x1536 transparent PNG sprite sheet, six characters total.",
+  "extra_params": {
+    "image_size": "1K",
+    "aspect_ratio": "2:3",
+    "quality": "high",
+    "reference_images": [
+      {
+        "asset_id": "01040acf-d39d-457c-8644-c72ccc510071",
+        "type": "image"
+      }
+    ],
+    "background": "transparent",
+    "n": 1,
+    "name": "土豹球普通闪光像素素材"
+  }
+}

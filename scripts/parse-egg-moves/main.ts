@@ -131,7 +131,11 @@ function getArgValue(): string {
 export async function writeToFile(moves: string): Promise<void> {
   try {
     // Read the template file, replacing the placeholder with the move table.
-    const content = fs.readFileSync(templatePath, "utf8").replace(`"{{table}}"`, moves);
+    const content = fs
+      .readFileSync(templatePath, "utf8")
+      .replace(`"{{table}}"`, moves)
+      .replace("import { MoveId }", 'import { fuquanEggMoves } from "./fuquan-egg-moves";\nimport { MoveId }')
+      .replace("export const speciesEggMoves = {", "export const speciesEggMoves = {\n  ...fuquanEggMoves,");
 
     if (fs.existsSync(eggMoveTargetPath)) {
       console.warn(chalk.hex("#ffa500")("\nEgg moves file already exists, overwriting...\n"));

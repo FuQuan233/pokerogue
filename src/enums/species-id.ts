@@ -2169,4 +2169,6 @@ export enum SpeciesId {
   BLOODMOON_URSALUNA = 8901,
   /** FuQuan's Spheal evolution; reserved custom ID below the regional-ID range. */
   BAOLILONG = 1900,
+  /** Independent FuQuan starter. */
+  TUBAOQIU = 1901,
 }

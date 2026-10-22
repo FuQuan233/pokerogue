@@ -514,7 +514,7 @@ export class SummaryUiHandler extends UiHandler {
     }
 
     const friendshipCap = getStarterValueFriendshipCap(
-      speciesDataRegistry.getStarterCost(this.pokemon.species.getRootSpeciesId()),
+      speciesDataRegistry.getStarterEconomyCost(this.pokemon.species.getRootSpeciesId()),
     );
     const candyCropY = 16 - 16 * (currentFriendship / friendshipCap);
 

@@ -81,6 +81,7 @@ interface SerializedPokemonSummonData {
   speciesForm?: SerializedSpeciesForm | undefined;
   fusionSpeciesForm?: SerializedSpeciesForm | undefined;
   ability?: AbilityId | undefined;
+  abilityFirstSlotOnly?: boolean;
   passiveAbility?: AbilityId | undefined;
   gender?: Gender | undefined;
   fusionGender?: Gender | undefined;
@@ -127,6 +128,8 @@ export class PokemonSummonData {
   public speciesForm: PokemonSpeciesForm | null = null;
   public fusionSpeciesForm: PokemonSpeciesForm | null = null;
   public ability: AbilityId | undefined;
+  /** Restrict a temporary main ability override to slot 0, preserving fusion slots. */
+  public abilityFirstSlotOnly = false;
   public passiveAbility: AbilityId | undefined;
   public gender: Gender | undefined;
   public fusionGender: Gender | undefined;

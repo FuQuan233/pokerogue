@@ -1894,7 +1894,7 @@ export class StarterSelectUiHandler extends MessageUiHandler {
 
       // Unlock passive option
       if (!(passiveAttr & PassiveAttr.UNLOCKED) && !globalScene.gameMode.hasChallenge(Challenges.FRESH_START)) {
-        const passiveCost = getPassiveCandyCount(speciesDataRegistry.getStarterCost(this.lastStarterId));
+        const passiveCost = getPassiveCandyCount(speciesDataRegistry.getStarterEconomyCost(this.lastStarterId));
         options.push({
           label: `×${passiveCost} ${i18next.t("starterSelectUiHandler:unlockPassive")}`,
           handler: () => {
@@ -1935,7 +1935,7 @@ export class StarterSelectUiHandler extends MessageUiHandler {
       // Reduce cost option
       const valueReduction = starterData.valueReduction;
       if (valueReduction < VALUE_REDUCTION_MAX && !globalScene.gameMode.hasChallenge(Challenges.FRESH_START)) {
-        const starterCost = speciesDataRegistry.getStarterCost(this.lastStarterId);
+        const starterCost = speciesDataRegistry.getStarterEconomyCost(this.lastStarterId);
         const reductionCost = getValueReductionCandyCounts(starterCost)[valueReduction];
         options.push({
           label: `×${reductionCost} ${i18next.t("starterSelectUiHandler:reduceCost", { newCost: globalScene.gameData.getSpeciesStarterValue(this.lastStarterId, starterData.valueReduction + 1) })}`,
@@ -1976,7 +1976,7 @@ export class StarterSelectUiHandler extends MessageUiHandler {
       // Same species egg menu option.
       const hatchedCount = globalScene.gameData.dexData[this.lastStarterId].hatchedCount;
       const sameSpeciesEggCost = getSameSpeciesEggCandyCounts(
-        speciesDataRegistry.getStarterCost(this.lastStarterId),
+        speciesDataRegistry.getStarterEconomyCost(this.lastStarterId),
         hatchedCount,
       );
       options.push({

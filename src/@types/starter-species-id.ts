@@ -572,4 +572,5 @@ export type StarterSpeciesId =
   | SpeciesId.HISUI_ZORUA
   | SpeciesId.PALDEA_TAUROS
   | SpeciesId.PALDEA_WOOPER
-  | SpeciesId.BLOODMOON_URSALUNA;
+  | SpeciesId.BLOODMOON_URSALUNA
+  | SpeciesId.TUBAOQIU;

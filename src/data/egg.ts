@@ -491,7 +491,7 @@ export class Egg {
     for (const [idx, data] of speciesPool.entries()) {
       // Accounts for species that have starter costs outside of the normal range for their EggTier
       const speciesCostClamped = Phaser.Math.Clamp(
-        speciesDataRegistry.getStarterCost(data.speciesId),
+        speciesDataRegistry.getStarterEconomyCost(data.speciesId),
         minStarterValue,
         maxStarterValue,
       );

@@ -8,7 +8,7 @@ export function isPassiveAvailable(speciesId: number, gameData = globalScene.gam
   const starterId = speciesDataRegistry.getStarter(speciesId);
   const starterData = gameData.starterData[starterId];
   return (
-    starterData.candyCount >= getPassiveCandyCount(speciesDataRegistry.getStarterCost(starterId))
+    starterData.candyCount >= getPassiveCandyCount(speciesDataRegistry.getStarterEconomyCost(starterId))
     && !(starterData.passiveAttr & Passive.UNLOCKED)
   );
 }

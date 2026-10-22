@@ -131,6 +131,7 @@ const AQUA: TrainerTierPools = {
     SpeciesId.SEVIPER,
     SpeciesId.WAILMER,
     SpeciesId.SPHEAL,
+    SpeciesId.TUBAOQIU,
     SpeciesId.RELICANTH,
     SpeciesId.ARROKUDA,
     SpeciesId.CLOBBOPUS,

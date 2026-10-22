@@ -1974,7 +1974,7 @@ export class PokedexPageUiHandler extends MessageUiHandler {
             const candyCount = starterData.candyCount;
 
             if (!(passiveAttr & PassiveAttr.UNLOCKED)) {
-              const passiveCost = getPassiveCandyCount(speciesDataRegistry.getStarterCost(this.starterId));
+              const passiveCost = getPassiveCandyCount(speciesDataRegistry.getStarterEconomyCost(this.starterId));
               options.push({
                 label: `×${passiveCost} ${i18next.t("pokedexUiHandler:unlockPassive")}`,
                 handler: () => {
@@ -2010,9 +2010,9 @@ export class PokedexPageUiHandler extends MessageUiHandler {
             // Reduce cost option
             const valueReduction = starterData.valueReduction;
             if (valueReduction < VALUE_REDUCTION_MAX) {
-              const reductionCost = getValueReductionCandyCounts(speciesDataRegistry.getStarterCost(this.starterId))[
-                valueReduction
-              ];
+              const reductionCost = getValueReductionCandyCounts(
+                speciesDataRegistry.getStarterEconomyCost(this.starterId),
+              )[valueReduction];
               options.push({
                 label: `×${reductionCost} ${i18next.t("starterSelectUiHandler:reduceCost", { newCost: globalScene.gameData.getSpeciesStarterValue(this.starterId, starterData.valueReduction + 1) })}`,
                 handler: () => {
@@ -2047,7 +2047,7 @@ export class PokedexPageUiHandler extends MessageUiHandler {
             // Same species egg menu option.
             const hatchCount = globalScene.gameData.dexData[this.starterId].hatchedCount;
             const sameSpeciesEggCost = getSameSpeciesEggCandyCounts(
-              speciesDataRegistry.getStarterCost(this.starterId),
+              speciesDataRegistry.getStarterEconomyCost(this.starterId),
               hatchCount,
             );
             options.push({
@@ -2354,7 +2354,7 @@ export class PokedexPageUiHandler extends MessageUiHandler {
       currentFriendship = 0;
     }
 
-    const friendshipCap = getStarterValueFriendshipCap(speciesDataRegistry.getStarterCost(this.starterId));
+    const friendshipCap = getStarterValueFriendshipCap(speciesDataRegistry.getStarterEconomyCost(this.starterId));
 
     return { currentFriendship, friendshipCap };
   }

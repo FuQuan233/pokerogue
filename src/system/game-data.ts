@@ -362,7 +362,7 @@ export class GameData {
     this.trainerId = systemData.trainerId;
     this.secretId = systemData.secretId;
 
-    this.starterData = systemData.starterData;
+    this.starterData = Object.assign(this.starterData, systemData.starterData);
 
     if (systemData.gameStats) {
       this.gameStats = systemData.gameStats;

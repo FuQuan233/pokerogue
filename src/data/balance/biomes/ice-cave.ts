@@ -34,6 +34,7 @@ const pokemonPool: BiomePokemonPools = {
       SpeciesId.SNEASEL,
       SpeciesId.SMOOCHUM,
       SpeciesId.SPHEAL,
+      SpeciesId.TUBAOQIU,
       SpeciesId.EISCUE,
       SpeciesId.CETODDLE,
     ],

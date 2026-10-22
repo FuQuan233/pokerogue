@@ -2466,13 +2466,20 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
    * Also clears primal weather if it is from the ability being changed
    * @param ability - The temporary ability to set
    * @param passive - Whether to set the passive ability instead of the non-passive one; default `false`
+   * @param firstSlotOnly - Only replace the primary slot, retaining the fusion's other abilities.
    */
-  public setTempAbility(ability: Ability, passive = false): void {
-    applyOnLoseAbAttrs({ pokemon: this, passive });
+  public setTempAbility(ability: Ability, passive = false, firstSlotOnly = false): void {
+    const previousPrimary = firstSlotOnly && !passive ? this.getEffectiveAbilityEntries()[0]?.ability : undefined;
+    if (previousPrimary) {
+      this.withAbilityContext(previousPrimary, false, () => applyOnLoseAbAttrs({ pokemon: this, passive: false }));
+    } else {
+      applyOnLoseAbAttrs({ pokemon: this, passive });
+    }
     if (passive) {
       this.summonData.passiveAbility = ability.id;
     } else {
       this.summonData.ability = ability.id;
+      this.summonData.abilityFirstSlotOnly = firstSlotOnly;
     }
     applyOnGainAbAttrs({ pokemon: this, passive });
   }
@@ -2601,8 +2608,8 @@ export abstract class Pokemon extends Phaser.GameObjects.Container {
     const abilities = this.getAllAbilities();
     const entries = abilities.map((ability, index) => ({ ability, passive: this.hasPassive() && index % 2 === 1 }));
     if (!ignoreOverride && this.summonData.ability) {
-      for (const entry of entries) {
-        if (!entry.passive) {
+      for (const [index, entry] of entries.entries()) {
+        if (!entry.passive && (!this.summonData.abilityFirstSlotOnly || index === 0)) {
           entry.ability = allAbilities[this.summonData.ability];
         }
       }
@@ -6506,7 +6513,7 @@ export class PlayerPokemon extends Pokemon {
     // Add to candy progress for this mon's starter species and its fused species (if it has one)
     starterData.forEach(([sd, id]: [StarterDataEntry, SpeciesId]) => {
       sd.friendship = (sd.friendship || 0) + candyFriendshipAmount;
-      const friendshipCap = getStarterValueFriendshipCap(speciesDataRegistry.getStarterCost(id));
+      const friendshipCap = getStarterValueFriendshipCap(speciesDataRegistry.getStarterEconomyCost(id));
       if (sd.friendship >= friendshipCap) {
         const wasCandyIncremeted = gameData.addStarterCandy(id, Math.floor(sd.friendship / friendshipCap));
         if (wasCandyIncremeted) {

@@ -2120,6 +2120,7 @@ export const trainerConfigs: TrainerConfigs = {
         SpeciesId.CARVANHA,
         SpeciesId.WAILMER,
         SpeciesId.SPHEAL,
+        SpeciesId.TUBAOQIU,
         SpeciesId.CLAMPERL,
         SpeciesId.SHELLOS,
         SpeciesId.MANTYKE,
@@ -2585,6 +2586,7 @@ export const trainerConfigs: TrainerConfigs = {
         SpeciesId.WAILMER,
         SpeciesId.CLAMPERL,
         SpeciesId.SPHEAL,
+        SpeciesId.TUBAOQIU,
       ],
       [TrainerPoolTier.RARE]: [
         SpeciesId.MANTYKE,

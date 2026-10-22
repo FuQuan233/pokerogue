@@ -42,6 +42,7 @@ import { getPokemonFormChanges, type SpeciesFormChange } from "#data/pokemon-for
 import type { PokemonSpecies, PokemonSpeciesFilter } from "#data/pokemon-species";
 import { getTrainerLoadout, limitTrainerItems } from "#data/trainer-loadout";
 import { getTrainerStrength } from "#data/trainer-strength";
+import { getTubaoqiuAtlas } from "#data/tubaoqiu-assets";
 import { getTypeRgb } from "#data/type";
 import { BattleType } from "#enums/battle-type";
 import { BattlerTagType } from "#enums/battler-tag-type";
@@ -360,7 +361,7 @@ export class BattleScene extends SceneBase {
   }
 
   public loadPokemonAtlas(key: string, atlasPath: string, experimental = settings.expSpritesEnabled): void {
-    const customAtlas = getBaolilongAtlas(atlasPath);
+    const customAtlas = getBaolilongAtlas(atlasPath) ?? getTubaoqiuAtlas(atlasPath);
     if (customAtlas) {
       this.load.atlas(key, customAtlas.url, customAtlas.data);
       return;

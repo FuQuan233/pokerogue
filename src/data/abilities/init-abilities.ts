@@ -117,6 +117,7 @@ import {
   PostSummonCopyAllyStatsAbAttr,
   PostSummonFormChangeAbAttr,
   PostSummonFormChangeByWeatherAbAttr,
+  PostSummonGiveOthersAbilityAbAttr,
   PostSummonHealStatusAbAttr,
   PostSummonMessageAbAttr,
   PostSummonRemoveArenaTagAbAttr,
@@ -2223,6 +2224,15 @@ export function initAbilities() {
           powerMult.value *= 1 + Math.max(0, pokemon.getBaoBaoHealthSegments() - 1) * 0.5;
         }
       })
+      .ignorable()
+      .build(),
+    new AbBuilder(AbilityId.FA_BAO_SHI_LING, 9)
+      .attr(MoveTypePowerBoostAbAttr, PokemonType.GROUND, 1.5)
+      .attr(MoveTypePowerBoostAbAttr, PokemonType.ICE, 1.5)
+      .attr(ReceivedTypeDamageMultiplierAbAttr, PokemonType.FIRE, 0.5)
+      .attr(ReceivedTypeDamageMultiplierAbAttr, PokemonType.ICE, 0.5)
+      .attr(TypeImmunityHealAbAttr, PokemonType.WATER)
+      .attr(PostSummonGiveOthersAbilityAbAttr, AbilityId.TRUANT)
       .ignorable()
       .build(),
   );

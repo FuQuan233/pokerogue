@@ -5,6 +5,7 @@ import { SceneBase } from "#app/scene-base";
 import { isMobile } from "#app/touch-controls";
 import { loadBaolilongIcons, registerBaolilongIcons } from "#data/baolilong-assets";
 import { registerSphealBlessingIcon } from "#data/spheal-blessing-icon";
+import { loadTubaoqiuIcons, registerTubaoqiuIcons } from "#data/tubaoqiu-assets";
 import { BiomeId } from "#enums/biome-id";
 import { GachaType } from "#enums/gacha-types";
 import { getBiomeHasProps } from "#field/arena";
@@ -542,6 +543,7 @@ export class LoadingScene extends SceneBase {
 
   async create() {
     registerBaolilongIcons(this.textures);
+    registerTubaoqiuIcons(this.textures);
     registerSphealBlessingIcon(this.textures);
     this.events.once(Phaser.Scenes.Events.DESTROY, () => this.handleDestroy());
     this.scene.start("battle");
@@ -623,6 +625,7 @@ export class LoadingScene extends SceneBase {
 
   private loadPokemonIcons(): this {
     loadBaolilongIcons(this.load);
+    loadTubaoqiuIcons(this.load);
     for (let i = 0; i < 10; i++) {
       this.loadAtlas(`pokemon_icons_${i}`, "");
       if (i) {

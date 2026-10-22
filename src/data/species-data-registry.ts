@@ -285,6 +285,12 @@ export class SpeciesDataRegistry {
     return speciesData.starterCost as StarterCost;
   }
 
+  /** Candy costs, friendship and egg weights may differ from party selection cost. */
+  public getStarterEconomyCost(speciesId: SpeciesId): StarterCost {
+    const data = this.getSpeciesData(this.getStarter(speciesId));
+    return this.getStarterCost(data.economyReference ?? data.species.speciesId);
+  }
+
   /**
    * Get all starters.
    * @param getSpecies - (Default `false`) Whether to return {@linkcode PokemonSpecies} instead of {@linkcode SpeciesId}.
