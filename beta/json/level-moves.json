@@ -127554,6 +127554,125 @@
     "move": "WATER_SPOUT"
   },
   {
+    "dexNum": 1901,
+    "id": "TUBAOQIU",
+    "form": null,
+    "level": 1,
+    "move": "BUBBLE"
+  },
+  {
+    "dexNum": 1901,
+    "id": "TUBAOQIU",
+    "form": null,
+    "level": 1,
+    "move": "WITHDRAW"
+  },
+  {
+    "dexNum": 1901,
+    "id": "TUBAOQIU",
+    "form": null,
+    "level": 1,
+    "move": "POISON_STING"
+  },
+  {
+    "dexNum": 1901,
+    "id": "TUBAOQIU",
+    "form": null,
+    "level": 1,
+    "move": "POISON_GAS"
+  },
+  {
+    "dexNum": 1901,
+    "id": "TUBAOQIU",
+    "form": null,
+    "level": 6,
+    "move": "WATER_PULSE"
+  },
+  {
+    "dexNum": 1901,
+    "id": "TUBAOQIU",
+    "form": null,
+    "level": 8,
+    "move": "POISON_TAIL"
+  },
+  {
+    "dexNum": 1901,
+    "id": "TUBAOQIU",
+    "form": null,
+    "level": 10,
+    "move": "BRINE"
+  },
+  {
+    "dexNum": 1901,
+    "id": "TUBAOQIU",
+    "form": null,
+    "level": 12,
+    "move": "TOXIC"
+  },
+  {
+    "dexNum": 1901,
+    "id": "TUBAOQIU",
+    "form": null,
+    "level": 14,
+    "move": "SCALD"
+  },
+  {
+    "dexNum": 1901,
+    "id": "TUBAOQIU",
+    "form": null,
+    "level": 16,
+    "move": "TOXIC_SPIKES"
+  },
+  {
+    "dexNum": 1901,
+    "id": "TUBAOQIU",
+    "form": null,
+    "level": 18,
+    "move": "BOUNCY_BUBBLE"
+  },
+  {
+    "dexNum": 1901,
+    "id": "TUBAOQIU",
+    "form": null,
+    "level": 20,
+    "move": "POISON_JAB"
+  },
+  {
+    "dexNum": 1901,
+    "id": "TUBAOQIU",
+    "form": null,
+    "level": 22,
+    "move": "ORIGIN_PULSE"
+  },
+  {
+    "dexNum": 1901,
+    "id": "TUBAOQIU",
+    "form": null,
+    "level": 24,
+    "move": "BANEFUL_BUNKER"
+  },
+  {
+    "dexNum": 1901,
+    "id": "TUBAOQIU",
+    "form": null,
+    "level": 26,
+    "move": "SPLISHY_SPLASH"
+  },
+  {
+    "dexNum": 1901,
+    "id": "TUBAOQIU",
+    "form": null,
+    "level": 28,
+    "move": "BARB_BARRAGE"
+  },
+  {
+    "dexNum": 1901,
+    "id": "TUBAOQIU",
+    "form": null,
+    "level": 30,
+    "move": "SPARKLING_ARIA"
+  },
+  {
     "dexNum": 2019,
     "id": "ALOLA_RATTATA",
     "form": null,
